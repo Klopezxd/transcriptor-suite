@@ -13,11 +13,20 @@ authors = [
 ]
 license = { text = "MIT" }
 keywords = ["whisper", "whisperx", "transcription", "diarization", "speech-to-text", "pytorch", "cuda"]
+dependencies = [
+    "torch",
+    "torchaudio",
+    "whisperx",
+    "gradio>=4.0.0",
+    "pyannote.audio",
+    "requests",
+]
 
 [tool.ruff]
 line-length = 100
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B"]
-ignore = ["E501", "B008", "W291"]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "PIE"]
+ignore = ["E501", "B008", "W291", "SIM117"]
+

@@ -17,19 +17,13 @@ from src.config import TimestampMode
 class TranscriptionError(Exception):
     """Excepción base para errores en el pipeline de transcripción."""
 
-    pass
-
 
 class MissingTokenError(TranscriptionError):
     """Lanzada cuando se requiere un token de Hugging Face y no fue provisto."""
 
-    pass
-
 
 class AudioProcessingError(TranscriptionError):
     """Lanzada cuando un archivo multimedia no puede ser procesado o cargado."""
-
-    pass
 
 
 # --- Logging Configuración ---
@@ -149,7 +143,7 @@ def _resolve_secret(env_var: str, explicit_val: str | None = None) -> str | None
                         val = line.split("=", 1)[1].strip().strip("\"'")
                         if val:
                             return val
-        except Exception:
+        except OSError:
             pass
 
     return None

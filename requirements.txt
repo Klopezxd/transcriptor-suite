@@ -4,5 +4,5 @@ git+https://github.com/m-bain/whisperX.git
 gradio>=4.0.0
 spaces
 pyannote.audio
-python-dotenv
 requests
+

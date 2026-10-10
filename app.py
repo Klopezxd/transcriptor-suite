@@ -70,7 +70,9 @@ def process_transcription(
     if not media_file:
         return (
             "⚠️ Por favor selecciona o arrastra un archivo de audio o video para comenzar.",
-            gr.DownloadButton(label="Descargar transcripción (.txt)", value=None, interactive=False),
+            gr.DownloadButton(
+                label="Descargar transcripción (.txt)", value=None, interactive=False
+            ),
             '<span class="status-badge status-warning">Sin archivo</span>',
         )
 
@@ -95,7 +97,9 @@ def process_transcription(
                 "1. Acepta los términos de uso en: https://huggingface.co/pyannote/speaker-diarization-3.1\n"
                 "2. Acepta los términos en: https://huggingface.co/pyannote/segmentation-3.0\n"
                 "3. Ingresa tu token con permisos de lectura en el campo de Hugging Face.",
-                gr.DownloadButton(label="Descargar transcripción (.txt)", value=None, interactive=False),
+                gr.DownloadButton(
+                    label="Descargar transcripción (.txt)", value=None, interactive=False
+                ),
                 '<span class="status-badge status-error">Token HF requerido</span>',
             )
 
@@ -113,7 +117,9 @@ def process_transcription(
                 "• Si tienes tu clave personal, ingrésala en el panel de credenciales.\n"
                 "• Si eres administrador, inicia sesión para utilizar las claves del servidor.\n"
                 "• O selecciona 'WhisperX (ZeroGPU / Local)' para transcribir de forma 100% gratuita.",
-                gr.DownloadButton(label="Descargar transcripción (.txt)", value=None, interactive=False),
+                gr.DownloadButton(
+                    label="Descargar transcripción (.txt)", value=None, interactive=False
+                ),
                 '<span class="status-badge status-error">API Key requerida</span>',
             )
 
@@ -131,7 +137,9 @@ def process_transcription(
                 "• Si tienes tu clave personal, ingrésala en el panel de credenciales.\n"
                 "• Si eres administrador, inicia sesión para utilizar las claves del servidor.\n"
                 "• O selecciona 'WhisperX (ZeroGPU / Local)' para transcribir de forma 100% gratuita.",
-                gr.DownloadButton(label="Descargar transcripción (.txt)", value=None, interactive=False),
+                gr.DownloadButton(
+                    label="Descargar transcripción (.txt)", value=None, interactive=False
+                ),
                 '<span class="status-badge status-error">API Key requerida</span>',
             )
 
@@ -158,7 +166,11 @@ def process_transcription(
                 progress_callback=on_progress,
             )
 
-        lang_info = f"Idioma: {result.detected_language.upper()}" if getattr(result, "detected_language", None) else "Completado"
+        lang_info = (
+            f"Idioma: {result.detected_language.upper()}"
+            if getattr(result, "detected_language", None)
+            else "Completado"
+        )
         status_html = f'<span class="status-badge status-success">✓ {lang_info}</span>'
 
         return (
@@ -176,7 +188,9 @@ def process_transcription(
         logger.error("Error en procesamiento web: %s", e)
         return (
             f"❌ Error de transcripción:\n{e}",
-            gr.DownloadButton(label="Descargar transcripción (.txt)", value=None, interactive=False),
+            gr.DownloadButton(
+                label="Descargar transcripción (.txt)", value=None, interactive=False
+            ),
             '<span class="status-badge status-error">Error</span>',
         )
     except Exception as e:
@@ -184,294 +198,601 @@ def process_transcription(
         logger.exception("Error inesperado en aplicación web")
         return (
             f"❌ Ocurrió un error inesperado durante el procesamiento:\n{e}",
-            gr.DownloadButton(label="Descargar transcripción (.txt)", value=None, interactive=False),
+            gr.DownloadButton(
+                label="Descargar transcripción (.txt)", value=None, interactive=False
+            ),
             '<span class="status-badge status-error">Error inesperado</span>',
         )
 
 
-# --- Hojas de Estilo CSS Modernas ---
+# --- Hojas de Estilo CSS Modernas: Skin Aurora Boreal Nórdica ---
 custom_css = """
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-    --bg-base: #0B0F19;
-    --bg-surface: #111827;
-    --bg-surface-elevated: #162032;
-    --bg-input: #0c1322;
-    --border-color: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(56, 189, 248, 0.4);
-    --border-focus: #06B6D4;
-    --primary-gradient: linear-gradient(135deg, #059669 0%, #0284c7 100%);
-    --primary-hover: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
-    --text-primary: #F8FAFC;
+    /* Paleta Aurora Boreal Nórdica (design.md) */
+    --aurora-green: #00FF87;
+    --arctic-blue: #0A1628;
+    --deep-midnight: #050B1A;
+    --ice-cyan: #00D4FF;
+    --violet-sky: #7B2FBE;
+    --glacier-pink: #FF6EC7;
+    --frost-white: #E8F4F8;
+    --snow: #FAFBFC;
+    --arctic-input: #060E1D;
+
+    /* Tokens semánticos de la interfaz */
+    --bg-base: var(--deep-midnight);
+    --bg-surface: rgba(10, 22, 40, 0.82);
+    --bg-surface-elevated: #0F1E36;
+    --bg-input: var(--arctic-input);
+    --border-color: rgba(0, 212, 255, 0.14);
+    --border-hover: rgba(0, 255, 135, 0.45);
+    --border-focus: #00FF87;
+    --primary-gradient: linear-gradient(135deg, #00FF87 0%, #00D4FF 100%);
+    --primary-hover: linear-gradient(135deg, #00D4FF 0%, #7B2FBE 100%);
+    --text-primary: var(--frost-white);
     --text-secondary: #94A3B8;
-    --text-muted: #64748B;
-    --color-emerald: #10B981;
-    --color-cyan: #06B6D4;
+    --text-muted: #5A6E85;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box !important;
 }
 
 body, html {
-    background-color: var(--bg-base) !important;
+    background-color: var(--deep-midnight) !important;
+    background-image:
+        radial-gradient(circle at 16% 12%, rgba(0, 255, 135, 0.09) 0%, transparent 45%),
+        radial-gradient(circle at 84% 10%, rgba(123, 47, 190, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 50% 48%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 78% 88%, rgba(255, 110, 199, 0.04) 0%, transparent 40%) !important;
+    background-attachment: fixed !important;
     color: var(--text-primary) !important;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+    font-family: 'Montserrat', system-ui, -apple-system, sans-serif !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-.gradio-container {
-    max-width: 1400px !important;
-    width: 95% !important;
-    margin: 0 auto !important;
-    padding: 18px 12px 30px 12px !important;
+/* ── MODO SINGLE-LANDING VIEWPORT (DESKTOP: SIN SCROLL DE PÁGINA) ─── */
+@media (min-width: 900px) {
+    html, body {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+    }
+
+    .gradio-container {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        padding: 8px 16px 6px 16px !important;
+    }
+
+    .gradio-container > div:not(.modal-overlay) {
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .main-dashboard-row {
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        align-items: stretch !important;
+        gap: 14px !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .dashboard-col {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .panel-card {
+        height: 100% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        margin-bottom: 0 !important;
+    }
 }
 
-/* ── NAVBAR HEADER ────────────────────────────────── */
+/* ── RESPONSIVE FALLBACK (MOBILE/PANTALLAS PEQUEÑAS) ── */
+@media (max-width: 899px) {
+    body, html {
+        overflow-y: auto !important;
+    }
+
+    .gradio-container {
+        padding: 10px 10px 20px 10px !important;
+        height: auto !important;
+    }
+
+    .main-dashboard-row {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+
+    .dashboard-col {
+        width: 100% !important;
+    }
+
+    .panel-card {
+        margin-bottom: 12px !important;
+    }
+
+    .output-textbox textarea {
+        min-height: 300px !important;
+    }
+}
+
+.gradio-container {
+    max-width: 1460px !important;
+    width: 96% !important;
+    margin: 0 auto !important;
+}
+
+/* ── NAVBAR HEADER AURORA SLIM ────────────────────── */
 .app-navbar {
     display: flex !important;
+    flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 14px 22px !important;
-    background: rgba(17, 24, 39, 0.8) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
+    flex-wrap: nowrap !important;
+    padding: 6px 16px !important;
+    background: rgba(10, 22, 40, 0.78) !important;
+    backdrop-filter: blur(18px) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
     border: 1px solid var(--border-color) !important;
-    border-radius: 14px !important;
-    margin-bottom: 16px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 16px !important;
+    margin-bottom: 8px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    box-shadow: 0 4px 20px rgba(5, 11, 26, 0.5), 0 0 1px 1px rgba(0, 212, 255, 0.1) !important;
+    flex-shrink: 0 !important;
 }
 
 .nav-brand {
     display: flex !important;
     align-items: center !important;
-    gap: 12px !important;
+    gap: 10px !important;
+    flex: 1 1 auto !important;
 }
 
 .brand-icon {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 36px !important;
-    height: 36px !important;
-    background: rgba(6, 182, 212, 0.12) !important;
-    border: 1px solid rgba(6, 182, 212, 0.3) !important;
-    border-radius: 9px !important;
-    color: var(--color-cyan) !important;
+    width: 30px !important;
+    height: 30px !important;
+    background: rgba(0, 255, 135, 0.1) !important;
+    border: 1px solid rgba(0, 255, 135, 0.35) !important;
+    border-radius: 8px !important;
+    color: var(--aurora-green) !important;
+    box-shadow: 0 0 12px rgba(0, 255, 135, 0.18) !important;
     flex-shrink: 0 !important;
 }
 
 .brand-titles h1 {
-    font-size: 1.18rem !important;
+    font-size: 1.02rem !important;
     font-weight: 800 !important;
     margin: 0 !important;
-    line-height: 1.2 !important;
-    background: linear-gradient(135deg, #FFFFFF 30%, #38BDF8 100%) !important;
+    line-height: 1.15 !important;
+    background: linear-gradient(135deg, #FAFBFC 15%, #00FF87 55%, #00D4FF 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
 }
 
 .brand-titles p {
-    font-size: 0.76rem !important;
+    font-size: 0.70rem !important;
     color: var(--text-secondary) !important;
-    margin: 2px 0 0 0 !important;
+    margin: 0 !important;
 }
 
 .nav-actions {
     display: flex !important;
     align-items: center !important;
-    gap: 10px !important;
+    justify-content: flex-end !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: unset !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 8px !important;
 }
 
-/* ── PANELS & CARDS ──────────────────────────────── */
+/* ── BOTÓN DE LOGIN COMPACTO (FROSTED GLASS PILL) ─── */
+.btn-login-compact {
+    width: auto !important;
+    min-width: unset !important;
+    max-width: 115px !important;
+    height: 30px !important;
+    padding: 4px 12px !important;
+    font-size: 0.76rem !important;
+    font-weight: 600 !important;
+    border-radius: 9px !important;
+    background: rgba(232, 244, 248, 0.04) !important;
+    border: 1px solid rgba(0, 212, 255, 0.16) !important;
+    color: var(--text-primary) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+    transition: all 0.25s ease !important;
+    cursor: pointer !important;
+}
+
+.btn-login-compact:hover {
+    background: rgba(0, 212, 255, 0.1) !important;
+    border-color: rgba(0, 255, 135, 0.45) !important;
+    color: var(--aurora-green) !important;
+    box-shadow: 0 0 14px rgba(0, 255, 135, 0.22) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ── MÓDULOS PRINCIPALES CON BORDES DIFUMINADOS ───── */
 .panel-card {
     background: var(--bg-surface) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
     border: 1px solid var(--border-color) !important;
-    border-radius: 14px !important;
-    padding: 16px 18px !important;
-    margin-bottom: 14px !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    border-radius: 20px !important;
+    padding: 14px 16px !important;
+    box-shadow: 0 8px 32px rgba(5, 11, 26, 0.65), 0 0 1px 1px rgba(0, 212, 255, 0.08), inset 0 1px 0 rgba(232, 244, 248, 0.05) !important;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
+    box-sizing: border-box !important;
 }
 
 .panel-card:hover {
-    border-color: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(0, 255, 135, 0.3) !important;
+    box-shadow: 0 10px 38px rgba(5, 11, 26, 0.75), 0 0 18px rgba(0, 255, 135, 0.12), inset 0 1px 0 rgba(232, 244, 248, 0.08) !important;
+}
+
+/* ── ELIMINACIÓN DE CUADROS ANIDADOS (CERO BORDES REDUNDANTES EN GRADIO BLOCKS) ── */
+.panel-card .block,
+.panel-card .gr-block,
+.panel-card .form,
+.panel-card fieldset {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 .panel-header {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    margin-bottom: 12px !important;
-    padding-bottom: 8px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 6px !important;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.1) !important;
+    flex-shrink: 0 !important;
 }
 
 .panel-title {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
-    font-size: 0.88rem !important;
+    gap: 7px !important;
+    font-size: 0.86rem !important;
     font-weight: 700 !important;
-    color: #F1F5F9 !important;
+    color: var(--frost-white) !important;
     letter-spacing: -0.01em !important;
 }
 
 .panel-title-icon {
-    font-size: 1rem !important;
+    font-size: 0.95rem !important;
 }
 
-/* ── FORM ELEMENTS ───────────────────────────────── */
+.section-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #8BA2BF;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+}
+
+.config-panel {
+    overflow-y: auto !important;
+}
+
+.config-panel::-webkit-scrollbar {
+    width: 5px;
+}
+
+.config-panel::-webkit-scrollbar-thumb {
+    background: rgba(0, 212, 255, 0.2);
+    border-radius: 8px;
+}
+
+.config-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--aurora-green);
+}
+
+/* ── FORM ELEMENTS EN ESTILO ÁRTICO NÓRDICO ──────── */
 .gradio-container label span {
-    font-size: 0.75rem !important;
+    font-size: 0.71rem !important;
     font-weight: 600 !important;
-    color: var(--text-secondary) !important;
+    color: #8BA2BF !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.04em !important;
-    margin-bottom: 4px !important;
+    letter-spacing: 0.03em !important;
+    margin-bottom: 2px !important;
 }
 
 .gradio-container input[type="text"],
 .gradio-container input[type="password"],
-.gradio-container select,
-.gradio-container textarea {
-    background-color: var(--bg-input) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 9px !important;
-    color: var(--text-primary) !important;
-    font-size: 0.85rem !important;
+.gradio-container select {
+    background-color: var(--arctic-input) !important;
+    border: 1px solid rgba(0, 212, 255, 0.14) !important;
+    border-radius: 10px !important;
+    color: var(--frost-white) !important;
+    font-size: 0.82rem !important;
     transition: all 0.2s ease !important;
 }
 
 .gradio-container input[type="text"]:focus,
 .gradio-container input[type="password"]:focus,
-.gradio-container select:focus,
-.gradio-container textarea:focus {
-    border-color: var(--border-focus) !important;
-    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2) !important;
+.gradio-container select:focus {
+    border-color: var(--aurora-green) !important;
+    box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.22), 0 0 12px rgba(0, 255, 135, 0.15) !important;
     outline: none !important;
 }
 
-.gradio-container .file-upload,
-.gradio-container [data-testid="file-upload"] {
-    background: rgba(12, 19, 34, 0.6) !important;
-    border: 1.5px dashed rgba(56, 189, 248, 0.28) !important;
+.panel-card label:has(input[type="checkbox"]) {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    padding: 6px 10px !important;
+    background: rgba(232, 244, 248, 0.03) !important;
+    border: 1px solid rgba(0, 212, 255, 0.1) !important;
     border-radius: 10px !important;
-    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    margin-top: 1px !important;
 }
 
-.gradio-container .file-upload:hover,
-.gradio-container [data-testid="file-upload"]:hover {
-    border-color: var(--color-cyan) !important;
-    background: rgba(6, 182, 212, 0.05) !important;
+.panel-card label:has(input[type="checkbox"]):hover {
+    border-color: rgba(0, 255, 135, 0.3) !important;
+    background: rgba(0, 255, 135, 0.03) !important;
 }
 
-/* ── OUTPUT TEXTBOX ──────────────────────────────── */
+.compact-row {
+    margin-bottom: 5px !important;
+    gap: 8px !important;
+}
+
+/* ── FILE UPLOAD COMPACTO CON BORDE DIFUMINADO ───── */
+.file-input-compact {
+    margin-bottom: 2px !important;
+}
+
+.file-input-compact .file-upload,
+.file-input-compact [data-testid="file-upload"] {
+    background: rgba(6, 14, 29, 0.6) !important;
+    border: 1.5px dashed rgba(0, 212, 255, 0.26) !important;
+    border-radius: 14px !important;
+    min-height: 80px !important;
+    padding: 6px !important;
+    transition: all 0.25s ease !important;
+}
+
+.file-input-compact .file-upload:hover,
+.file-input-compact [data-testid="file-upload"]:hover {
+    border-color: var(--aurora-green) !important;
+    background: rgba(0, 255, 135, 0.04) !important;
+    box-shadow: 0 0 16px rgba(0, 255, 135, 0.16) !important;
+}
+
+.file-hint {
+    font-size: 0.69rem !important;
+    color: #627A97 !important;
+    margin-top: 1px !important;
+    margin-bottom: 5px !important;
+}
+
+.credentials-subpanel {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-top: 2px !important;
+}
+
+/* ── PANEL DE RESULTADOS Y TEXTBOX A LA MISMA ALTURA ── */
+.result-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+.output-textbox {
+    flex: 1 1 0% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    margin-bottom: 6px !important;
+    overflow: hidden !important;
+}
+
+.output-textbox > label,
+.output-textbox .wrap,
+.output-textbox > div {
+    flex: 1 1 0% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
 .output-textbox textarea {
+    flex: 1 1 0% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.84rem !important;
+    font-size: 0.82rem !important;
     line-height: 1.6 !important;
-    background-color: #070c16 !important;
-    border: 1px solid rgba(255, 255, 255, 0.09) !important;
-    border-radius: 10px !important;
-    color: #E2E8F0 !important;
+    background-color: #040813 !important;
+    border: 1px solid rgba(0, 212, 255, 0.12) !important;
+    border-radius: 14px !important;
+    color: var(--frost-white) !important;
     padding: 12px 14px !important;
-    resize: vertical !important;
+    resize: none !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
-/* ── BUTTONS ─────────────────────────────────────── */
+.output-textbox textarea:focus {
+    border-color: rgba(0, 255, 135, 0.4) !important;
+    box-shadow: 0 0 16px rgba(0, 212, 255, 0.12) !important;
+}
+
+.output-textbox textarea::-webkit-scrollbar {
+    width: 6px;
+}
+.output-textbox textarea::-webkit-scrollbar-track {
+    background: rgba(4, 8, 19, 0.4);
+    border-radius: 8px;
+}
+.output-textbox textarea::-webkit-scrollbar-thumb {
+    background: rgba(0, 212, 255, 0.22);
+    border-radius: 8px;
+}
+.output-textbox textarea::-webkit-scrollbar-thumb:hover {
+    background: var(--aurora-green);
+    box-shadow: 0 0 8px rgba(0, 255, 135, 0.5);
+}
+
+.panel-spacer {
+    flex: 1 1 0% !important;
+    min-height: 4px !important;
+}
+
+.action-buttons-row {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+    padding-top: 8px !important;
+    border-top: 1px solid rgba(0, 212, 255, 0.08) !important;
+    gap: 8px !important;
+}
+
+/* ── BOTONES AURORA BOREAL (ALTO IMPACTO Y CONTRASTE) ── */
 .btn-primary {
     background: var(--primary-gradient) !important;
-    color: #FFFFFF !important;
+    color: #050B1A !important;
     font-weight: 700 !important;
-    font-size: 0.9rem !important;
+    font-size: 0.86rem !important;
     border: none !important;
-    border-radius: 10px !important;
-    padding: 10px 18px !important;
-    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3) !important;
-    transition: all 0.2s ease !important;
+    border-radius: 11px !important;
+    padding: 8px 16px !important;
+    box-shadow: 0 4px 18px rgba(0, 255, 135, 0.32) !important;
+    transition: all 0.25s ease !important;
     cursor: pointer !important;
 }
 
 .btn-primary:hover {
     background: var(--primary-hover) !important;
-    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.45) !important;
+    color: #FAFBFC !important;
+    box-shadow: 0 6px 24px rgba(0, 212, 255, 0.48), 0 0 16px rgba(123, 47, 190, 0.3) !important;
     transform: translateY(-1px) !important;
 }
 
 .btn-secondary {
-    background: rgba(255, 255, 255, 0.06) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    background: rgba(232, 244, 248, 0.04) !important;
+    border: 1px solid rgba(0, 212, 255, 0.16) !important;
     color: var(--text-primary) !important;
     font-weight: 600 !important;
-    font-size: 0.85rem !important;
-    border-radius: 9px !important;
-    transition: all 0.2s ease !important;
+    font-size: 0.82rem !important;
+    border-radius: 11px !important;
+    padding: 8px 14px !important;
+    transition: all 0.25s ease !important;
     cursor: pointer !important;
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-color: rgba(255, 255, 255, 0.2) !important;
+    background: rgba(0, 212, 255, 0.08) !important;
+    border-color: rgba(0, 255, 135, 0.4) !important;
+    color: var(--aurora-green) !important;
+    box-shadow: 0 0 12px rgba(0, 255, 135, 0.15) !important;
 }
 
-.btn-nav {
-    padding: 6px 14px !important;
-    height: 34px !important;
-    font-size: 0.8rem !important;
-    border-radius: 8px !important;
-}
-
-/* ── STATUS BADGES ───────────────────────────────── */
+/* ── BADGES & NOTICES EN TONOS BOREALES ───────────── */
 .status-badge {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 3px 9px;
-    border-radius: 6px;
-    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 7px;
+    font-size: 0.70rem;
     font-weight: 600;
 }
 
 .status-success {
-    background: rgba(16, 185, 129, 0.14);
-    color: #34D399;
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    background: rgba(0, 255, 135, 0.12);
+    color: var(--aurora-green);
+    border: 1px solid rgba(0, 255, 135, 0.35);
+    box-shadow: 0 0 10px rgba(0, 255, 135, 0.18);
 }
 
 .status-error {
     background: rgba(239, 68, 68, 0.14);
     color: #F87171;
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    border: 1px solid rgba(239, 68, 68, 0.35);
 }
 
 .status-warning {
-    background: rgba(245, 158, 11, 0.14);
-    color: #FBBF24;
-    border: 1px solid rgba(245, 158, 11, 0.3);
+    background: rgba(255, 110, 199, 0.12);
+    color: var(--glacier-pink);
+    border: 1px solid rgba(255, 110, 199, 0.35);
 }
 
 .info-notice {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 0.76rem;
-    background: rgba(6, 182, 212, 0.08);
-    border: 1px solid rgba(6, 182, 212, 0.2);
+    gap: 7px;
+    padding: 6px 10px;
+    border-radius: 9px;
+    font-size: 0.72rem;
+    background: rgba(0, 212, 255, 0.08);
+    border: 1px solid rgba(0, 212, 255, 0.22);
     color: #7DD3FC;
-    margin-top: 6px;
+    margin-top: 3px;
 }
 
-/* ── MODAL ───────────────────────────────────────── */
+.info-free {
+    background: rgba(0, 255, 135, 0.08) !important;
+    border-color: rgba(0, 255, 135, 0.28) !important;
+    color: var(--aurora-green) !important;
+    box-shadow: 0 0 12px rgba(0, 255, 135, 0.12) !important;
+}
+
+/* ── MODAL DE ADMINISTRADOR ───────────────────────── */
 .modal-overlay {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    background: rgba(4, 8, 18, 0.82) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
+    background: rgba(3, 7, 18, 0.85) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
     z-index: 99999 !important;
     display: flex !important;
     align-items: center !important;
@@ -480,49 +801,80 @@ body, html {
 }
 
 .modal-dialog {
-    background: #111827 !important;
-    border: 1px solid rgba(255, 255, 255, 0.14) !important;
-    border-radius: 14px !important;
+    background: #0A1628 !important;
+    border: 1px solid rgba(0, 212, 255, 0.22) !important;
+    border-radius: 18px !important;
     width: 100% !important;
     max-width: 380px !important;
     padding: 22px !important;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 24px rgba(0, 212, 255, 0.15) !important;
 }
 
 .modal-title-row {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 10px !important;
 }
 
 .modal-title {
-    font-size: 0.98rem !important;
+    font-size: 0.96rem !important;
     font-weight: 700 !important;
-    color: #F8FAFC !important;
+    color: var(--frost-white) !important;
     margin: 0 !important;
 }
 
-.modal-subtext {
-    font-size: 0.76rem !important;
+.btn-modal-close {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 8px !important;
+    font-size: 0.85rem !important;
     color: var(--text-secondary) !important;
-    margin: 0 0 14px 0 !important;
+    background: rgba(232, 244, 248, 0.05) !important;
+    border: 1px solid rgba(0, 212, 255, 0.15) !important;
+    cursor: pointer !important;
+}
+
+.btn-modal-close:hover {
+    color: #F87171 !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.modal-subtext {
+    font-size: 0.75rem !important;
+    color: var(--text-secondary) !important;
+    margin: 0 0 12px 0 !important;
+}
+
+.app-footer {
+    flex: 0 0 auto !important;
+    text-align: center !important;
+    font-size: 0.70rem !important;
+    color: #627A97 !important;
+    padding: 4px 0 2px 0 !important;
+    border-top: 1px solid rgba(0, 212, 255, 0.06) !important;
 }
 """
 
-# Configuración de tema personalizado para Gradio
+# Configuración de tema personalizado para Gradio (Aurora Boreal Nórdica)
 custom_theme = gr.themes.Base(
     primary_hue=gr.themes.colors.emerald,
     secondary_hue=gr.themes.colors.cyan,
     neutral_hue=gr.themes.colors.slate,
-    font=[gr.themes.GoogleFont("Plus Jakarta Sans"), "system-ui", "sans-serif"],
+    font=[gr.themes.GoogleFont("Montserrat"), "system-ui", "sans-serif"],
     font_mono=[gr.themes.GoogleFont("JetBrains Mono"), "monospace"],
 ).set(
-    body_background_fill="#0B0F19",
-    body_text_color="#F8FAFC",
-    background_fill_primary="#111827",
-    background_fill_secondary="#0C1322",
-    border_color_primary="rgba(255, 255, 255, 0.08)",
+    body_background_fill="#050B1A",
+    body_text_color="#E8F4F8",
+    background_fill_primary="#0A1628",
+    background_fill_secondary="#060E1D",
+    border_color_primary="rgba(0, 212, 255, 0.14)",
 )
 
 # Compatibilidad transparente para Gradio < 6.0 y Gradio >= 6.0
@@ -548,13 +900,13 @@ with gr.Blocks(**blocks_kwargs) as demo:
     # Estado de sesión de administrador (False = Invitado, True = Administrador)
     admin_state = gr.State(value=False)
 
-    # ── 1. BARRA SUPERIOR (HEADER Y ACCESO) ─────────────────────
+    # ── 1. BARRA SUPERIOR (HEADER Y ACCESO COMPACTO) ────────────
     with gr.Row(elem_classes=["app-navbar"]):
         gr.HTML(
             """
             <div class="nav-brand">
                 <div class="brand-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
                         <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
                         <line x1="12" x2="12" y1="19" y2="22"/>
@@ -569,17 +921,32 @@ with gr.Blocks(**blocks_kwargs) as demo:
         )
 
         with gr.Row(elem_classes=["nav-actions"]):
-            btn_open_login = gr.Button("🔐 Iniciar sesión", size="sm", variant="secondary", elem_classes=["btn-secondary", "btn-nav"])
-            btn_logout = gr.Button("Cerrar sesión", size="sm", variant="secondary", elem_classes=["btn-secondary", "btn-nav"], visible=False)
+            btn_open_login = gr.Button(
+                "🔐 Admin",
+                size="sm",
+                variant="secondary",
+                elem_classes=["btn-secondary", "btn-login-compact"],
+            )
+            btn_logout = gr.Button(
+                "🔓 Salir",
+                size="sm",
+                variant="secondary",
+                elem_classes=["btn-secondary", "btn-login-compact"],
+                visible=False,
+            )
 
     # ── 2. MODAL DE LOGIN DE ADMINISTRADOR ──────────────────────
     with gr.Group(visible=False, elem_classes=["modal-overlay"]) as modal_login:
         with gr.Group(elem_classes=["modal-dialog"]):
             with gr.Row(elem_classes=["modal-title-row"]):
                 gr.HTML('<h3 class="modal-title">Acceso de Administrador</h3>')
-                btn_close_login = gr.Button("✕", size="sm", variant="secondary", min_width=32)
+                btn_close_login = gr.Button(
+                    "✕", size="sm", variant="secondary", elem_classes=["btn-modal-close"]
+                )
 
-            gr.HTML('<p class="modal-subtext">Ingresa tu PIN de acceso para activar las credenciales maestras del servidor.</p>')
+            gr.HTML(
+                '<p class="modal-subtext">Ingresa tu PIN de acceso para activar las credenciales maestras del servidor.</p>'
+            )
 
             input_pin = gr.Textbox(
                 type="password",
@@ -594,50 +961,45 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 btn_cancel_login = gr.Button("Cancelar", variant="secondary", scale=1)
                 btn_submit_login = gr.Button("Ingresar", variant="primary", scale=2)
 
-    # ── 3. CUERPO PRINCIPAL (2 COLUMNAS) ────────────────────────
-    with gr.Row(equal_height=False):
-        # Columna Izquierda: Entrada y Configuración
-        with gr.Column(scale=5):
-            # Panel 1: Archivo Multimedia
-            with gr.Group(elem_classes=["panel-card"]):
+    # ── 3. CUERPO PRINCIPAL (2 COLUMNAS EQUILIBRADAS - UN SOLO CUADRO POR CADA LADO) ──
+    with gr.Row(equal_height=True, elem_classes=["main-dashboard-row"]):
+        # Columna Izquierda: Entrada y Configuración (Un solo cuadro unificado)
+        with gr.Column(scale=5, elem_classes=["dashboard-col"]):
+            with gr.Group(elem_classes=["panel-card", "config-panel"]):
                 gr.HTML(
                     """
                     <div class="panel-header">
                         <div class="panel-title">
-                            <span class="panel-title-icon">📁</span>
-                            <span>Archivo de Audio o Video</span>
+                            <span class="panel-title-icon">⚡</span>
+                            <span>Configuración de Transcripción</span>
                         </div>
                     </div>
                     """
                 )
+
+                # 1. Archivo Multimedia
+                gr.HTML('<div class="section-label"><span>📁</span> Archivo de Audio o Video</div>')
                 media_input = gr.File(
                     label="Arrastra o selecciona tu archivo multimedia",
+                    show_label=False,
                     file_types=["audio", "video"],
                     file_count="single",
-                    height=100,
+                    height=85,
+                    elem_classes=["file-input-compact"],
                 )
                 gr.HTML(
                     """
-                    <div style="font-size: 0.72rem; color: #64748B; margin-top: 4px;">
+                    <div class="file-hint">
                         Formatos soportados: MP3, WAV, M4A, MP4, MKV, FLAC, OGG, WEBM, MOV, AAC.
                     </div>
                     """
                 )
 
-            # Panel 2: Motor y Modelo
-            with gr.Group(elem_classes=["panel-card"]):
+                # 2. Motor y Parámetros
                 gr.HTML(
-                    """
-                    <div class="panel-header">
-                        <div class="panel-title">
-                            <span class="panel-title-icon">⚙️</span>
-                            <span>Proveedor y Modelo</span>
-                        </div>
-                    </div>
-                    """
+                    '<div class="section-label" style="margin-top: 6px;"><span>⚙️</span> Motor y Opciones</div>'
                 )
-
-                with gr.Row():
+                with gr.Row(elem_classes=["compact-row"]):
                     provider_dropdown = gr.Dropdown(
                         choices=[
                             ProviderType.WHISPERX.value,
@@ -655,7 +1017,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         scale=1,
                     )
 
-                with gr.Row():
+                with gr.Row(elem_classes=["compact-row"]):
                     diarize_checkbox = gr.Checkbox(
                         value=False,
                         label="Identificar quién habla (Diarización)",
@@ -681,65 +1043,70 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     """
                 )
 
-            # Panel 3: Credenciales de API (Solo modo invitado, oculto para administrador)
-            with gr.Group(visible=True, elem_classes=["panel-card"]) as guest_keys_panel:
-                gr.HTML(
-                    """
-                    <div class="panel-header">
-                        <div class="panel-title">
-                            <span class="panel-title-icon">🔑</span>
-                            <span>Credenciales de API (Modo Invitado)</span>
+                # 3. Credenciales de API (Modo Invitado, integrada sin cuadro anidado)
+                with gr.Group(
+                    visible=True, elem_classes=["credentials-subpanel"]
+                ) as guest_keys_panel:
+                    gr.HTML(
+                        '<div class="section-label" style="margin-top: 6px;"><span>🔑</span> Credenciales de API</div>'
+                    )
+
+                    # Aviso cuando se usa WhisperX sin diarización
+                    whisperx_notice = gr.HTML(
+                        """
+                        <div class="info-notice info-free">
+                            <span>✨</span>
+                            <span>WhisperX en GPU es 100% gratuito y no requiere ninguna clave de API externa.</span>
                         </div>
-                    </div>
-                    """
-                )
+                        """,
+                        visible=True,
+                    )
 
-                # Aviso cuando se usa WhisperX sin diarización
-                whisperx_notice = gr.HTML(
-                    """
-                    <div class="info-notice" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); color: #6EE7B7;">
-                        <span>✨</span>
-                        <span>WhisperX en GPU es 100% gratuito y no requiere ninguna clave de API externa.</span>
-                    </div>
-                    """,
-                    visible=True,
-                )
+                    # Input para HF Token (WhisperX + Diarización)
+                    hf_token_box = gr.Textbox(
+                        label="Token de Hugging Face (HF_TOKEN)",
+                        placeholder="hf_...",
+                        type="password",
+                        info="Requerido al activar Diarización con WhisperX. Rol 'Read' con términos de pyannote aceptados.",
+                        visible=False,
+                    )
 
-                # Input para HF Token (WhisperX + Diarización)
-                hf_token_box = gr.Textbox(
-                    label="Token de Hugging Face (HF_TOKEN)",
-                    placeholder="hf_...",
-                    type="password",
-                    info="Requerido al activar Diarización con WhisperX. Rol 'Read' con términos de pyannote aceptados.",
-                    visible=False,
-                )
+                    # Input para Deepgram API Key
+                    deepgram_key_box = gr.Textbox(
+                        label="Deepgram API Key",
+                        placeholder="Pega tu clave de API de Deepgram...",
+                        type="password",
+                        info="Obtén tu clave con créditos iniciales gratuitos en console.deepgram.com",
+                        visible=False,
+                    )
 
-                # Input para Deepgram API Key
-                deepgram_key_box = gr.Textbox(
-                    label="Deepgram API Key",
-                    placeholder="Pega tu clave de API de Deepgram...",
-                    type="password",
-                    info="Obtén tu clave con créditos iniciales gratuitos en console.deepgram.com",
-                    visible=False,
-                )
+                    # Input para AssemblyAI API Key
+                    assemblyai_key_box = gr.Textbox(
+                        label="AssemblyAI API Key",
+                        placeholder="Pega tu clave de API de AssemblyAI...",
+                        type="password",
+                        info="Obtén tu clave gratuita en assemblyai.com",
+                        visible=False,
+                    )
 
-                # Input para AssemblyAI API Key
-                assemblyai_key_box = gr.Textbox(
-                    label="AssemblyAI API Key",
-                    placeholder="Pega tu clave de API de AssemblyAI...",
-                    type="password",
-                    info="Obtén tu clave gratuita en assemblyai.com",
-                    visible=False,
-                )
+                # Espaciador para fijar botones al fondo
+                gr.HTML('<div class="panel-spacer"></div>')
 
-            # Botones de Acción
-            with gr.Row():
-                btn_clear = gr.Button("🗑️ Limpiar", variant="secondary", elem_classes=["btn-secondary"], scale=1)
-                btn_transcribe = gr.Button("⚡ Iniciar Transcripción", variant="primary", elem_classes=["btn-primary"], scale=2)
+                # Botones de Acción
+                with gr.Row(elem_classes=["action-buttons-row"]):
+                    btn_clear = gr.Button(
+                        "🗑️ Limpiar", variant="secondary", elem_classes=["btn-secondary"], scale=1
+                    )
+                    btn_transcribe = gr.Button(
+                        "⚡ Iniciar Transcripción",
+                        variant="primary",
+                        elem_classes=["btn-primary"],
+                        scale=2,
+                    )
 
-        # Columna Derecha: Salida de la Transcripción
-        with gr.Column(scale=6):
-            with gr.Group(elem_classes=["panel-card"]):
+        # Columna Derecha: Salida de la Transcripción (Un solo cuadro a la misma altura simétrica)
+        with gr.Column(scale=6, elem_classes=["dashboard-col"]):
+            with gr.Group(elem_classes=["panel-card", "result-panel"]):
                 with gr.Row(elem_classes=["panel-header"]):
                     gr.HTML(
                         """
@@ -749,17 +1116,18 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         </div>
                         """
                     )
-                    status_badge = gr.HTML('<span class="status-badge status-warning">En espera</span>')
+                    status_badge = gr.HTML(
+                        '<span class="status-badge status-warning">En espera</span>'
+                    )
 
                 output_textbox = gr.Textbox(
                     show_label=False,
                     placeholder="El texto transcrito con locutores y marcas de tiempo aparecerá aquí...",
-                    lines=16,
-                    max_lines=35,
+                    lines=12,
                     elem_classes=["output-textbox"],
                 )
 
-                with gr.Row():
+                with gr.Row(elem_classes=["action-buttons-row"]):
                     btn_download = gr.DownloadButton(
                         label="📥 Descargar Documento (.txt)",
                         value=None,
@@ -776,7 +1144,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
     # ── FOOTER ─────────────────────────────────────────────────
     gr.HTML(
         """
-        <footer style="margin-top: 22px; padding: 12px 6px; text-align: center; font-size: 0.74rem; color: #64748B; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+        <footer class="app-footer">
             WhisperX Transcriptor · Modelos neuronales ASR con alineación fonética fonema a fonema y diarización de hablantes.
         </footer>
         """
@@ -983,9 +1351,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
         if request:
             params = getattr(request, "query_params", {})
             pin_val = None
-            if isinstance(params, dict):
-                pin_val = params.get("pin")
-            elif hasattr(params, "get"):
+            if isinstance(params, dict) or hasattr(params, "get"):
                 pin_val = params.get("pin")
 
             if pin_val and verify_admin_pin(pin_val):
@@ -1028,7 +1394,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
         return (
             None,
             "",
-            gr.DownloadButton(label="Descargar transcripción (.txt)", value=None, interactive=False),
+            gr.DownloadButton(label="📥 Descargar Documento (.txt)", value=None, interactive=False),
             '<span class="status-badge status-warning">En espera</span>',
         )
 
