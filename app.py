@@ -201,145 +201,275 @@ custom_css = """
     --sky-cyan: #38BDF8;
     --amethyst: #A855F7;
     --deep-midnight: #030712;
-    --surface-slate: rgba(15, 23, 42, 0.78);
+    --surface-slate: rgba(13, 21, 38, 0.82);
     --surface-darker: rgba(7, 12, 24, 0.9);
-    --glass-border: rgba(56, 189, 248, 0.16);
+    --glass-border: rgba(56, 189, 248, 0.18);
     --frost-white: #F8FAFC;
     --muted-slate: #94A3B8;
     --dark-text: #030712;
 }
 
-/* ── RESET & FULL-VIEWPORT ──────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
+/* ── BASE RESET & STRICT SINGLE-LANDING VIEWPORT ─── */
+*, *::before, *::after {
+    box-sizing: border-box !important;
+}
 
 html, body {
-    height: 100% !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    width: 100vw !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
     background-color: var(--deep-midnight) !important;
     background-image:
-        radial-gradient(circle at 15% 12%, rgba(0,255,135,.07) 0%, transparent 40%),
-        radial-gradient(circle at 85% 10%, rgba(168,85,247,.09) 0%, transparent 45%),
-        radial-gradient(circle at 50% 50%, rgba(0,212,255,.05) 0%, transparent 50%),
-        radial-gradient(circle at 80% 85%, rgba(0,255,135,.04) 0%, transparent 35%) !important;
+        radial-gradient(circle at 12% 10%, rgba(0, 255, 135, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 88% 8%, rgba(168, 85, 247, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.04) 0%, transparent 50%),
+        radial-gradient(circle at 80% 90%, rgba(0, 255, 135, 0.04) 0%, transparent 35%) !important;
     background-attachment: fixed !important;
     color: var(--frost-white) !important;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
     -webkit-font-smoothing: antialiased;
 }
 
-/* Root Gradio wrapper — full viewport, flex column */
+/* Root Gradio Container: Fills 100vh cleanly */
 .gradio-container {
-    max-width: 1340px !important;
-    width: 96% !important;
+    max-width: 1440px !important;
+    width: 98% !important;
     height: 100vh !important;
     max-height: 100vh !important;
     margin: 0 auto !important;
-    padding: 5px 10px !important;
+    padding: 7px 12px !important;
     display: flex !important;
     flex-direction: column !important;
+    justify-content: space-between !important;
     overflow: hidden !important;
-    gap: 0 !important;
+    gap: 6px !important;
+    box-sizing: border-box !important;
 }
 
-/* The inner gap-div Gradio generates must also flex and grow */
 .gradio-container > .gap,
 .gradio-container > div > .gap {
     flex: 1 1 auto !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
-    gap: 0 !important;
+    gap: 6px !important;
     min-height: 0 !important;
+    box-sizing: border-box !important;
 }
 
-/* ── MAIN TWO-COLUMN ROW ─────────────────────────── */
-.main-columns-row {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-    padding: 0 !important;
+/* ── HEADER ──────────────────────────────────────── */
+#app-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 6px 14px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    background: rgba(13, 21, 38, 0.75) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
     margin: 0 !important;
 }
 
-/* Gradio wraps columns in .flex — stretch them to fill */
+.header-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.header-icon-box {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 7px !important;
+    background: rgba(0, 255, 135, 0.12) !important;
+    border: 1px solid rgba(0, 255, 135, 0.28) !important;
+    flex-shrink: 0 !important;
+}
+
+.header-mic-svg {
+    stroke: var(--aurora-green) !important;
+    filter: drop-shadow(0 0 6px rgba(0, 255, 135, 0.6)) !important;
+}
+
+.header-title-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.app-title-text {
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+    letter-spacing: -0.02em !important;
+    background: linear-gradient(135deg, #FFFFFF 20%, var(--aurora-green) 70%, var(--ice-cyan) 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+.app-tag-pill {
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    padding: 2px 7px !important;
+    border-radius: 9999px !important;
+    background: rgba(0, 255, 135, 0.1) !important;
+    border: 1px solid rgba(0, 255, 135, 0.3) !important;
+    color: var(--aurora-green) !important;
+    letter-spacing: 0.03em !important;
+}
+
+.header-right {
+    display: flex !important;
+    align-items: center !important;
+}
+
+.app-subtitle-compact {
+    font-size: 0.78rem !important;
+    color: var(--muted-slate) !important;
+    font-weight: 400 !important;
+}
+
+/* ── MAIN WORKSPACE ROW ──────────────────────────── */
+.main-columns-row {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    gap: 12px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
 .main-columns-row > .flex,
 .main-columns-row > div > .flex {
     height: 100% !important;
     align-items: stretch !important;
-    gap: 8px !important;
-}
-
-/* Each column must grow and allow its card to fill it */
-.main-columns-row .column {
-    display: flex !important;
-    flex-direction: column !important;
+    gap: 12px !important;
     min-height: 0 !important;
-    overflow: visible !important;
+    display: flex !important;
+    box-sizing: border-box !important;
 }
 
-/* ── UNIFIED GLASS CARD (one per column) ─────────── */
+/* ── UNIFIED GLASS CARDS (Left & Right Columns) ──── */
 .unified-card {
     background: var(--surface-slate) !important;
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
     border: 1px solid var(--glass-border) !important;
-    border-radius: 10px !important;
-    box-shadow: 0 4px 18px rgba(0,0,0,.45) !important;
-    padding: 10px 13px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45) !important;
+    padding: 12px 16px !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 6px !important;
-    flex: 1 1 auto !important;
+    gap: 8px !important;
+    height: 100% !important;
+    max-height: 100% !important;
     min-height: 0 !important;
-    overflow: visible !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+    position: relative !important;
 }
 
-/* Strip inner Gradio decoration (nested boxes) */
-.unified-card .block,
-.unified-card .panel,
-.unified-card .form,
-.unified-card .contain,
-.unified-card .gap,
 .unified-card > .block,
 .unified-card > div > .block {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    padding: 0 !important;
     margin: 0 !important;
-    overflow: visible !important;
+    padding: 0 !important;
 }
 
-/* ── DROPDOWN Z-INDEX + OVERFLOW ─────────────────── */
-/* Allow overflow on every ancestor so the list can escape */
-.gradio-container,
-.gradio-container .contain,
-.gradio-container .gap,
-.main-columns-row,
-.main-columns-row .block,
-.main-columns-row .panel,
-.main-columns-row .column,
-.unified-card,
-.unified-card .block,
-.unified-card .gap,
-.unified-card .row,
-.unified-card .wrap {
-    overflow: visible !important;
+.compact-panel-title {
+    display: flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    padding-bottom: 6px !important;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.16) !important;
+    flex-shrink: 0 !important;
+    margin-bottom: 2px !important;
 }
 
+.panel-icon { font-size: 0.95rem !important; }
+.panel-title-text {
+    font-size: 0.86rem !important;
+    font-weight: 700 !important;
+    color: var(--frost-white) !important;
+    letter-spacing: -0.01em !important;
+}
+
+/* ── CONTROLS & DROPDOWNS ────────────────────────── */
+.control-row {
+    display: flex !important;
+    gap: 10px !important;
+    align-items: flex-end !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.custom-dropdown {
+    overflow: visible !important;
+    position: relative !important;
+}
+
+.custom-dropdown label span,
+.gradio-container label span {
+    font-size: 0.74rem !important;
+    font-weight: 600 !important;
+    color: var(--muted-slate) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    margin-bottom: 3px !important;
+}
+
+.gradio-container input[type="text"],
+.gradio-container input[type="password"],
+.gradio-container select,
+.custom-dropdown .wrap,
+.custom-dropdown input {
+    background-color: var(--surface-darker) !important;
+    border: 1px solid rgba(56, 189, 248, 0.22) !important;
+    border-radius: 8px !important;
+    color: var(--frost-white) !important;
+    font-size: 0.83rem !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+    height: 38px !important;
+    min-height: 38px !important;
+}
+
+.gradio-container input:focus,
+.gradio-container select:focus,
+.custom-dropdown .wrap:focus-within {
+    border-color: var(--aurora-green) !important;
+    box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.2) !important;
+    outline: none !important;
+}
+
+/* Dropdown Floating Options Menu */
 ul.options,
 .options,
 .gradio-container ul.options,
 .gradio-container .options {
-    z-index: 99999 !important;
+    z-index: 999999 !important;
     position: absolute !important;
-    background: #080E1A !important;
-    border: 1px solid rgba(56,189,248,.35) !important;
+    background: #070D1A !important;
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
     border-radius: 8px !important;
-    box-shadow: 0 14px 40px rgba(0,0,0,.95) !important;
-    max-height: 220px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.95) !important;
+    max-height: 200px !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
 }
@@ -347,121 +477,189 @@ ul.options,
 ul.options li, .options li,
 .gradio-container ul.options li, .gradio-container .options li {
     padding: 7px 12px !important;
-    font-size: 0.84rem !important;
+    font-size: 0.82rem !important;
     color: #F8FAFC !important;
     cursor: pointer !important;
     background: transparent !important;
 }
 
 ul.options li:hover, .options li:hover,
-ul.options li.selected, .options li.selected,
-.gradio-container ul.options li:hover, .gradio-container .options li:hover {
-    background: rgba(0,255,135,.16) !important;
+ul.options li.selected, .options li.selected {
+    background: rgba(0, 255, 135, 0.16) !important;
     color: var(--aurora-green) !important;
 }
 
-/* ── HEADER ──────────────────────────────────────── */
-#app-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 13px;
-    background: rgba(15,23,42,.72);
-    border: 1px solid rgba(56,189,248,.18);
-    border-radius: 9px;
-    margin-bottom: 5px;
-    flex-shrink: 0;
+/* ── FILE UPLOAD (CLEAN, COMPACT, NEVER OVERFLOWS) ─── */
+.custom-file-upload {
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    margin: 2px 0 !important;
 }
 
-.header-left { display: flex; align-items: center; gap: 8px; }
-
-.app-title-text {
-    font-size: 1.08rem;
-    font-weight: 800;
-    letter-spacing: -.02em;
-    background: linear-gradient(135deg,#FFF 20%,var(--aurora-green) 70%,var(--ice-cyan) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.custom-file-upload [data-testid="file-upload"],
+.custom-file-upload .file-upload,
+.gradio-container .file-upload {
+    border: 1.5px dashed rgba(56, 189, 248, 0.35) !important;
+    border-radius: 9px !important;
+    background: rgba(7, 13, 26, 0.65) !important;
+    transition: all 0.24s ease !important;
+    padding: 6px 10px !important;
+    height: 86px !important;
+    min-height: 86px !important;
+    max-height: 86px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    cursor: pointer !important;
 }
 
-.app-tag-pill {
-    font-size: .67rem;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 9999px;
-    background: rgba(0,255,135,.1);
-    border: 1px solid rgba(0,255,135,.3);
-    color: var(--aurora-green);
-    letter-spacing: .03em;
-}
-
-.app-subtitle-compact { font-size: .78rem; color: var(--muted-slate); font-weight: 400; }
-
-.header-mic-svg {
-    stroke: var(--aurora-green);
-    filter: drop-shadow(0 0 7px rgba(0,255,135,.5));
-    flex-shrink: 0;
-}
-
-/* ── SECTION TITLES ──────────────────────────────── */
-.compact-panel-title {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: .83rem;
-    font-weight: 700;
-    color: #F8FAFC;
-    padding-bottom: 5px;
-    border-bottom: 1px solid rgba(56,189,248,.16);
-    flex-shrink: 0;
-}
-
-/* ── FILE UPLOAD ─────────────────────────────────── */
-.gradio-container .file-upload,
-.gradio-container [data-testid="file-upload"] {
-    border: 1.5px dashed rgba(56,189,248,.35) !important;
-    border-radius: 8px !important;
-    background: rgba(8,14,26,.7) !important;
-    transition: all .25s ease !important;
-    padding: .25rem !important;
-    min-height: 60px !important;
-    max-height: 68px !important;
-}
-
-.gradio-container .file-upload:hover,
-.gradio-container [data-testid="file-upload"]:hover {
+.custom-file-upload [data-testid="file-upload"]:hover,
+.custom-file-upload .file-upload:hover,
+.gradio-container .file-upload:hover {
     border-color: var(--aurora-green) !important;
-    background: rgba(0,255,135,.05) !important;
-    box-shadow: 0 0 14px rgba(0,255,135,.16) !important;
+    background: rgba(0, 255, 135, 0.05) !important;
+    box-shadow: 0 0 16px rgba(0, 255, 135, 0.16) !important;
 }
 
-/* ── INPUTS ──────────────────────────────────────── */
-.gradio-container input[type="text"],
-.gradio-container input[type="password"],
-.gradio-container select,
-.gradio-container textarea {
-    background-color: var(--surface-darker) !important;
-    border: 1px solid rgba(56,189,248,.22) !important;
+.custom-file-upload svg,
+.gradio-container .file-upload svg {
+    width: 24px !important;
+    height: 24px !important;
+    stroke: var(--ice-cyan) !important;
+    margin: 0 0 2px 0 !important;
+    flex-shrink: 0 !important;
+}
+
+.custom-file-upload span,
+.gradio-container .file-upload span {
+    font-size: 0.76rem !important;
+    color: var(--muted-slate) !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+}
+
+/* ── OPTIONS ROW: CHECKBOX & TIMESTAMPS ─────────── */
+.options-row {
+    display: flex !important;
+    gap: 10px !important;
+    align-items: flex-end !important;
+    margin: 0 !important;
+}
+
+.custom-checkbox {
+    display: flex !important;
+    align-items: center !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    background: rgba(7, 13, 26, 0.6) !important;
+    border: 1px solid rgba(56, 189, 248, 0.22) !important;
     border-radius: 8px !important;
+    padding: 0 12px !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.2s, background 0.2s !important;
+}
+
+.custom-checkbox:hover {
+    border-color: rgba(0, 255, 135, 0.4) !important;
+    background: rgba(0, 255, 135, 0.04) !important;
+}
+
+.custom-checkbox label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    font-size: 0.78rem !important;
+    font-weight: 500 !important;
     color: var(--frost-white) !important;
-    font-size: .83rem !important;
-    transition: border-color .2s, box-shadow .2s !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
 }
 
-.gradio-container input:focus,
-.gradio-container select:focus,
-.gradio-container textarea:focus {
-    border-color: var(--aurora-green) !important;
-    box-shadow: 0 0 0 2px rgba(0,255,135,.22) !important;
-    outline: none !important;
+.custom-checkbox input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+    accent-color: var(--aurora-green) !important;
+    cursor: pointer !important;
+    margin: 0 !important;
 }
 
-/* ── OUTPUT TRANSCRIPT ───────────────────────────── */
+/* ── ACCORDIONS (API KEYS) ───────────────────────── */
+.credentials-accordion {
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 8px !important;
+    background: rgba(7, 13, 26, 0.6) !important;
+    margin: 2px 0 !important;
+    padding: 4px 8px !important;
+}
+
+/* ── ACTION BUTTONS ──────────────────────────────── */
+.action-buttons-row {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+    margin-top: auto !important;
+    padding-top: 4px !important;
+    flex-shrink: 0 !important;
+}
+
+.btn-primary, button.btn-primary, button.primary {
+    background: linear-gradient(135deg, #00FF87 0%, #00D4FF 100%) !important;
+    color: var(--dark-text) !important;
+    font-weight: 700 !important;
+    font-size: 0.88rem !important;
+    border: none !important;
+    border-radius: 9px !important;
+    letter-spacing: 0.02em !important;
+    transition: all 0.22s cubic-bezier(.4,0,.2,1) !important;
+    box-shadow: 0 4px 16px rgba(0, 255, 135, 0.35) !important;
+    padding: 0.45rem 1rem !important;
+    height: 40px !important;
+    cursor: pointer !important;
+}
+
+.btn-primary:hover, button.btn-primary:hover, button.primary:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 22px rgba(0, 255, 135, 0.5) !important;
+    filter: brightness(1.05) !important;
+}
+
+.btn-secondary, button.btn-secondary, button.secondary {
+    background: rgba(15, 23, 42, 0.85) !important;
+    color: #E2E8F0 !important;
+    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    border-radius: 9px !important;
+    font-weight: 600 !important;
+    font-size: 0.86rem !important;
+    padding: 0.45rem 0.9rem !important;
+    height: 40px !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+.btn-secondary:hover, button.btn-secondary:hover, button.secondary:hover {
+    background: rgba(56, 189, 248, 0.15) !important;
+    border-color: var(--sky-cyan) !important;
+    color: #FFF !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ── OUTPUT COLUMN (TRANSCRIPTION & SALIDA) ──────── */
+.output-column {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+}
+
 .output-transcript {
     flex: 1 1 auto !important;
     min-height: 0 !important;
     display: flex !important;
     flex-direction: column !important;
+    margin: 4px 0 !important;
 }
 
 .output-transcript > .block,
@@ -470,6 +668,7 @@ ul.options li.selected, .options li.selected,
     min-height: 0 !important;
     display: flex !important;
     flex-direction: column !important;
+    height: 100% !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -479,91 +678,49 @@ ul.options li.selected, .options li.selected,
 
 .output-transcript textarea {
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: .81rem !important;
-    line-height: 1.45 !important;
+    font-size: 0.82rem !important;
+    line-height: 1.5 !important;
     background: #040914 !important;
-    border: 1px solid rgba(56,189,248,.24) !important;
+    border: 1px solid rgba(56, 189, 248, 0.22) !important;
     border-radius: 9px !important;
     color: #F1F5F9 !important;
-    padding: .6rem .8rem !important;
-    box-shadow: inset 0 2px 10px rgba(0,0,0,.65) !important;
+    padding: 10px 14px !important;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.65) !important;
     flex: 1 1 auto !important;
-    min-height: 100px !important;
+    height: 100% !important;
+    min-height: 160px !important;
     resize: none !important;
     overflow-y: auto !important;
+    box-sizing: border-box !important;
 }
 
-/* ── BUTTONS ─────────────────────────────────────── */
-.btn-primary, button.btn-primary, button.primary {
-    background: linear-gradient(135deg, #00FF87 0%, #00D4FF 100%) !important;
-    color: var(--dark-text) !important;
-    font-weight: 700 !important;
-    font-size: .86rem !important;
-    border: none !important;
-    border-radius: 9px !important;
-    letter-spacing: .02em !important;
-    transition: all .24s cubic-bezier(.4,0,.2,1) !important;
-    box-shadow: 0 4px 16px rgba(0,255,135,.35) !important;
-    padding: .44rem 1rem !important;
-    cursor: pointer !important;
-}
-
-.btn-primary:hover, button.btn-primary:hover, button.primary:hover {
-    transform: translateY(-1px) !important;
-    box-shadow: 0 6px 24px rgba(0,255,135,.5) !important;
-    filter: brightness(1.05) !important;
-}
-
-.btn-secondary, button.btn-secondary, button.secondary {
-    background: rgba(15,23,42,.85) !important;
-    color: #E2E8F0 !important;
-    border: 1px solid rgba(56,189,248,.25) !important;
-    border-radius: 9px !important;
-    font-weight: 600 !important;
-    font-size: .86rem !important;
-    padding: .44rem .9rem !important;
-    transition: all .2s ease !important;
-}
-
-.btn-secondary:hover, button.btn-secondary:hover, button.secondary:hover {
-    background: rgba(56,189,248,.15) !important;
-    border-color: var(--sky-cyan) !important;
-    color: #FFF !important;
-    transform: translateY(-1px) !important;
+.output-transcript textarea:focus {
+    border-color: var(--aurora-green) !important;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.65), 0 0 0 2px rgba(0, 255, 135, 0.2) !important;
+    outline: none !important;
 }
 
 .btn-download, button.btn-download {
     border-radius: 9px !important;
     font-weight: 600 !important;
-    font-size: .83rem !important;
-    border: 1px solid rgba(56,189,248,.32) !important;
-    background: rgba(15,23,42,.85) !important;
+    font-size: 0.83rem !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    background: rgba(15, 23, 42, 0.85) !important;
     color: var(--frost-white) !important;
-    padding: .38rem 1rem !important;
-    transition: all .22s ease !important;
+    padding: 0.4rem 1rem !important;
+    height: 38px !important;
+    transition: all 0.22s ease !important;
     flex-shrink: 0 !important;
+    cursor: pointer !important;
+    width: 100% !important;
 }
 
 .btn-download:hover:not(:disabled), button.btn-download:hover:not(:disabled) {
     border-color: var(--ice-cyan) !important;
-    background: rgba(0,212,255,.18) !important;
+    background: rgba(0, 212, 255, 0.18) !important;
     color: #FFF !important;
-    box-shadow: 0 4px 18px rgba(0,212,255,.3) !important;
+    box-shadow: 0 4px 18px rgba(0, 212, 255, 0.3) !important;
     transform: translateY(-1px) !important;
-}
-
-/* ── SCROLLBAR ───────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: rgba(15,23,42,.6); border-radius: 4px; }
-::-webkit-scrollbar-thumb { background: rgba(56,189,248,.35); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--aurora-green); }
-
-/* ── ACCORDIONS ──────────────────────────────────── */
-.gradio-container .accordion {
-    border: 1px solid var(--glass-border) !important;
-    border-radius: 8px !important;
-    background: rgba(10,22,40,.55) !important;
-    margin-bottom: 2px !important;
 }
 
 /* ── STATUS BAR ──────────────────────────────────── */
@@ -571,25 +728,27 @@ ul.options li.selected, .options li.selected,
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 4px 13px !important;
-    background: rgba(3,7,18,.92) !important;
+    padding: 0 14px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    background: rgba(4, 9, 20, 0.92) !important;
     backdrop-filter: blur(14px) !important;
     -webkit-backdrop-filter: blur(14px) !important;
-    border: 1px solid rgba(56,189,248,.2) !important;
+    border: 1px solid rgba(56, 189, 248, 0.18) !important;
     border-radius: 9px !important;
     font-size: 11px !important;
     color: var(--muted-slate) !important;
-    margin-top: 5px !important;
     flex-shrink: 0 !important;
-    box-shadow: 0 4px 18px rgba(0,0,0,.5) !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5) !important;
     overflow: visible !important;
-    gap: 0 !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
 }
 
 .statusbar-left, .statusbar-right {
     display: flex !important;
     align-items: center !important;
-    gap: 7px !important;
+    gap: 8px !important;
     overflow: visible !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -597,7 +756,27 @@ ul.options li.selected, .options li.selected,
 
 .statusbar-right { justify-content: flex-end !important; }
 
-/* Small pill buttons inside status bar */
+.statusbar-tech-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    color: var(--muted-slate) !important;
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid rgba(56, 189, 248, 0.14) !important;
+}
+
+.statusbar-tech-dot {
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 50% !important;
+    background: var(--aurora-green) !important;
+    box-shadow: 0 0 6px var(--aurora-green) !important;
+}
+
 .author-badge, button.author-badge,
 .github-badge, button.github-badge {
     display: inline-flex !important;
@@ -608,35 +787,35 @@ ul.options li.selected, .options li.selected,
     font-weight: 600 !important;
     font-size: 11px !important;
     white-space: nowrap !important;
-    transition: all .2s ease !important;
+    transition: all 0.2s ease !important;
     cursor: pointer !important;
     min-width: unset !important;
-    height: auto !important;
+    height: 26px !important;
     line-height: normal !important;
     box-shadow: none !important;
 }
 
 .author-badge, button.author-badge {
-    background: rgba(0,212,255,.1) !important;
+    background: rgba(0, 212, 255, 0.1) !important;
     color: var(--ice-cyan) !important;
-    border: 1px solid rgba(0,212,255,.28) !important;
+    border: 1px solid rgba(0, 212, 255, 0.28) !important;
 }
 
 .author-badge:hover, button.author-badge:hover {
-    background: rgba(0,212,255,.22) !important;
+    background: rgba(0, 212, 255, 0.22) !important;
     border-color: var(--ice-cyan) !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 0 10px rgba(0,212,255,.35) !important;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.35) !important;
 }
 
 .github-badge, button.github-badge {
-    background: rgba(56,189,248,.1) !important;
-    border: 1px solid rgba(56,189,248,.28) !important;
+    background: rgba(56, 189, 248, 0.1) !important;
+    border: 1px solid rgba(56, 189, 248, 0.28) !important;
     color: var(--sky-cyan) !important;
 }
 
 .github-badge:hover, button.github-badge:hover {
-    background: rgba(56,189,248,.22) !important;
+    background: rgba(56, 189, 248, 0.22) !important;
     border-color: var(--sky-cyan) !important;
     color: #FFF !important;
     transform: translateY(-1px) !important;
@@ -645,63 +824,65 @@ ul.options li.selected, .options li.selected,
 .statusbar-badges {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 7px !important;
+    gap: 6px !important;
 }
 
 .antigravity-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: rgba(168,85,247,.15);
-    padding: 3px 9px;
-    border-radius: 6px;
-    color: #D8B4FE;
-    font-size: 11px;
-    font-weight: 600;
-    border: 1px solid rgba(168,85,247,.35);
-    white-space: nowrap;
-    cursor: default;
-    transition: all .2s ease;
-}
-
-.antigravity-badge:hover {
-    background: rgba(168,85,247,.28);
-    border-color: #C084FC;
-    box-shadow: 0 0 10px rgba(192,132,252,.35);
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    background: rgba(168, 85, 247, 0.15) !important;
+    padding: 3px 9px !important;
+    border-radius: 6px !important;
+    color: #D8B4FE !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    border: 1px solid rgba(168, 85, 247, 0.35) !important;
+    white-space: nowrap !important;
+    height: 26px !important;
+    box-sizing: border-box !important;
 }
 
 .version-badge {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 6px;
-    background: rgba(0,255,135,.12);
-    color: var(--aurora-green);
-    border: 1px solid rgba(0,255,135,.32);
-    letter-spacing: .03em;
-    white-space: nowrap;
-    cursor: default;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    padding: 3px 8px !important;
+    border-radius: 6px !important;
+    background: rgba(0, 255, 135, 0.12) !important;
+    color: var(--aurora-green) !important;
+    border: 1px solid rgba(0, 255, 135, 0.32) !important;
+    letter-spacing: 0.03em !important;
+    white-space: nowrap !important;
+    height: 26px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
 }
 
-/* ── ADMIN ACTIVE PILL ───────────────────────────── */
+/* ── SCROLLBARS ──────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--aurora-green); }
+
+/* ── ADMIN MODAL & ACTIVE PILL ───────────────────── */
 .admin-active-pill {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 3px 14px;
-    margin: 0 auto 4px auto;
-    max-width: 560px;
-    background: rgba(0,255,135,.08);
-    border: 1px solid rgba(0,255,135,.35);
+    margin: 0 auto 3px auto;
+    max-width: 540px;
+    background: rgba(0, 255, 135, 0.08);
+    border: 1px solid rgba(0, 255, 135, 0.35);
     border-radius: 9999px;
     color: var(--aurora-green);
-    font-size: .73rem;
+    font-size: 0.73rem;
     font-weight: 600;
-    letter-spacing: .02em;
-    box-shadow: 0 2px 10px rgba(0,255,135,.15);
-    animation: fadeInPill .35s ease-out;
+    box-shadow: 0 2px 10px rgba(0, 255, 135, 0.15);
+    animation: fadeInPill 0.35s ease-out;
 }
 
 .admin-active-dot {
@@ -714,11 +895,11 @@ ul.options li.selected, .options li.selected,
 
 .admin-active-tag {
     font-family: 'JetBrains Mono', monospace;
-    font-size: .7rem;
+    font-size: 0.7rem;
     padding: 1px 7px;
     border-radius: 4px;
-    background: rgba(0,255,135,.16);
-    border: 1px solid rgba(0,255,135,.3);
+    background: rgba(0, 255, 135, 0.16);
+    border: 1px solid rgba(0, 255, 135, 0.3);
     color: #FFF;
 }
 
@@ -727,14 +908,11 @@ ul.options li.selected, .options li.selected,
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── ADMIN MODAL ─────────────────────────────────── */
-/* Gradio renders visible=False with display:none inline.
-   When visible=True, it removes that inline style and our rules kick in. */
 .admin-modal-overlay {
     position: fixed !important;
     top: 0 !important; left: 0 !important;
     width: 100vw !important; height: 100vh !important;
-    background: rgba(2,6,23,.85) !important;
+    background: rgba(2, 6, 23, 0.85) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
     z-index: 999999 !important;
@@ -745,19 +923,16 @@ ul.options li.selected, .options li.selected,
 }
 
 .admin-modal-card {
-    background: rgba(15,23,42,.97) !important;
-    border: 1px solid rgba(0,255,135,.35) !important;
+    background: rgba(13, 21, 38, 0.97) !important;
+    border: 1px solid rgba(0, 255, 135, 0.35) !important;
     border-radius: 16px !important;
     max-width: 420px !important;
     width: 100% !important;
     padding: 22px !important;
-    box-shadow: 0 24px 60px rgba(0,0,0,.85), 0 0 35px rgba(0,255,135,.15) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(0, 255, 135, 0.15) !important;
 }
 
 .admin-modal-card .block,
-.admin-modal-card .panel,
-.admin-modal-card .form,
-.admin-modal-card .gap,
 .admin-modal-card > div {
     background: transparent !important;
     border: none !important;
@@ -776,26 +951,26 @@ ul.options li.selected, .options li.selected,
 .modal-title-box { display: flex; align-items: center; gap: 10px; }
 .modal-title-icon { font-size: 1.4rem; }
 .modal-title-text { font-size: 1rem; font-weight: 700; color: #F8FAFC; margin: 0; }
-.modal-title-desc { font-size: .75rem; color: #94A3B8; margin: 2px 0 0 0; }
+.modal-title-desc { font-size: 0.75rem; color: #94A3B8; margin: 2px 0 0 0; }
 
 .modal-close-btn {
     max-width: 32px !important; min-width: 32px !important;
     height: 32px !important; padding: 0 !important;
     border-radius: 8px !important; font-size: 14px !important;
-    background: rgba(255,255,255,.06) !important;
-    border: 1px solid rgba(255,255,255,.14) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
     color: #94A3B8 !important; cursor: pointer !important;
 }
 
 .modal-close-btn:hover {
     color: #FFF !important;
-    background: rgba(244,63,94,.25) !important;
+    background: rgba(244, 63, 94, 0.25) !important;
     border-color: #F43F5E !important;
 }
 
 .modal-pin-input input {
     font-family: 'JetBrains Mono', monospace !important;
-    letter-spacing: .15em !important;
+    letter-spacing: 0.15em !important;
     font-size: 1.1rem !important;
     text-align: center !important;
     margin-top: 8px !important;
@@ -804,34 +979,27 @@ ul.options li.selected, .options li.selected,
 
 .modal-submit-btn { width: 100% !important; margin-top: 4px !important; }
 
-/* ── MOBILE ──────────────────────────────────────── */
+/* ── MOBILE RESPONSIVE ───────────────────────────── */
 @media (max-width: 768px) {
-    html, body { overflow: auto !important; height: auto !important; }
+    html, body { overflow: auto !important; height: auto !important; max-height: none !important; }
     .gradio-container {
         height: auto !important; max-height: none !important;
-        overflow: visible !important; width: 100% !important;
-        padding: .4rem !important;
+        overflow: visible !important; width: 100% !important; padding: 6px !important;
     }
     .gradio-container > .gap,
     .gradio-container > div > .gap {
-        height: auto !important; max-height: none !important;
-        overflow: visible !important;
+        height: auto !important; max-height: none !important; overflow: visible !important;
     }
-    .main-columns-row { overflow: visible !important; }
+    .main-columns-row { overflow: visible !important; height: auto !important; flex: none !important; }
     .main-columns-row > .flex,
     .main-columns-row > div > .flex {
-        flex-direction: column !important;
-        height: auto !important;
+        flex-direction: column !important; height: auto !important;
     }
-    .unified-card { height: auto !important; flex: none !important; }
-    .output-transcript textarea { min-height: 150px !important; }
-    #app-header { flex-direction: column !important; align-items: flex-start !important; gap: 4px !important; }
-    .statusbar {
-        flex-direction: column !important; gap: 6px !important; padding: 7px 10px !important;
-    }
-    .statusbar-left, .statusbar-right {
-        justify-content: center !important; flex-wrap: wrap !important; width: 100% !important;
-    }
+    .unified-card { height: auto !important; max-height: none !important; flex: none !important; }
+    .output-transcript textarea { min-height: 180px !important; height: 200px !important; }
+    #app-header { height: auto !important; flex-direction: column !important; align-items: flex-start !important; gap: 4px !important; padding: 8px 12px !important; }
+    .statusbar { height: auto !important; flex-direction: column !important; gap: 6px !important; padding: 8px 10px !important; }
+    .statusbar-left, .statusbar-right { justify-content: center !important; flex-wrap: wrap !important; width: 100% !important; }
 }
 """
 
@@ -852,12 +1020,12 @@ theme = gr.themes.Base(
     background_fill_primary_dark="#0F172A",
     background_fill_secondary="#080E1A",
     background_fill_secondary_dark="#080E1A",
-    block_background_fill="rgba(15, 23, 42, 0.75)",
-    block_background_fill_dark="rgba(15, 23, 42, 0.75)",
-    block_border_color="rgba(56, 189, 248, 0.16)",
-    block_border_color_dark="rgba(56, 189, 248, 0.16)",
+    block_background_fill="transparent",
+    block_background_fill_dark="transparent",
+    block_border_color="transparent",
+    block_border_color_dark="transparent",
     block_radius="10px",
-    block_shadow="0 6px 24px rgba(0, 0, 0, 0.45)",
+    block_shadow="none",
     block_title_text_color="#F8FAFC",
     block_title_text_color_dark="#F8FAFC",
     block_label_text_color="#94A3B8",
@@ -892,7 +1060,7 @@ theme = gr.themes.Base(
     color_accent_soft="rgba(0, 212, 255, 0.15)",
 )
 
-# Compatibilidad entre Gradio < 6.0 y Gradio >= 6.0 (theme y css pasaron de Blocks a launch)
+# Compatibilidad entre Gradio < 6.0 y Gradio >= 6.0
 blocks_kwargs = {"title": "WhisperX Studio · Enterprise ASR Suite"}
 launch_kwargs = {}
 
@@ -909,22 +1077,29 @@ except Exception:
     blocks_kwargs["css"] = custom_css
 
 with gr.Blocks(**blocks_kwargs) as demo:
+    # Inyección de estilos CSS garantizada para todas las versiones de Gradio e iframes de Hugging Face
+    gr.HTML(f"<style>{custom_css}</style>")
+
     gr.HTML(
         """
-        <div id="app-header">
+        <header id="app-header">
             <div class="header-left">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00FF87" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="header-mic-svg">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" x2="12" y1="19" y2="22"/>
-                </svg>
-                <span class="app-title-text">WhisperX Transcriptor</span>
-                <span class="app-tag-pill">ZeroGPU & Cloud</span>
+                <div class="header-icon-box">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="header-mic-svg">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" x2="12" y1="19" y2="22"/>
+                    </svg>
+                </div>
+                <div class="header-title-group">
+                    <h1 class="app-title-text">WhisperX Transcriptor</h1>
+                    <span class="app-tag-pill">ZeroGPU & Cloud</span>
+                </div>
             </div>
             <div class="header-right">
                 <span class="app-subtitle-compact">Transcripción fonética neuronal, marcas de tiempo y diarización</span>
             </div>
-        </div>
+        </header>
         """
     )
 
@@ -934,134 +1109,137 @@ with gr.Blocks(**blocks_kwargs) as demo:
     admin_status_banner = gr.HTML("", visible=False)
 
     with gr.Row(equal_height=True, elem_classes=["main-columns-row"]):
-        # Columna Izquierda: Entrada y Controles (Un solo cuadro unificado)
-        with gr.Column(scale=1):
-            with gr.Group(elem_classes=["unified-card"]):
-                gr.HTML(
-                    """
-                    <div class="compact-panel-title">
-                        <span>🎙️</span>
-                        <span>Configuración del Motor</span>
-                    </div>
-                    """
+        # Columna Izquierda: Entrada y Controles
+        with gr.Column(scale=1, elem_classes=["unified-card", "left-card"]):
+            gr.HTML(
+                """
+                <div class="compact-panel-title">
+                    <span class="panel-icon">🎙️</span>
+                    <span class="panel-title-text">Configuración del Motor y Entrada</span>
+                </div>
+                """
+            )
+
+            with gr.Row(elem_classes=["control-row"]):
+                provider_selector = gr.Dropdown(
+                    choices=[
+                        ProviderType.WHISPERX.value,
+                        ProviderType.DEEPGRAM.value,
+                        ProviderType.ASSEMBLYAI.value,
+                    ],
+                    value=ProviderType.WHISPERX.value,
+                    label="Motor de Transcripción",
+                    scale=1,
+                    elem_classes=["custom-dropdown"],
+                )
+                model_selector = gr.Dropdown(
+                    choices=PROVIDER_MODEL_CHOICES[ProviderType.WHISPERX.value],
+                    value=ModelName.LARGE_V3_TURBO.value,
+                    label="Modelo",
+                    scale=1,
+                    elem_classes=["custom-dropdown"],
                 )
 
-                with gr.Row():
-                    provider_selector = gr.Dropdown(
-                        choices=[
-                            ProviderType.WHISPERX.value,
-                            ProviderType.DEEPGRAM.value,
-                            ProviderType.ASSEMBLYAI.value,
-                        ],
-                        value=ProviderType.WHISPERX.value,
-                        label="Motor",
-                        scale=1,
-                    )
-                    model_selector = gr.Dropdown(
-                        choices=PROVIDER_MODEL_CHOICES[ProviderType.WHISPERX.value],
-                        value=ModelName.LARGE_V3_TURBO.value,
-                        label="Modelo",
-                        scale=1,
-                    )
+            input_media = gr.File(
+                label="Archivo de Audio o Video",
+                file_types=["audio", "video"],
+                file_count="single",
+                height=90,
+                elem_classes=["custom-file-upload"],
+            )
 
-                input_media = gr.File(
-                    label="Archivo de Audio o Video",
-                    file_types=["audio", "video"],
-                    file_count="single",
-                    height=65,
+            with gr.Row(elem_classes=["control-row", "options-row"]):
+                diarization_checkbox = gr.Checkbox(
+                    value=False,
+                    label="Identificar quién habla (Diarización)",
+                    scale=1,
+                    elem_classes=["custom-checkbox"],
+                )
+                timestamp_selector = gr.Dropdown(
+                    choices=[
+                        "Simple ([HH:MM:SS])",
+                        "Rango ([Inicio - Fin])",
+                        "Texto continuo (Sin marcas)",
+                    ],
+                    value="Simple ([HH:MM:SS])",
+                    label="Marcas de tiempo",
+                    scale=1,
+                    elem_classes=["custom-dropdown"],
                 )
 
-                with gr.Row():
-                    diarization_checkbox = gr.Checkbox(
-                        value=False,
-                        label="Identificar quién habla (Diarización)",
-                        scale=1,
-                    )
-                    timestamp_selector = gr.Dropdown(
-                        choices=[
-                            "Simple ([HH:MM:SS])",
-                            "Rango ([Inicio - Fin])",
-                            "Texto continuo (Sin marcas)",
-                        ],
-                        value="Simple ([HH:MM:SS])",
-                        label="Marcas de tiempo",
-                        scale=1,
-                    )
-
-                # Acordeón Credenciales Hugging Face (para WhisperX con Diarización)
-                with gr.Accordion(
-                    "Credenciales de Hugging Face (Pyannote Diarización)", open=False, visible=False
-                ) as hf_acc:
-                    hf_token_input = gr.Textbox(
-                        label="Token de Hugging Face (HF_TOKEN)",
-                        placeholder="hf_... (opcional si ya está configurado en Secrets)",
-                        type="password",
-                        info="Requerido si activas la diarización con WhisperX. Rol 'Read' con términos de Pyannote 3.1 y Segmentation 3.0 aceptados.",
-                    )
-
-                # Acordeón Credenciales Deepgram
-                with gr.Accordion(
-                    "Credenciales de Deepgram Cloud API", open=True, visible=False
-                ) as deepgram_acc:
-                    deepgram_key_input = gr.Textbox(
-                        label="Deepgram API Key",
-                        placeholder="Pega tu clave personal de Deepgram aquí (o defínela como DEEPGRAM_API_KEY)",
-                        type="password",
-                        info="Permite usar Nova-2 / Nova-3 con diarización ultrarrápida. Obtén tu clave en console.deepgram.com.",
-                    )
-
-                # Acordeón Credenciales AssemblyAI
-                with gr.Accordion(
-                    "Credenciales de AssemblyAI Cloud API", open=True, visible=False
-                ) as assemblyai_acc:
-                    assemblyai_key_input = gr.Textbox(
-                        label="AssemblyAI API Key",
-                        placeholder="Pega tu clave personal de AssemblyAI aquí (o defínela como ASSEMBLYAI_API_KEY)",
-                        type="password",
-                        info="Permite usar Universal-1 (máxima precisión) y Nano (ahorro). Obtén tu clave en assemblyai.com.",
-                    )
-
-                with gr.Row():
-                    btn_clear = gr.ClearButton(
-                        value="Limpiar",
-                        variant="secondary",
-                        elem_classes=["btn-secondary"],
-                        scale=1,
-                    )
-                    btn_transcribe = gr.Button(
-                        "⚡ Iniciar Transcripción",
-                        variant="primary",
-                        elem_classes=["btn-primary"],
-                        scale=2,
-                    )
-
-        # Columna Derecha: Salida y Descarga (Un solo cuadro unificado)
-        with gr.Column(scale=1):
-            with gr.Group(elem_classes=["unified-card"]):
-                gr.HTML(
-                    """
-                    <div class="compact-panel-title">
-                        <span>📄</span>
-                        <span>Transcripción y Salida</span>
-                    </div>
-                    """
+            # Acordeón Credenciales Hugging Face (para WhisperX con Diarización)
+            with gr.Accordion(
+                "Credenciales de Hugging Face (Pyannote Diarización)", open=False, visible=False, elem_classes=["credentials-accordion"]
+            ) as hf_acc:
+                hf_token_input = gr.Textbox(
+                    label="Token de Hugging Face (HF_TOKEN)",
+                    placeholder="hf_... (opcional si ya está configurado en Secrets)",
+                    type="password",
+                    info="Requerido si activas la diarización con WhisperX. Rol 'Read' con términos de Pyannote 3.1 y Segmentation 3.0 aceptados.",
                 )
 
-                output_text = gr.Textbox(
-                    show_label=False,
-                    placeholder="El texto transcrito con marcas temporales y locutores aparecerá aquí una vez finalizado el procesamiento...",
-                    lines=14,
-                    max_lines=30,
-                    elem_classes=["output-transcript"],
+            # Acordeón Credenciales Deepgram
+            with gr.Accordion(
+                "Credenciales de Deepgram Cloud API", open=True, visible=False, elem_classes=["credentials-accordion"]
+            ) as deepgram_acc:
+                deepgram_key_input = gr.Textbox(
+                    label="Deepgram API Key",
+                    placeholder="Pega tu clave personal de Deepgram aquí (o defínela como DEEPGRAM_API_KEY)",
+                    type="password",
+                    info="Permite usar Nova-2 / Nova-3 con diarización ultrarrápida. Obtén tu clave en console.deepgram.com.",
                 )
-                download_file = gr.DownloadButton(
-                    label="Descargar Documento (.txt)",
-                    value=None,
-                    interactive=False,
-                    size="sm",
+
+            # Acordeón Credenciales AssemblyAI
+            with gr.Accordion(
+                "Credenciales de AssemblyAI Cloud API", open=True, visible=False, elem_classes=["credentials-accordion"]
+            ) as assemblyai_acc:
+                assemblyai_key_input = gr.Textbox(
+                    label="AssemblyAI API Key",
+                    placeholder="Pega tu clave personal de AssemblyAI aquí (o defínela como ASSEMBLYAI_API_KEY)",
+                    type="password",
+                    info="Permite usar Universal-1 (máxima precisión) y Nano (ahorro). Obtén tu clave en assemblyai.com.",
+                )
+
+            with gr.Row(elem_classes=["action-buttons-row"]):
+                btn_clear = gr.ClearButton(
+                    value="Limpiar",
                     variant="secondary",
-                    elem_classes=["btn-download"],
+                    elem_classes=["btn-secondary"],
+                    scale=1,
                 )
+                btn_transcribe = gr.Button(
+                    "⚡ Iniciar Transcripción",
+                    variant="primary",
+                    elem_classes=["btn-primary"],
+                    scale=2,
+                )
+
+        # Columna Derecha: Salida y Descarga
+        with gr.Column(scale=1, elem_classes=["unified-card", "output-column"]):
+            gr.HTML(
+                """
+                <div class="compact-panel-title">
+                    <span class="panel-icon">📄</span>
+                    <span class="panel-title-text">Transcripción y Salida</span>
+                </div>
+                """
+            )
+
+            output_text = gr.Textbox(
+                show_label=False,
+                placeholder="El texto transcrito con marcas temporales y locutores aparecerá aquí una vez finalizado el procesamiento...",
+                lines=12,
+                max_lines=35,
+                elem_classes=["output-transcript"],
+            )
+            download_file = gr.DownloadButton(
+                label="Descargar Documento (.txt)",
+                value=None,
+                interactive=False,
+                size="sm",
+                variant="secondary",
+                elem_classes=["btn-download"],
+            )
 
     # Conexión de eventos reactivos
     def on_provider_change(selected_provider: str, is_admin: bool, is_diarize: bool):
@@ -1299,6 +1477,14 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 elem_classes=["github-badge"],
                 link="https://github.com/Klopezxd/whisperx-transcriptor",
                 size="sm",
+            )
+            gr.HTML(
+                """
+                <span class="statusbar-tech-pill">
+                    <span class="statusbar-tech-dot"></span>
+                    WhisperX · Deepgram · AssemblyAI
+                </span>
+                """
             )
         with gr.Row(elem_classes=["statusbar-right"]):
             btn_author = gr.Button(
