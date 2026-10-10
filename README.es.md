@@ -81,53 +81,53 @@ Puedes probar el pipeline directamente en la nube sin configuración local:
 
 ---
 
-## Arquitectura Global del Sistema
+## Arquitectura del Sistema
 
-El sistema implementa una arquitectura desacoplada y multimodelo, diseñada para sincronizarse de forma continua entre GitHub y Hugging Face Spaces, permitiendo alternar con un solo clic entre inferencia local/ZeroGPU y procesamiento en la nube:
+El funcionamiento del sistema se divide en dos procesos sencillos: cómo se procesa el audio y cómo se despliega el código automáticamente.
+
+### 1. Flujo de Transcripción y Procesamiento de Audio
 
 ```mermaid
 flowchart TD
-    subgraph SCM["Control de Versiones & CI/CD"]
-        GH["GitHub Repository<br><code>whisperx-transcriptor</code>"]
-        GHA["GitHub Actions CI/CD<br><code>sync-to-hf.yml</code>"]
-        HFS["Hugging Face Space<br><code>Klopezxd/transcriptor-whisperx</code>"]
-        GH -->|Evento Push (main)| GHA
-        GHA -->|Sincronización Automatizada| HFS
-    end
+    A["1. Archivo Multimedia (MP4, MP3, WAV, etc.)"] --> B["2. Interfaz (Web en navegador o Consola CLI)"]
+    
+    B --> C{"3. Selección de Motor"}
 
-    subgraph CLIENT["Capa de Presentación e Interfaces"]
-        BROWSER(["Cliente Web / Navegador"]) --> GRADIO["Interfaz Web Gradio<br><code>app.py</code>"]
-        SHELL(["Terminal / Consola"]) --> CLI_ENTRY["Despachador CLI<br><code>main.py</code> / <code>cli.py</code>"]
-    end
+    C -->|"Opción A: WhisperX"| D["Motor WhisperX (ZeroGPU en Hugging Face)
+    • Gratuito (sin coste de API)
+    • Transcripción con Faster-Whisper
+    • Alineación de palabras con Wav2Vec2
+    • Diarización de hablantes con Pyannote"]
 
-    subgraph ORCHESTRATION["Enrutamiento y Dominio"]
-        GRADIO --> FACTORY{"Factoría de Pipeline<br><code>src.transcriber.create_transcription_pipeline</code>"}
-        CLI_ENTRY --> FACTORY
-        CONFIG["Configuración Tipada<br><code>src.config.TranscriptionConfig</code>"] -.-> FACTORY
-    end
+    C -->|"Opción B: Deepgram"| E["Motor Deepgram (Nube)
+    • Ultrarrápido (~20 seg para 2 horas)
+    • Modelo Nova-2 (máxima relación calidad-precio)
+    • Requiere clave personal del usuario"]
 
-    subgraph ENGINES["Motores de Inferencia Heterogéneos"]
-        FACTORY -->|Ruta Local / ZeroGPU| WX_ENGINE["Pipeline WhisperX<br><code>src.transcriber.WhisperXPipeline</code>"]
-        FACTORY -->|Ruta REST Cloud| DG_ENGINE["Adaptador Deepgram<br><code>src.cloud_providers.DeepgramPipeline</code>"]
-        FACTORY -->|Ruta REST Cloud| AAI_ENGINE["Adaptador AssemblyAI<br><code>src.cloud_providers.AssemblyAIPipeline</code>"]
+    C -->|"Opción C: AssemblyAI"| F["Motor AssemblyAI (Nube)
+    • Máxima fidelidad ortográfica
+    • Modelo Universal-1
+    • Requiere clave personal del usuario"]
 
-        WX_ENGINE --> ASR_WX["CTranslate2 Faster-Whisper"]
-        ASR_WX --> ALIGN_W2V["Alineación Fonética Wav2Vec2"]
-        ALIGN_W2V --> DIARIZE_PYANNOTE["Diarización Pyannote Audio 3.1"]
+    D --> G["4. Normalizador de Resultados"]
+    E --> G
+    F --> G
 
-        DG_ENGINE --> DG_API[("Deepgram Cloud API<br>Arquitectura Nova")]
-        AAI_ENGINE --> AAI_API[("AssemblyAI Cloud API<br>Arquitectura Conformer")]
-    end
+    G --> H["5. Archivos de Salida Listos para Descarga
+    • Texto limpio (.txt)
+    • Subtítulos de video (.srt)
+    • Subtítulos web (.vtt)
+    • Datos con marcas de tiempo (.json)"]
+```
 
-    subgraph POSTPROCESSING["Normalización y Exportación"]
-        DIARIZE_PYANNOTE --> NORM["Normalizador de Dominio<br><code>src.transcriber.TranscriptionResult</code>"]
-        DG_API --> NORM
-        AAI_API --> NORM
+### 2. Flujo de Despliegue Continuo (CI/CD)
 
-        NORM --> EXPORT["Generador Multiformato:<br>Texto (.txt) | SubRip (.srt) | WebVTT (.vtt) | JSON (.json)"]
-    end
-
-    HFS -.->|Aloja y Ejecuta| GRADIO
+```mermaid
+flowchart LR
+    A["Repositorio en GitHub
+    (Tu código fuente)"] -->|"git push (main)"| B["GitHub Actions
+    (Sincronizador automático)"] -->|"Actualiza el Space"| C["Hugging Face Space
+    (Aplicación web en vivo)"]
 ```
 
 ---

@@ -81,51 +81,51 @@ Test the pipeline directly on Hugging Face Spaces:
 
 ## System Architecture
 
-The pipeline implements a decoupled, multi-engine architecture continuously synchronized between GitHub and Hugging Face Spaces. Users can switch between local/ZeroGPU execution and high-speed cloud APIs with a single click:
+The system workflow consists of two simple, decoupled processes: how audio files are transcribed, and how code is continuously deployed.
+
+### 1. Audio Processing & Transcription Flow
 
 ```mermaid
 flowchart TD
-    subgraph SCM["Source Control & Continuous Integration"]
-        GH["GitHub Repository<br><code>whisperx-transcriptor</code>"]
-        GHA["GitHub Actions CI/CD<br><code>sync-to-hf.yml</code>"]
-        HFS["Hugging Face Space<br><code>Klopezxd/transcriptor-whisperx</code>"]
-        GH -->|Push Event (main)| GHA
-        GHA -->|Automated Synchronization| HFS
-    end
+    A["1. Media Input (MP4, MP3, WAV, etc.)"] --> B["2. Interface (Web Browser or Terminal CLI)"]
+    
+    B --> C{"3. Engine Selection"}
 
-    subgraph CLIENT["Presentation & Interface Layer"]
-        BROWSER(["Web Client / Browser"]) --> GRADIO["Gradio Web UI<br><code>app.py</code>"]
-        SHELL(["Terminal / Shell"]) --> CLI_ENTRY["CLI Dispatcher<br><code>main.py</code> / <code>cli.py</code>"]
-    end
+    C -->|"Option A: WhisperX"| D["WhisperX Engine (ZeroGPU on Hugging Face)
+    • Free of charge (Zero GPU quota)
+    • Faster-Whisper ASR
+    • Word alignment with Wav2Vec2
+    • Speaker diarization with Pyannote"]
 
-    subgraph ORCHESTRATION["Domain Orchestration Layer"]
-        GRADIO --> FACTORY{"Transcription Factory<br><code>src.transcriber.create_transcription_pipeline</code>"}
-        CLI_ENTRY --> FACTORY
-        CONFIG["Typed Configuration Specification<br><code>src.config.TranscriptionConfig</code>"] -.-> FACTORY
-    end
+    C -->|"Option B: Deepgram"| E["Deepgram Engine (Cloud)
+    • Ultra-fast (~20 sec for 2 hours)
+    • Nova-2 model (maximum cost-efficiency)
+    • Requires user personal API key"]
 
-    subgraph ENGINES["Heterogeneous Inference Engines"]
-        FACTORY -->|Local / ZeroGPU Route| WX_ENGINE["WhisperX Pipeline<br><code>src.transcriber.WhisperXPipeline</code>"]
-        FACTORY -->|Cloud REST Route| DG_ENGINE["Deepgram Pipeline Adapter<br><code>src.cloud_providers.DeepgramPipeline</code>"]
-        FACTORY -->|Cloud REST Route| AAI_ENGINE["AssemblyAI Pipeline Adapter<br><code>src.cloud_providers.AssemblyAIPipeline</code>"]
+    C -->|"Option C: AssemblyAI"| F["AssemblyAI Engine (Cloud)
+    • Maximum editorial precision
+    • Universal-1 model
+    • Requires user personal API key"]
 
-        WX_ENGINE --> ASR_WX["CTranslate2 Faster-Whisper"]
-        ASR_WX --> ALIGN_W2V["Wav2Vec2 Phoneme Alignment"]
-        ALIGN_W2V --> DIARIZE_PYANNOTE["Pyannote Audio 3.1 Diarization"]
+    D --> G["4. Result Normalizer"]
+    E --> G
+    F --> G
 
-        DG_ENGINE --> DG_API[("Deepgram Cloud API<br>Nova Architecture")]
-        AAI_ENGINE --> AAI_API[("AssemblyAI Cloud API<br>Conformer Architecture")]
-    end
+    G --> H["5. Unified Output Formats
+    • Plain text (.txt)
+    • Video subtitles (.srt)
+    • Web subtitles (.vtt)
+    • Timestamped data (.json)"]
+```
 
-    subgraph POSTPROCESSING["Normalization & Multi-Format Egress"]
-        DIARIZE_PYANNOTE --> NORM["Domain Result Normalizer<br><code>src.transcriber.TranscriptionResult</code>"]
-        DG_API --> NORM
-        AAI_API --> NORM
+### 2. Continuous Deployment Flow (CI/CD)
 
-        NORM --> EXPORT["Multi-Format Exporter:<br>Plain Text (.txt) | SubRip (.srt) | WebVTT (.vtt) | JSON (.json)"]
-    end
-
-    HFS -.->|Hosts & Serves| GRADIO
+```mermaid
+flowchart LR
+    A["GitHub Repository
+    (Source Code)"] -->|"git push (main)"| B["GitHub Actions
+    (Automated Synchronizer)"] -->|"Updates Space"| C["Hugging Face Space
+    (Live Web Application)"]
 ```
 
 ---
