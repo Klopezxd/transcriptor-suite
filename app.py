@@ -210,8 +210,14 @@ custom_css = """
     --dark-text: #030712;
 }
 
-/* Atmósfera de Noche Ártica con Ondas de Aurora Boreal */
-body, gradio-app {
+/* Atmósfera de Noche Ártica con Ondas de Aurora Boreal y Bloqueo de Scroll */
+html, body {
+    height: 100% !important;
+    max-height: 100vh !important;
+    overflow-y: hidden !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background-color: var(--deep-midnight) !important;
     background-image: 
         radial-gradient(circle at 15% 12%, rgba(0, 255, 135, 0.07) 0%, transparent 40%),
@@ -225,11 +231,17 @@ body, gradio-app {
 }
 
 .gradio-container {
-    max-width: 1340px !important;
-    width: 95% !important;
+    max-width: 1300px !important;
+    width: 96% !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
     margin: 0 auto !important;
-    padding-top: 0.4rem !important;
-    padding-bottom: 0.5rem !important;
+    padding: 5px 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 /* Tarjetas y Paneles Frosted Glass Compactos */
@@ -240,58 +252,71 @@ body, gradio-app {
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
     border: 1px solid var(--glass-border) !important;
-    border-radius: 10px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
-    padding: 8px 12px !important;
-    margin-bottom: 6px !important;
+    border-radius: 9px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+    padding: 7px 11px !important;
+    margin-bottom: 5px !important;
 }
 
-/* Cabecera Compacta */
+/* Barra Superior de Cabecera (Sleek Studio Topbar) */
 #app-header {
-    text-align: center;
-    padding: 0.4rem 1rem 0.2rem 1rem;
-    position: relative;
-    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 14px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(56, 189, 248, 0.18);
+    border-radius: 9px;
+    margin-bottom: 5px;
 }
 
-.aurora-title {
-    font-size: 1.65rem;
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.app-title-text {
+    font-size: 1.15rem;
     font-weight: 800;
-    letter-spacing: -0.03em;
-    margin: 0 0 0.2rem 0;
+    letter-spacing: -0.02em;
     background: linear-gradient(135deg, #FFFFFF 20%, var(--aurora-green) 70%, var(--ice-cyan) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.65rem;
+}
+
+.app-tag-pill {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    background: rgba(0, 255, 135, 0.1);
+    border: 1px solid rgba(0, 255, 135, 0.3);
+    color: var(--aurora-green);
+    letter-spacing: 0.03em;
+}
+
+.app-subtitle-compact {
+    font-size: 0.8rem;
+    color: var(--muted-slate);
+    font-weight: 400;
 }
 
 .header-mic-svg {
     stroke: var(--aurora-green);
-    filter: drop-shadow(0 0 10px rgba(0, 255, 135, 0.5));
-}
-
-.aurora-subtitle {
-    color: var(--muted-slate);
-    font-size: 0.88rem;
-    max-width: 680px;
-    margin: 0 auto;
-    line-height: 1.4;
-    font-weight: 400;
+    filter: drop-shadow(0 0 8px rgba(0, 255, 135, 0.5));
 }
 
 /* Títulos de Sección Compactos */
 .compact-panel-title {
     display: flex;
     align-items: center;
-    gap: 7px;
-    font-size: 0.92rem;
+    gap: 6px;
+    font-size: 0.86rem;
     font-weight: 700;
     color: #F8FAFC;
-    margin-bottom: 8px;
-    padding-bottom: 5px;
+    margin-bottom: 4px;
+    padding-bottom: 3px;
     border-bottom: 1px solid rgba(56, 189, 248, 0.16);
 }
 
@@ -299,11 +324,11 @@ body, gradio-app {
 .gradio-container .file-upload,
 .gradio-container [data-testid="file-upload"] {
     border: 1.5px dashed rgba(56, 189, 248, 0.35) !important;
-    border-radius: 10px !important;
+    border-radius: 9px !important;
     background: rgba(8, 14, 26, 0.7) !important;
     transition: all 0.25s ease !important;
-    padding: 0.5rem !important;
-    min-height: 85px !important;
+    padding: 0.35rem !important;
+    min-height: 65px !important;
 }
 
 .gradio-container .file-upload:hover,
@@ -346,7 +371,7 @@ body, gradio-app {
 .gradio-container textarea {
     background-color: var(--surface-darker) !important;
     border: 1px solid rgba(56, 189, 248, 0.22) !important;
-    border-radius: 10px !important;
+    border-radius: 8px !important;
     color: var(--frost-white) !important;
     transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
@@ -359,17 +384,19 @@ body, gradio-app {
     outline: none !important;
 }
 
-/* Área de Salida: Tipografía Monospace JetBrains */
+/* Área de Salida: Tipografía Monospace JetBrains y Scroll Interno Bloqueado */
 .output-transcript textarea {
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.92rem !important;
-    line-height: 1.72 !important;
+    font-size: 0.82rem !important;
+    line-height: 1.45 !important;
     background: #040914 !important;
     border: 1px solid rgba(56, 189, 248, 0.24) !important;
-    border-radius: 10px !important;
+    border-radius: 9px !important;
     color: #F1F5F9 !important;
-    padding: 1.1rem !important;
+    padding: 0.65rem 0.85rem !important;
     box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.65) !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
 }
 
 /* Botón Principal (Aurora Green + Cyan Gradient) */
@@ -377,20 +404,20 @@ body, gradio-app {
     background: linear-gradient(135deg, #00FF87 0%, #00D4FF 100%) !important;
     color: var(--dark-text) !important;
     font-weight: 700 !important;
-    font-size: 1rem !important;
+    font-size: 0.88rem !important;
     border: none !important;
-    border-radius: 10px !important;
+    border-radius: 9px !important;
     letter-spacing: 0.02em !important;
     transition: all 0.24s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 4px 20px rgba(0, 255, 135, 0.35) !important;
-    padding: 0.85rem 1.6rem !important;
+    box-shadow: 0 4px 16px rgba(0, 255, 135, 0.35) !important;
+    padding: 0.5rem 1.1rem !important;
     cursor: pointer !important;
 }
 
 .btn-primary:hover, button.btn-primary:hover, button.primary:hover {
-    transform: translateY(-2px) scale(1.01) !important;
-    box-shadow: 0 6px 28px rgba(0, 255, 135, 0.55), 0 0 15px rgba(0, 212, 255, 0.4) !important;
-    filter: brightness(1.06) !important;
+    transform: translateY(-1px) scale(1.005) !important;
+    box-shadow: 0 6px 24px rgba(0, 255, 135, 0.5), 0 0 12px rgba(0, 212, 255, 0.35) !important;
+    filter: brightness(1.05) !important;
 }
 
 .btn-primary:active, button.btn-primary:active, button.primary:active {
@@ -402,8 +429,10 @@ body, gradio-app {
     background: rgba(15, 23, 42, 0.85) !important;
     color: #E2E8F0 !important;
     border: 1px solid rgba(56, 189, 248, 0.25) !important;
-    border-radius: 10px !important;
+    border-radius: 9px !important;
     font-weight: 600 !important;
+    font-size: 0.88rem !important;
+    padding: 0.5rem 0.9rem !important;
     transition: all 0.2s ease !important;
 }
 
@@ -416,11 +445,13 @@ body, gradio-app {
 
 /* Botón de Descarga */
 .btn-download, button.btn-download {
-    border-radius: 10px !important;
+    border-radius: 9px !important;
     font-weight: 600 !important;
+    font-size: 0.88rem !important;
     border: 1px solid rgba(56, 189, 248, 0.32) !important;
     background: rgba(15, 23, 42, 0.85) !important;
     color: var(--frost-white) !important;
+    padding: 0.5rem 1rem !important;
     transition: all 0.22s ease !important;
 }
 
@@ -500,16 +531,16 @@ body, gradio-app {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 9px 18px;
+    padding: 4px 12px;
     background: rgba(3, 7, 18, 0.92);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border: 1px solid rgba(56, 189, 248, 0.2);
-    border-radius: 10px;
-    font-size: 11.5px;
+    border-radius: 8px;
+    font-size: 11px;
     color: var(--muted-slate);
-    margin-top: 2rem;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    margin-top: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 .statusbar-left {
@@ -721,18 +752,18 @@ body, gradio-app {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 8px 20px;
-    margin: 0 auto 1.25rem auto;
-    max-width: 640px;
+    gap: 8px;
+    padding: 3px 14px;
+    margin: 0 auto 4px auto;
+    max-width: 580px;
     background: rgba(0, 255, 135, 0.08);
     border: 1px solid rgba(0, 255, 135, 0.35);
     border-radius: 9999px;
     color: var(--aurora-green);
-    font-size: 0.84rem;
+    font-size: 0.76rem;
     font-weight: 600;
     letter-spacing: 0.02em;
-    box-shadow: 0 2px 14px rgba(0, 255, 135, 0.15);
+    box-shadow: 0 2px 10px rgba(0, 255, 135, 0.15);
     animation: fadeInPill 0.35s ease-out;
 }
 
@@ -823,23 +854,27 @@ body, gradio-app {
 
 /* Adaptabilidad Móvil */
 @media (max-width: 768px) {
+    html, body {
+        height: auto !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+    }
     .gradio-container {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
         width: 100% !important;
-        padding: 0.75rem !important;
+        padding: 0.5rem !important;
     }
-    .aurora-title {
-        font-size: 1.85rem;
-    }
-    .aurora-subtitle {
-        font-size: 0.92rem;
-    }
-    .engine-tabs-selector label {
-        flex: 1 1 100% !important;
+    #app-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 4px !important;
     }
     .statusbar {
         flex-direction: column !important;
-        gap: 12px !important;
-        padding: 12px 14px !important;
+        gap: 8px !important;
+        padding: 8px 10px !important;
     }
     .statusbar-left-col, .statusbar-right-row {
         justify-content: center !important;
@@ -926,17 +961,18 @@ with gr.Blocks(**blocks_kwargs) as demo:
     gr.HTML(
         """
         <div id="app-header">
-            <h1 class="aurora-title">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00FF87" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="header-mic-svg">
+            <div class="header-left">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00FF87" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="header-mic-svg">
                     <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
                     <line x1="12" x2="12" y1="19" y2="22"/>
                 </svg>
-                <span>WhisperX Transcriptor</span>
-            </h1>
-            <p class="aurora-subtitle">
-                Transcripción fonética neuronal, marcas de tiempo precisas y diarización de locutores
-            </p>
+                <span class="app-title-text">WhisperX Transcriptor</span>
+                <span class="app-tag-pill">ZeroGPU & Cloud</span>
+            </div>
+            <div class="header-right">
+                <span class="app-subtitle-compact">Transcripción fonética neuronal, marcas de tiempo y diarización</span>
+            </div>
         </div>
         """
     )
@@ -1014,7 +1050,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 label="Archivo de Audio o Video",
                 file_types=["audio", "video"],
                 file_count="single",
-                height=95,
+                height=75,
             )
 
             with gr.Row():
@@ -1034,9 +1070,9 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     scale=1,
                 )
 
-            # Acordeón Credenciales Hugging Face (para WhisperX)
+            # Acordeón Credenciales Hugging Face (para WhisperX con Diarización)
             with gr.Accordion(
-                "Credenciales de Hugging Face (Pyannote Diarización)", open=False, visible=True
+                "Credenciales de Hugging Face (Pyannote Diarización)", open=False, visible=False
             ) as hf_acc:
                 hf_token_input = gr.Textbox(
                     label="Token de Hugging Face (HF_TOKEN)",
@@ -1095,21 +1131,21 @@ with gr.Blocks(**blocks_kwargs) as demo:
             output_text = gr.Textbox(
                 label="Resultado de la Transcripción",
                 placeholder="El texto transcrito con marcas temporales y locutores aparecerá aquí una vez finalizado el procesamiento...",
-                lines=12,
-                max_lines=16,
+                lines=8,
+                max_lines=10,
                 elem_classes=["output-transcript"],
             )
             download_file = gr.DownloadButton(
                 label="Descargar Documento (.txt)",
                 value=None,
                 interactive=False,
-                size="md",
+                size="sm",
                 variant="secondary",
                 elem_classes=["btn-download"],
             )
 
     # Conexión de eventos reactivos
-    def on_provider_change(selected_provider: str, is_admin: bool):
+    def on_provider_change(selected_provider: str, is_admin: bool, is_diarize: bool):
         choices = PROVIDER_MODEL_CHOICES.get(selected_provider, [])
         default_val = choices[0][1] if choices else ""
 
@@ -1118,7 +1154,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
         is_aai = selected_provider == ProviderType.ASSEMBLYAI.value
 
         # Si el usuario es administrador, OCULTAR TODOS los acordeones de claves para máxima comodidad
-        show_hf = is_wx and not is_admin
+        show_hf = is_wx and is_diarize and not is_admin
         show_dg = is_dg and not is_admin
         show_aai = is_aai and not is_admin
 
@@ -1148,11 +1184,21 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
     provider_selector.change(
         fn=on_provider_change,
-        inputs=[provider_selector, admin_session_state],
+        inputs=[provider_selector, admin_session_state, diarization_checkbox],
         outputs=[model_selector, hf_acc, deepgram_acc, assemblyai_acc],
     )
 
-    def handle_admin_unlock(entered_pin: str, current_provider: str):
+    def on_diarization_change(is_diarize: bool, selected_provider: str, is_admin: bool):
+        show_hf = is_diarize and (selected_provider == ProviderType.WHISPERX.value) and not is_admin
+        return gr.Accordion(visible=show_hf)
+
+    diarization_checkbox.change(
+        fn=on_diarization_change,
+        inputs=[diarization_checkbox, provider_selector, admin_session_state],
+        outputs=[hf_acc],
+    )
+
+    def handle_admin_unlock(entered_pin: str, current_provider: str, is_diarize: bool):
         if verify_admin_pin(entered_pin):
             success_pill = (
                 '<div class="admin-active-pill">'
@@ -1182,7 +1228,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             False,
             gr.Group(visible=True),
             gr.HTML("", visible=False),
-            gr.Accordion(visible=is_wx),
+            gr.Accordion(visible=is_wx and is_diarize),
             gr.Accordion(visible=is_dg),
             gr.Accordion(visible=is_aai),
             gr.Markdown(error_box, visible=True),
@@ -1190,7 +1236,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
     btn_unlock_admin.click(
         fn=handle_admin_unlock,
-        inputs=[admin_pin_input, provider_selector],
+        inputs=[admin_pin_input, provider_selector, diarization_checkbox],
         outputs=[
             admin_session_state,
             admin_modal,
@@ -1203,7 +1249,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
     )
     admin_pin_input.submit(
         fn=handle_admin_unlock,
-        inputs=[admin_pin_input, provider_selector],
+        inputs=[admin_pin_input, provider_selector, diarization_checkbox],
         outputs=[
             admin_session_state,
             admin_modal,
@@ -1221,7 +1267,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
         outputs=[admin_modal],
     )
 
-    def handle_url_auth(request: gr.Request, current_provider: str):
+    def handle_url_auth(request: gr.Request, current_provider: str, is_diarize: bool):
         if request:
             params = getattr(request, "query_params", {})
             pin_val = None
@@ -1251,14 +1297,14 @@ with gr.Blocks(**blocks_kwargs) as demo:
         return (
             False,
             gr.HTML("", visible=False),
-            gr.Accordion(visible=is_wx),
+            gr.Accordion(visible=is_wx and is_diarize),
             gr.Accordion(visible=is_dg),
             gr.Accordion(visible=is_aai),
         )
 
     demo.load(
         fn=handle_url_auth,
-        inputs=[provider_selector],
+        inputs=[provider_selector, diarization_checkbox],
         outputs=[
             admin_session_state,
             admin_status_banner,
