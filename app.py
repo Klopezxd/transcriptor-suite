@@ -340,15 +340,15 @@ body, html {
 
 /* ── MODULOS EN CUADROS REDONDEADOS (AURORA BOREAL) ── */
 .module-card {
-    background: rgba(10, 22, 40, 0.78) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
+    background: #0A1628 !important;
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
     border-radius: 16px !important;
     padding: 13px 16px !important;
     margin-bottom: 11px !important;
     box-shadow: 0 4px 20px rgba(5, 11, 26, 0.6), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
     transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
+    position: relative !important;
+    overflow: visible !important;
 }
 
 .module-card:hover {
@@ -369,7 +369,6 @@ body, html {
 .module-card div[data-testid*="block"],
 .module-card div[data-testid*="group"],
 .module-card div[data-testid*="form"],
-.module-card .wrap,
 .module-card .container {
     border: none !important;
     background: transparent !important;
@@ -385,6 +384,7 @@ body, html {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
+    overflow: visible !important;
 }
 
 .module-header {
@@ -441,6 +441,119 @@ body, html {
     outline: none !important;
 }
 
+/* ── DROPDOWNS Y MENÚS DESPLEGABLES (AURORA BOREAL) ── */
+.module-card .wrap:has(.secondary-wrap),
+.gradio-container .wrap:has(.secondary-wrap),
+.module-card div:has(> .wrap-inner),
+.gradio-container div:has(> .wrap-inner),
+.module-card .wrap-inner,
+.gradio-container .wrap-inner {
+    background: var(--arctic-input) !important;
+    border: 1px solid rgba(0, 212, 255, 0.16) !important;
+    border-radius: 10px !important;
+    min-height: 38px !important;
+    transition: all 0.2s ease !important;
+    position: relative !important;
+}
+
+.module-card .secondary-wrap,
+.gradio-container .secondary-wrap {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    padding: 2px 10px !important;
+    background: transparent !important;
+}
+
+.module-card .wrap:has(.secondary-wrap):focus-within,
+.gradio-container .wrap:has(.secondary-wrap):focus-within,
+.module-card .wrap-inner:focus-within,
+.gradio-container .wrap-inner:focus-within {
+    border-color: var(--aurora-green) !important;
+    box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.22), 0 0 12px rgba(0, 255, 135, 0.15) !important;
+}
+
+.module-card input[role="combobox"],
+.gradio-container input[role="combobox"] {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: var(--frost-white) !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 0.81rem !important;
+    font-weight: 500 !important;
+    outline: none !important;
+    width: 100% !important;
+    padding: 4px 0 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+}
+
+.dropdown-arrow,
+.module-card .dropdown-arrow,
+.gradio-container .dropdown-arrow {
+    fill: #8BA2BF !important;
+    color: #8BA2BF !important;
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    flex-shrink: 0 !important;
+    margin-left: 6px !important;
+    transition: transform 0.2s ease, fill 0.2s ease !important;
+}
+
+.module-card .wrap:hover .dropdown-arrow,
+.gradio-container .wrap:hover .dropdown-arrow {
+    fill: var(--aurora-green) !important;
+    color: var(--aurora-green) !important;
+}
+
+/* El despliegue del menú debe ir debajo de las opciones */
+.options,
+ul.options,
+.option-list,
+div[class*="options"] {
+    background: #060E1D !important;
+    border: 1px solid rgba(0, 212, 255, 0.3) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 18px rgba(0, 212, 255, 0.18) !important;
+    z-index: 999999 !important;
+    color: var(--frost-white) !important;
+    max-height: 230px !important;
+    overflow-y: auto !important;
+    margin-top: 4px !important;
+}
+
+li[role="option"],
+.item,
+div[class*="options"] li,
+.option-list li {
+    padding: 8px 12px !important;
+    font-size: 0.80rem !important;
+    font-family: 'Montserrat', sans-serif !important;
+    color: var(--frost-white) !important;
+    cursor: pointer !important;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.06) !important;
+    transition: background 0.15s ease, color 0.15s ease !important;
+}
+
+li[role="option"]:last-child,
+.item:last-child {
+    border-bottom: none !important;
+}
+
+li[role="option"]:hover,
+li[role="option"].selected,
+li[role="option"][aria-selected="true"],
+.item:hover,
+.item.selected {
+    background: rgba(0, 255, 135, 0.18) !important;
+    color: var(--aurora-green) !important;
+    font-weight: 600 !important;
+}
+
 .module-card label:has(input[type="checkbox"]) {
     display: inline-flex !important;
     align-items: center !important;
@@ -463,31 +576,90 @@ body, html {
     background: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
+    width: 100% !important;
 }
 
-.file-upload-zone .file-upload,
-.file-upload-zone [data-testid="file-upload"],
-.file-upload-zone .upload-container {
+.file-upload-zone .boundedheight,
+.file-upload-zone [aria-label*="upload"],
+.file-upload-zone button {
     background: rgba(6, 14, 29, 0.6) !important;
-    border: 1.5px dashed rgba(0, 212, 255, 0.26) !important;
+    border: 1.5px dashed rgba(0, 212, 255, 0.28) !important;
     border-radius: 12px !important;
-    min-height: 80px !important;
-    padding: 6px !important;
+    width: 100% !important;
+    min-height: 96px !important;
+    height: 96px !important;
+    padding: 10px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
     transition: all 0.25s ease !important;
 }
 
-.file-upload-zone .file-upload:hover,
-.file-upload-zone [data-testid="file-upload"]:hover,
-.file-upload-zone .upload-container:hover {
+.file-upload-zone .boundedheight:hover,
+.file-upload-zone [aria-label*="upload"]:hover,
+.file-upload-zone button:hover {
     border-color: var(--aurora-green) !important;
-    background: rgba(0, 255, 135, 0.04) !important;
+    background: rgba(0, 255, 135, 0.05) !important;
     box-shadow: 0 0 16px rgba(0, 255, 135, 0.16) !important;
+}
+
+/* Reemplazo limpio del texto nativo sin overflow */
+.file-upload-zone [data-testid="upload-text"],
+.file-upload-zone button > div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0 !important;
+    color: transparent !important;
+    line-height: 0 !important;
+    width: 100% !important;
+}
+
+.file-upload-zone [data-testid="upload-icon"] svg,
+.file-upload-zone svg.feather-upload,
+.file-upload-zone button svg {
+    display: block !important;
+    width: 24px !important;
+    height: 24px !important;
+    margin: 0 auto 6px auto !important;
+    color: var(--ice-cyan) !important;
+}
+
+.file-upload-zone .or,
+.file-upload-zone span.or {
+    display: none !important;
+}
+
+.file-upload-zone [data-testid="upload-text"]::after,
+.file-upload-zone button > div::after {
+    content: "Arrastre el archivo aquí o haga clic para cargar" !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 0.80rem !important;
+    line-height: 1.35 !important;
+    font-weight: 500 !important;
+    color: var(--frost-white) !important;
+    text-align: center !important;
+    display: block !important;
+    margin-top: 4px !important;
+}
+
+.file-upload-zone input[type="file"],
+.file-upload-zone [type="file"] {
+    display: none !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 .file-hint {
     font-size: 0.69rem !important;
     color: #627A97 !important;
-    margin-top: 2px !important;
+    margin-top: 4px !important;
 }
 
 /* ── MODULO 4: RESULTADO DE LA TRANSCRIPCIÓN (ALTURA SIMÉTRICA) ── */
@@ -504,9 +676,9 @@ body, html {
 }
 
 .output-textbox textarea {
-    height: 495px !important;
-    max-height: 495px !important;
-    min-height: 495px !important;
+    height: 520px !important;
+    max-height: 520px !important;
+    min-height: 520px !important;
     background-color: #040813 !important;
     border: 1px solid rgba(0, 212, 255, 0.12) !important;
     border-radius: 12px !important;
@@ -639,11 +811,13 @@ body, html {
     box-shadow: 0 0 12px rgba(0, 255, 135, 0.12) !important;
 }
 
-/* ── MODAL ADMIN ─────────────────────────────────── */
+/* ── MODAL ADMIN (ESTRICTAMENTE CENTRADO Y ACOTADO AL CONTENIDO) ── */
 .modal-overlay {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
     background: rgba(3, 7, 18, 0.85) !important;
@@ -653,7 +827,9 @@ body, html {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 16px !important;
+    padding: 20px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
 }
 
 .modal-dialog {
@@ -662,15 +838,26 @@ body, html {
     border-radius: 18px !important;
     width: 100% !important;
     max-width: 380px !important;
+    height: auto !important;
+    min-height: unset !important;
+    max-height: fit-content !important;
+    flex: 0 0 auto !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+    align-self: center !important;
+    margin: auto !important;
     padding: 22px !important;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 24px rgba(0, 212, 255, 0.15) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 24px rgba(0, 212, 255, 0.18) !important;
+    box-sizing: border-box !important;
 }
 
 .modal-title-row {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 8px !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
 }
 
 .modal-title {
@@ -681,9 +868,11 @@ body, html {
 }
 
 .btn-modal-close {
-    width: 28px !important;
-    height: 28px !important;
-    min-width: 28px !important;
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    flex: 0 0 30px !important;
     padding: 0 !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -698,14 +887,15 @@ body, html {
 
 .btn-modal-close:hover {
     color: #F87171 !important;
-    background: rgba(239, 68, 68, 0.1) !important;
-    border-color: rgba(239, 68, 68, 0.3) !important;
+    background: rgba(239, 68, 68, 0.12) !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
 }
 
 .modal-subtext {
     font-size: 0.75rem !important;
     color: #8BA2BF !important;
     margin: 0 0 12px 0 !important;
+    line-height: 1.4 !important;
 }
 
 .app-footer {
@@ -810,7 +1000,12 @@ with gr.Blocks(**blocks_kwargs) as demo:
             with gr.Row(elem_classes=["modal-title-row"]):
                 gr.HTML('<h3 class="modal-title">Acceso de Administrador</h3>')
                 btn_close_login = gr.Button(
-                    "✕", size="sm", variant="secondary", elem_classes=["btn-modal-close"]
+                    "✕",
+                    size="sm",
+                    variant="secondary",
+                    min_width=32,
+                    scale=0,
+                    elem_classes=["btn-modal-close"],
                 )
 
             gr.HTML(
@@ -851,7 +1046,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     show_label=False,
                     file_types=["audio", "video"],
                     file_count="single",
-                    height=85,
+                    height=100,
                     container=False,
                     elem_classes=["file-upload-zone"],
                 )
@@ -886,6 +1081,8 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         label="Proveedor de Transcripción",
                         scale=1,
                     )
+
+                with gr.Row():
                     model_dropdown = gr.Dropdown(
                         choices=PROVIDER_MODEL_CHOICES[ProviderType.WHISPERX.value],
                         value=ModelName.LARGE_V3_TURBO.value,
