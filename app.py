@@ -201,69 +201,109 @@ custom_css = """
     --sky-cyan: #38BDF8;
     --amethyst: #A855F7;
     --deep-midnight: #030712;
-    --surface-slate: rgba(15, 23, 42, 0.75);
-    --surface-darker: rgba(7, 12, 24, 0.88);
+    --surface-slate: rgba(15, 23, 42, 0.78);
+    --surface-darker: rgba(7, 12, 24, 0.9);
     --glass-border: rgba(56, 189, 248, 0.16);
-    --glass-border-focus: rgba(0, 255, 135, 0.45);
     --frost-white: #F8FAFC;
     --muted-slate: #94A3B8;
     --dark-text: #030712;
 }
 
-/* Atmósfera de Noche Ártica con Ondas de Aurora Boreal y Control de Viewport */
+/* ── RESET & FULL-VIEWPORT ──────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
 html, body {
     height: 100% !important;
-    max-height: 100vh !important;
-    overflow-x: hidden !important;
     margin: 0 !important;
     padding: 0 !important;
+    overflow: hidden !important;
     background-color: var(--deep-midnight) !important;
-    background-image: 
-        radial-gradient(circle at 15% 12%, rgba(0, 255, 135, 0.07) 0%, transparent 40%),
-        radial-gradient(circle at 85% 10%, rgba(168, 85, 247, 0.09) 0%, transparent 45%),
-        radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
-        radial-gradient(circle at 80% 85%, rgba(0, 255, 135, 0.04) 0%, transparent 35%) !important;
+    background-image:
+        radial-gradient(circle at 15% 12%, rgba(0,255,135,.07) 0%, transparent 40%),
+        radial-gradient(circle at 85% 10%, rgba(168,85,247,.09) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(0,212,255,.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 85%, rgba(0,255,135,.04) 0%, transparent 35%) !important;
     background-attachment: fixed !important;
     color: var(--frost-white) !important;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
     -webkit-font-smoothing: antialiased;
 }
 
+/* Root Gradio wrapper — full viewport, flex column */
 .gradio-container {
-    max-width: 1300px !important;
+    max-width: 1340px !important;
     width: 96% !important;
     height: 100vh !important;
     max-height: 100vh !important;
     margin: 0 auto !important;
-    padding: 5px 12px !important;
+    padding: 5px 10px !important;
     display: flex !important;
     flex-direction: column !important;
-    justify-content: space-between !important;
-    box-sizing: border-box !important;
-    overflow-x: hidden !important;
-    overflow-y: visible !important;
+    overflow: hidden !important;
+    gap: 0 !important;
 }
 
-/* Paneles Unificados Cohesivos (Un solo cuadro por columna) */
+/* The inner gap-div Gradio generates must also flex and grow */
+.gradio-container > .gap,
+.gradio-container > div > .gap {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    gap: 0 !important;
+    min-height: 0 !important;
+}
+
+/* ── MAIN TWO-COLUMN ROW ─────────────────────────── */
+.main-columns-row {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Gradio wraps columns in .flex — stretch them to fill */
+.main-columns-row > .flex,
+.main-columns-row > div > .flex {
+    height: 100% !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+}
+
+/* Each column must grow and allow its card to fill it */
+.main-columns-row .column {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+
+/* ── UNIFIED GLASS CARD (one per column) ─────────── */
 .unified-card {
     background: var(--surface-slate) !important;
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
     border: 1px solid var(--glass-border) !important;
     border-radius: 10px !important;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45) !important;
-    padding: 8px 12px !important;
-    margin-bottom: 3px !important;
+    box-shadow: 0 4px 18px rgba(0,0,0,.45) !important;
+    padding: 10px 13px !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 5px !important;
+    gap: 6px !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
     overflow: visible !important;
 }
 
-/* Eliminar cajas o marcos duplicados dentro de las tarjetas unificadas */
+/* Strip inner Gradio decoration (nested boxes) */
 .unified-card .block,
 .unified-card .panel,
-.unified-card .form {
+.unified-card .form,
+.unified-card .contain,
+.unified-card .gap,
+.unified-card > .block,
+.unified-card > div > .block {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -272,34 +312,40 @@ html, body {
     overflow: visible !important;
 }
 
-/* Soporte total para despliegue de menús (Dropdowns) */
-.gradio-container .gr-dropdown,
-.gradio-container [data-testid="dropdown"],
-.gradio-container .dropdown,
-.gradio-container .wrap,
+/* ── DROPDOWN Z-INDEX + OVERFLOW ─────────────────── */
+/* Allow overflow on every ancestor so the list can escape */
+.gradio-container,
+.gradio-container .contain,
+.gradio-container .gap,
+.main-columns-row,
+.main-columns-row .block,
+.main-columns-row .panel,
+.main-columns-row .column,
+.unified-card,
+.unified-card .block,
+.unified-card .gap,
 .unified-card .row,
-.unified-card .column {
+.unified-card .wrap {
     overflow: visible !important;
 }
 
-.gradio-container ul.options,
-.gradio-container .options,
-.gradio-container .dropdown-options,
 ul.options,
-.options {
-    z-index: 9999999 !important;
+.options,
+.gradio-container ul.options,
+.gradio-container .options {
+    z-index: 99999 !important;
     position: absolute !important;
     background: #080E1A !important;
-    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    border: 1px solid rgba(56,189,248,.35) !important;
     border-radius: 8px !important;
-    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.95) !important;
+    box-shadow: 0 14px 40px rgba(0,0,0,.95) !important;
     max-height: 220px !important;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
 }
 
-.gradio-container ul.options li,
-.gradio-container .options li,
-.gradio-container .dropdown-options li {
+ul.options li, .options li,
+.gradio-container ul.options li, .gradio-container .options li {
     padding: 7px 12px !important;
     font-size: 0.84rem !important;
     color: #F8FAFC !important;
@@ -307,333 +353,262 @@ ul.options,
     background: transparent !important;
 }
 
-.gradio-container ul.options li:hover,
-.gradio-container .options li:hover,
-.gradio-container .dropdown-options li:hover,
-.gradio-container ul.options li.selected,
-.gradio-container .options li.selected {
-    background: rgba(0, 255, 135, 0.16) !important;
+ul.options li:hover, .options li:hover,
+ul.options li.selected, .options li.selected,
+.gradio-container ul.options li:hover, .gradio-container .options li:hover {
+    background: rgba(0,255,135,.16) !important;
     color: var(--aurora-green) !important;
 }
 
-/* Barra Superior de Cabecera (Sleek Studio Topbar) */
+/* ── HEADER ──────────────────────────────────────── */
 #app-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 5px 14px;
-    background: rgba(15, 23, 42, 0.7);
-    border: 1px solid rgba(56, 189, 248, 0.18);
+    padding: 4px 13px;
+    background: rgba(15,23,42,.72);
+    border: 1px solid rgba(56,189,248,.18);
     border-radius: 9px;
     margin-bottom: 5px;
+    flex-shrink: 0;
 }
 
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-}
+.header-left { display: flex; align-items: center; gap: 8px; }
 
 .app-title-text {
-    font-size: 1.15rem;
+    font-size: 1.08rem;
     font-weight: 800;
-    letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #FFFFFF 20%, var(--aurora-green) 70%, var(--ice-cyan) 100%);
+    letter-spacing: -.02em;
+    background: linear-gradient(135deg,#FFF 20%,var(--aurora-green) 70%,var(--ice-cyan) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
 .app-tag-pill {
-    font-size: 0.68rem;
+    font-size: .67rem;
     font-weight: 700;
     padding: 2px 7px;
     border-radius: 9999px;
-    background: rgba(0, 255, 135, 0.1);
-    border: 1px solid rgba(0, 255, 135, 0.3);
+    background: rgba(0,255,135,.1);
+    border: 1px solid rgba(0,255,135,.3);
     color: var(--aurora-green);
-    letter-spacing: 0.03em;
+    letter-spacing: .03em;
 }
 
-.app-subtitle-compact {
-    font-size: 0.8rem;
-    color: var(--muted-slate);
-    font-weight: 400;
-}
+.app-subtitle-compact { font-size: .78rem; color: var(--muted-slate); font-weight: 400; }
 
 .header-mic-svg {
     stroke: var(--aurora-green);
-    filter: drop-shadow(0 0 8px rgba(0, 255, 135, 0.5));
+    filter: drop-shadow(0 0 7px rgba(0,255,135,.5));
+    flex-shrink: 0;
 }
 
-/* Títulos de Sección Compactos */
+/* ── SECTION TITLES ──────────────────────────────── */
 .compact-panel-title {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.86rem;
+    font-size: .83rem;
     font-weight: 700;
     color: #F8FAFC;
-    margin-bottom: 4px;
-    padding-bottom: 3px;
-    border-bottom: 1px solid rgba(56, 189, 248, 0.16);
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(56,189,248,.16);
+    flex-shrink: 0;
 }
 
-/* Zona de Carga de Archivos Compacta */
+/* ── FILE UPLOAD ─────────────────────────────────── */
 .gradio-container .file-upload,
 .gradio-container [data-testid="file-upload"] {
-    border: 1.5px dashed rgba(56, 189, 248, 0.35) !important;
-    border-radius: 9px !important;
-    background: rgba(8, 14, 26, 0.7) !important;
-    transition: all 0.25s ease !important;
-    padding: 0.35rem !important;
-    min-height: 65px !important;
+    border: 1.5px dashed rgba(56,189,248,.35) !important;
+    border-radius: 8px !important;
+    background: rgba(8,14,26,.7) !important;
+    transition: all .25s ease !important;
+    padding: .25rem !important;
+    min-height: 60px !important;
+    max-height: 68px !important;
 }
 
 .gradio-container .file-upload:hover,
 .gradio-container [data-testid="file-upload"]:hover {
     border-color: var(--aurora-green) !important;
-    background: rgba(0, 255, 135, 0.05) !important;
-    box-shadow: 0 0 16px rgba(0, 255, 135, 0.16) !important;
+    background: rgba(0,255,135,.05) !important;
+    box-shadow: 0 0 14px rgba(0,255,135,.16) !important;
 }
 
-.format-badges-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-    margin-top: 6px;
-    margin-bottom: 12px;
-}
-
-.format-chip {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    font-weight: 600;
-    padding: 2.5px 7px;
-    border-radius: 5px;
-    background: rgba(56, 189, 248, 0.1);
-    color: var(--sky-cyan);
-    border: 1px solid rgba(56, 189, 248, 0.25);
-}
-
-.format-chip-note {
-    font-size: 0.74rem;
-    color: var(--muted-slate);
-    margin-left: 4px;
-}
-
-/* Inputs, Selectores y Foco */
+/* ── INPUTS ──────────────────────────────────────── */
 .gradio-container input[type="text"],
 .gradio-container input[type="password"],
 .gradio-container select,
 .gradio-container textarea {
     background-color: var(--surface-darker) !important;
-    border: 1px solid rgba(56, 189, 248, 0.22) !important;
+    border: 1px solid rgba(56,189,248,.22) !important;
     border-radius: 8px !important;
     color: var(--frost-white) !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    font-size: .83rem !important;
+    transition: border-color .2s, box-shadow .2s !important;
 }
 
 .gradio-container input:focus,
 .gradio-container select:focus,
 .gradio-container textarea:focus {
     border-color: var(--aurora-green) !important;
-    box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.35) !important;
+    box-shadow: 0 0 0 2px rgba(0,255,135,.22) !important;
     outline: none !important;
 }
 
-/* Área de Salida: Tipografía Monospace JetBrains y Scroll Interno Bloqueado */
+/* ── OUTPUT TRANSCRIPT ───────────────────────────── */
+.output-transcript {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.output-transcript > .block,
+.output-transcript > div {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
 .output-transcript textarea {
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.82rem !important;
+    font-size: .81rem !important;
     line-height: 1.45 !important;
     background: #040914 !important;
-    border: 1px solid rgba(56, 189, 248, 0.24) !important;
+    border: 1px solid rgba(56,189,248,.24) !important;
     border-radius: 9px !important;
     color: #F1F5F9 !important;
-    padding: 0.65rem 0.85rem !important;
-    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.65) !important;
-    max-height: 200px !important;
+    padding: .6rem .8rem !important;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,.65) !important;
+    flex: 1 1 auto !important;
+    min-height: 100px !important;
+    resize: none !important;
     overflow-y: auto !important;
 }
 
-/* Botón Principal (Aurora Green + Cyan Gradient) */
+/* ── BUTTONS ─────────────────────────────────────── */
 .btn-primary, button.btn-primary, button.primary {
     background: linear-gradient(135deg, #00FF87 0%, #00D4FF 100%) !important;
     color: var(--dark-text) !important;
     font-weight: 700 !important;
-    font-size: 0.88rem !important;
+    font-size: .86rem !important;
     border: none !important;
     border-radius: 9px !important;
-    letter-spacing: 0.02em !important;
-    transition: all 0.24s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 4px 16px rgba(0, 255, 135, 0.35) !important;
-    padding: 0.5rem 1.1rem !important;
+    letter-spacing: .02em !important;
+    transition: all .24s cubic-bezier(.4,0,.2,1) !important;
+    box-shadow: 0 4px 16px rgba(0,255,135,.35) !important;
+    padding: .44rem 1rem !important;
     cursor: pointer !important;
 }
 
 .btn-primary:hover, button.btn-primary:hover, button.primary:hover {
-    transform: translateY(-1px) scale(1.005) !important;
-    box-shadow: 0 6px 24px rgba(0, 255, 135, 0.5), 0 0 12px rgba(0, 212, 255, 0.35) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 24px rgba(0,255,135,.5) !important;
     filter: brightness(1.05) !important;
 }
 
-.btn-primary:active, button.btn-primary:active, button.primary:active {
-    transform: translateY(1px) scale(0.99) !important;
-}
-
-/* Botón Secundario (Limpiar) */
 .btn-secondary, button.btn-secondary, button.secondary {
-    background: rgba(15, 23, 42, 0.85) !important;
+    background: rgba(15,23,42,.85) !important;
     color: #E2E8F0 !important;
-    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    border: 1px solid rgba(56,189,248,.25) !important;
     border-radius: 9px !important;
     font-weight: 600 !important;
-    font-size: 0.88rem !important;
-    padding: 0.5rem 0.9rem !important;
-    transition: all 0.2s ease !important;
+    font-size: .86rem !important;
+    padding: .44rem .9rem !important;
+    transition: all .2s ease !important;
 }
 
 .btn-secondary:hover, button.btn-secondary:hover, button.secondary:hover {
-    background: rgba(56, 189, 248, 0.15) !important;
+    background: rgba(56,189,248,.15) !important;
     border-color: var(--sky-cyan) !important;
-    color: #FFFFFF !important;
+    color: #FFF !important;
     transform: translateY(-1px) !important;
 }
 
-/* Botón de Descarga */
 .btn-download, button.btn-download {
     border-radius: 9px !important;
     font-weight: 600 !important;
-    font-size: 0.88rem !important;
-    border: 1px solid rgba(56, 189, 248, 0.32) !important;
-    background: rgba(15, 23, 42, 0.85) !important;
+    font-size: .83rem !important;
+    border: 1px solid rgba(56,189,248,.32) !important;
+    background: rgba(15,23,42,.85) !important;
     color: var(--frost-white) !important;
-    padding: 0.5rem 1rem !important;
-    transition: all 0.22s ease !important;
+    padding: .38rem 1rem !important;
+    transition: all .22s ease !important;
+    flex-shrink: 0 !important;
 }
 
 .btn-download:hover:not(:disabled), button.btn-download:hover:not(:disabled) {
     border-color: var(--ice-cyan) !important;
-    background: rgba(0, 212, 255, 0.18) !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 4px 18px rgba(0, 212, 255, 0.3) !important;
+    background: rgba(0,212,255,.18) !important;
+    color: #FFF !important;
+    box-shadow: 0 4px 18px rgba(0,212,255,.3) !important;
     transform: translateY(-1px) !important;
 }
 
-/* Barras de Desplazamiento Personalizadas */
-::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
-}
-::-webkit-scrollbar-track {
-    background: rgba(15, 23, 42, 0.6);
-    border-radius: 4px;
-}
-::-webkit-scrollbar-thumb {
-    background: rgba(56, 189, 248, 0.35);
-    border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: var(--aurora-green);
-}
+/* ── SCROLLBAR ───────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(15,23,42,.6); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(56,189,248,.35); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--aurora-green); }
 
-/* Acordeones Frosted Glass */
+/* ── ACCORDIONS ──────────────────────────────────── */
 .gradio-container .accordion {
     border: 1px solid var(--glass-border) !important;
-    border-radius: 10px !important;
-    background: rgba(10, 22, 40, 0.55) !important;
-    margin-bottom: 0.75rem !important;
+    border-radius: 8px !important;
+    background: rgba(10,22,40,.55) !important;
+    margin-bottom: 2px !important;
 }
 
-/* Pie de Página Nórdico */
-#app-footer {
-    text-align: center;
-    margin-top: 2.5rem;
-    margin-bottom: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid rgba(0, 212, 255, 0.12);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 0.85rem;
-    color: var(--muted-slate);
-}
-
-.footer-tech {
-    letter-spacing: 0.02em;
-}
-
-.footer-tech strong {
-    color: var(--frost-white);
-    font-weight: 600;
-}
-
-.footer-links a {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--ice-cyan);
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
-
-.footer-links a:hover {
-    color: var(--aurora-green);
-}
-
-/* --- Barra de Estado Inferior Estilo Preview Suite --- */
+/* ── STATUS BAR ──────────────────────────────────── */
 .statusbar {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 4px 14px !important;
-    background: rgba(3, 7, 18, 0.92) !important;
+    padding: 4px 13px !important;
+    background: rgba(3,7,18,.92) !important;
     backdrop-filter: blur(14px) !important;
     -webkit-backdrop-filter: blur(14px) !important;
-    border: 1px solid rgba(56, 189, 248, 0.2) !important;
+    border: 1px solid rgba(56,189,248,.2) !important;
     border-radius: 9px !important;
-    font-size: 11.5px !important;
+    font-size: 11px !important;
     color: var(--muted-slate) !important;
-    margin-top: 4px !important;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5) !important;
+    margin-top: 5px !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 4px 18px rgba(0,0,0,.5) !important;
     overflow: visible !important;
+    gap: 0 !important;
 }
 
-.statusbar-left {
+.statusbar-left, .statusbar-right {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 7px !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
-.statusbar-right {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-end !important;
-    gap: 8px !important;
-}
+.statusbar-right { justify-content: flex-end !important; }
 
-.statusbar-badges {
+/* Small pill buttons inside status bar */
+.author-badge, button.author-badge,
+.github-badge, button.github-badge {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 8px !important;
-}
-
-.author-badge, button.author-badge, .github-badge, button.github-badge {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    background: rgba(0, 212, 255, 0.1) !important;
-    padding: 3.5px 11px !important;
+    gap: 5px !important;
+    padding: 3px 9px !important;
     border-radius: 6px !important;
-    color: var(--ice-cyan) !important;
     font-weight: 600 !important;
-    font-size: 11.5px !important;
-    border: 1px solid rgba(0, 212, 255, 0.28) !important;
+    font-size: 11px !important;
     white-space: nowrap !important;
-    transition: all 0.2s ease !important;
+    transition: all .2s ease !important;
     cursor: pointer !important;
     min-width: unset !important;
     height: auto !important;
@@ -641,126 +616,154 @@ ul.options,
     box-shadow: none !important;
 }
 
+.author-badge, button.author-badge {
+    background: rgba(0,212,255,.1) !important;
+    color: var(--ice-cyan) !important;
+    border: 1px solid rgba(0,212,255,.28) !important;
+}
+
 .author-badge:hover, button.author-badge:hover {
-    background: rgba(0, 212, 255, 0.22) !important;
+    background: rgba(0,212,255,.22) !important;
     border-color: var(--ice-cyan) !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 0 10px rgba(0, 212, 255, 0.35) !important;
+    box-shadow: 0 0 10px rgba(0,212,255,.35) !important;
 }
 
 .github-badge, button.github-badge {
-    background: rgba(56, 189, 248, 0.1) !important;
-    border-color: rgba(56, 189, 248, 0.28) !important;
+    background: rgba(56,189,248,.1) !important;
+    border: 1px solid rgba(56,189,248,.28) !important;
     color: var(--sky-cyan) !important;
 }
 
 .github-badge:hover, button.github-badge:hover {
-    background: rgba(56, 189, 248, 0.22) !important;
+    background: rgba(56,189,248,.22) !important;
     border-color: var(--sky-cyan) !important;
-    color: #FFFFFF !important;
+    color: #FFF !important;
     transform: translateY(-1px) !important;
 }
 
-.author-badge svg, .github-badge svg {
-    color: inherit;
-    width: 13px;
-    height: 13px;
+.statusbar-badges {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 7px !important;
 }
 
 .antigravity-badge {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: rgba(168, 85, 247, 0.15);
-    padding: 3.5px 10px;
+    background: rgba(168,85,247,.15);
+    padding: 3px 9px;
     border-radius: 6px;
     color: #D8B4FE;
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 600;
-    border: 1px solid rgba(168, 85, 247, 0.35);
-    transition: all 0.2s ease;
+    border: 1px solid rgba(168,85,247,.35);
     white-space: nowrap;
     cursor: default;
+    transition: all .2s ease;
 }
 
 .antigravity-badge:hover {
-    background: rgba(168, 85, 247, 0.28);
+    background: rgba(168,85,247,.28);
     border-color: #C084FC;
-    box-shadow: 0 0 12px rgba(192, 132, 252, 0.4);
-    transform: translateY(-1px);
-}
-
-.antigravity-badge svg {
-    color: #F472B6;
-    width: 12px;
-    height: 12px;
+    box-shadow: 0 0 10px rgba(192,132,252,.35);
 }
 
 .version-badge {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
-    padding: 3.5px 9px;
+    padding: 3px 8px;
     border-radius: 6px;
-    background: rgba(0, 255, 135, 0.12);
+    background: rgba(0,255,135,.12);
     color: var(--aurora-green);
-    border: 1px solid rgba(0, 255, 135, 0.32);
-    letter-spacing: 0.03em;
-    transition: all 0.2s ease;
+    border: 1px solid rgba(0,255,135,.32);
+    letter-spacing: .03em;
     white-space: nowrap;
     cursor: default;
 }
 
-.version-badge:hover {
-    background: rgba(0, 255, 135, 0.25);
-    border-color: var(--aurora-green);
-    box-shadow: 0 0 12px rgba(0, 255, 135, 0.4);
-    transform: translateY(-1px);
+/* ── ADMIN ACTIVE PILL ───────────────────────────── */
+.admin-active-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 3px 14px;
+    margin: 0 auto 4px auto;
+    max-width: 560px;
+    background: rgba(0,255,135,.08);
+    border: 1px solid rgba(0,255,135,.35);
+    border-radius: 9999px;
+    color: var(--aurora-green);
+    font-size: .73rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+    box-shadow: 0 2px 10px rgba(0,255,135,.15);
+    animation: fadeInPill .35s ease-out;
 }
 
-/* Modal Overlay para Login de Administrador */
+.admin-active-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--aurora-green);
+    box-shadow: 0 0 8px var(--aurora-green);
+    flex-shrink: 0;
+}
+
+.admin-active-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .7rem;
+    padding: 1px 7px;
+    border-radius: 4px;
+    background: rgba(0,255,135,.16);
+    border: 1px solid rgba(0,255,135,.3);
+    color: #FFF;
+}
+
+@keyframes fadeInPill {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── ADMIN MODAL ─────────────────────────────────── */
+/* Gradio renders visible=False with display:none inline.
+   When visible=True, it removes that inline style and our rules kick in. */
 .admin-modal-overlay {
-    display: none !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-}
-
-.admin-modal-overlay:not(.hidden):not(.hide):not([style*="display: none"]):not([style*="display:none"]):not(:empty) {
     position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    background: rgba(2, 6, 23, 0.85) !important;
+    top: 0 !important; left: 0 !important;
+    width: 100vw !important; height: 100vh !important;
+    background: rgba(2,6,23,.85) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
-    z-index: 1000000 !important;
+    z-index: 999999 !important;
     display: flex !important;
-    visibility: visible !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 1.5rem !important;
-    pointer-events: auto !important;
-}
-
-.admin-modal-overlay.hide,
-.admin-modal-overlay.hidden,
-.admin-modal-overlay[style*="display: none"],
-.admin-modal-overlay[style*="display:none"] {
-    display: none !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
 }
 
 .admin-modal-card {
-    background: rgba(15, 23, 42, 0.96) !important;
-    border: 1px solid rgba(0, 255, 135, 0.35) !important;
+    background: rgba(15,23,42,.97) !important;
+    border: 1px solid rgba(0,255,135,.35) !important;
     border-radius: 16px !important;
-    max-width: 440px !important;
+    max-width: 420px !important;
     width: 100% !important;
-    padding: 24px !important;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(0, 255, 135, 0.15) !important;
-    margin: auto !important;
+    padding: 22px !important;
+    box-shadow: 0 24px 60px rgba(0,0,0,.85), 0 0 35px rgba(0,255,135,.15) !important;
+}
+
+.admin-modal-card .block,
+.admin-modal-card .panel,
+.admin-modal-card .form,
+.admin-modal-card .gap,
+.admin-modal-card > div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 .modal-header-row {
@@ -770,195 +773,64 @@ ul.options,
     margin-bottom: 14px !important;
 }
 
-.modal-title-box {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.modal-title-icon {
-    font-size: 1.45rem;
-}
-
-.modal-title-text {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #F8FAFC;
-    margin: 0;
-}
-
-.modal-title-desc {
-    font-size: 0.78rem;
-    color: #94A3B8;
-    margin: 2px 0 0 0;
-}
+.modal-title-box { display: flex; align-items: center; gap: 10px; }
+.modal-title-icon { font-size: 1.4rem; }
+.modal-title-text { font-size: 1rem; font-weight: 700; color: #F8FAFC; margin: 0; }
+.modal-title-desc { font-size: .75rem; color: #94A3B8; margin: 2px 0 0 0; }
 
 .modal-close-btn {
-    max-width: 34px !important;
-    min-width: 34px !important;
-    height: 34px !important;
-    padding: 0 !important;
-    border-radius: 8px !important;
-    font-size: 14px !important;
-    background: rgba(255, 255, 255, 0.06) !important;
-    border: 1px solid rgba(255, 255, 255, 0.14) !important;
-    color: #94A3B8 !important;
-    cursor: pointer !important;
+    max-width: 32px !important; min-width: 32px !important;
+    height: 32px !important; padding: 0 !important;
+    border-radius: 8px !important; font-size: 14px !important;
+    background: rgba(255,255,255,.06) !important;
+    border: 1px solid rgba(255,255,255,.14) !important;
+    color: #94A3B8 !important; cursor: pointer !important;
 }
 
 .modal-close-btn:hover {
-    color: #FFFFFF !important;
-    background: rgba(244, 63, 94, 0.25) !important;
+    color: #FFF !important;
+    background: rgba(244,63,94,.25) !important;
     border-color: #F43F5E !important;
 }
 
 .modal-pin-input input {
     font-family: 'JetBrains Mono', monospace !important;
-    letter-spacing: 0.15em !important;
+    letter-spacing: .15em !important;
     font-size: 1.1rem !important;
     text-align: center !important;
-    margin-top: 10px !important;
-    margin-bottom: 12px !important;
+    margin-top: 8px !important;
+    margin-bottom: 10px !important;
 }
 
-.modal-submit-btn {
-    width: 100% !important;
-    margin-top: 4px !important;
-}
+.modal-submit-btn { width: 100% !important; margin-top: 4px !important; }
 
-/* Pill de Sesión Activa de Propietario */
-.admin-active-pill {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 3px 14px;
-    margin: 0 auto 4px auto;
-    max-width: 580px;
-    background: rgba(0, 255, 135, 0.08);
-    border: 1px solid rgba(0, 255, 135, 0.35);
-    border-radius: 9999px;
-    color: var(--aurora-green);
-    font-size: 0.76rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    box-shadow: 0 2px 10px rgba(0, 255, 135, 0.15);
-    animation: fadeInPill 0.35s ease-out;
-}
-
-.admin-active-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: var(--aurora-green);
-    box-shadow: 0 0 10px var(--aurora-green);
-}
-
-.admin-active-tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background: rgba(0, 255, 135, 0.16);
-    border: 1px solid rgba(0, 255, 135, 0.3);
-    color: #FFFFFF;
-}
-
-@keyframes fadeInPill {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Botones Interactivos de la Barra de Estado */
-.statusbar-left-col {
-    display: flex !important;
-    align-items: center !important;
-}
-
-.statusbar-right-row {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-end !important;
-    gap: 8px !important;
-}
-
-.statusbar-btn {
-    padding: 5px 13px !important;
-    font-size: 0.78rem !important;
-    font-weight: 600 !important;
-    border-radius: 8px !important;
-    border: 1px solid transparent !important;
-    transition: all 0.2s ease !important;
-    cursor: pointer !important;
-    white-space: nowrap !important;
-    min-width: unset !important;
-    height: auto !important;
-    background: transparent !important;
-}
-
-.statusbar-github-btn {
-    background: rgba(56, 189, 248, 0.1) !important;
-    border-color: rgba(56, 189, 248, 0.25) !important;
-    color: var(--sky-cyan) !important;
-}
-
-.statusbar-github-btn:hover {
-    background: rgba(56, 189, 248, 0.22) !important;
-    border-color: var(--sky-cyan) !important;
-    color: #FFFFFF !important;
-    transform: translateY(-1px) !important;
-}
-
-.statusbar-author-btn {
-    background: rgba(0, 212, 255, 0.1) !important;
-    border-color: rgba(0, 212, 255, 0.28) !important;
-    color: var(--ice-cyan) !important;
-}
-
-.statusbar-author-btn:hover {
-    background: rgba(0, 255, 135, 0.18) !important;
-    border-color: var(--aurora-green) !important;
-    color: var(--aurora-green) !important;
-    box-shadow: 0 0 12px rgba(0, 255, 135, 0.35) !important;
-    transform: translateY(-1px) !important;
-}
-
-.statusbar-version-btn {
-    font-family: 'JetBrains Mono', monospace !important;
-    background: rgba(0, 255, 135, 0.1) !important;
-    border-color: rgba(0, 255, 135, 0.28) !important;
-    color: var(--aurora-green) !important;
-    cursor: default !important;
-}
-
-/* Adaptabilidad Móvil */
+/* ── MOBILE ──────────────────────────────────────── */
 @media (max-width: 768px) {
-    html, body {
-        height: auto !important;
-        max-height: none !important;
-        overflow-y: auto !important;
-    }
+    html, body { overflow: auto !important; height: auto !important; }
     .gradio-container {
-        height: auto !important;
-        max-height: none !important;
+        height: auto !important; max-height: none !important;
+        overflow: visible !important; width: 100% !important;
+        padding: .4rem !important;
+    }
+    .gradio-container > .gap,
+    .gradio-container > div > .gap {
+        height: auto !important; max-height: none !important;
         overflow: visible !important;
-        width: 100% !important;
-        padding: 0.5rem !important;
     }
-    #app-header {
+    .main-columns-row { overflow: visible !important; }
+    .main-columns-row > .flex,
+    .main-columns-row > div > .flex {
         flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 4px !important;
+        height: auto !important;
     }
+    .unified-card { height: auto !important; flex: none !important; }
+    .output-transcript textarea { min-height: 150px !important; }
+    #app-header { flex-direction: column !important; align-items: flex-start !important; gap: 4px !important; }
     .statusbar {
-        flex-direction: column !important;
-        gap: 8px !important;
-        padding: 8px 10px !important;
+        flex-direction: column !important; gap: 6px !important; padding: 7px 10px !important;
     }
-    .statusbar-left-col, .statusbar-right-row {
-        justify-content: center !important;
-        flex-wrap: wrap !important;
-        width: 100% !important;
+    .statusbar-left, .statusbar-right {
+        justify-content: center !important; flex-wrap: wrap !important; width: 100% !important;
     }
 }
 """
@@ -1061,7 +933,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
     # Banner flotante minimalista de Estado Propietario (visible únicamente cuando se autentica)
     admin_status_banner = gr.HTML("", visible=False)
 
-    with gr.Row(equal_height=False):
+    with gr.Row(equal_height=True, elem_classes=["main-columns-row"]):
         # Columna Izquierda: Entrada y Controles (Un solo cuadro unificado)
         with gr.Column(scale=1):
             with gr.Group(elem_classes=["unified-card"]):
@@ -1096,7 +968,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     label="Archivo de Audio o Video",
                     file_types=["audio", "video"],
                     file_count="single",
-                    height=75,
+                    height=65,
                 )
 
                 with gr.Row():
@@ -1178,8 +1050,8 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 output_text = gr.Textbox(
                     show_label=False,
                     placeholder="El texto transcrito con marcas temporales y locutores aparecerá aquí una vez finalizado el procesamiento...",
-                    lines=8,
-                    max_lines=10,
+                    lines=14,
+                    max_lines=30,
                     elem_classes=["output-transcript"],
                 )
                 download_file = gr.DownloadButton(
