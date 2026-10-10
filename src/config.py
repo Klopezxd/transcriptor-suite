@@ -73,8 +73,8 @@ class TranscriptionConfig:
         language: Código de idioma ISO (opcional, detección automática por defecto).
     """
 
-    provider: str = ProviderType.WHISPERX.value
-    model_name: str = ModelName.LARGE_V3_TURBO.value
+    provider: str = ProviderType.DEEPGRAM.value
+    model_name: str = DeepgramModel.NOVA_2.value
     device: str = "cuda"
     compute_type: str = ComputeType.INT8.value
     batch_size: int = 16
@@ -87,8 +87,8 @@ class TranscriptionConfig:
     @classmethod
     def create_default(
         cls,
-        provider: str = ProviderType.WHISPERX.value,
-        model_name: str = ModelName.LARGE_V3_TURBO.value,
+        provider: str = ProviderType.DEEPGRAM.value,
+        model_name: str = DeepgramModel.NOVA_2.value,
         enable_diarization: bool = False,
         hf_token: str | None = None,
         api_key: str | None = None,

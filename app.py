@@ -18,7 +18,7 @@ import gradio as gr
 
 from src.config import (
     PROVIDER_MODEL_CHOICES,
-    ModelName,
+    DeepgramModel,
     ProviderType,
     TimestampMode,
     TranscriptionConfig,
@@ -246,6 +246,39 @@ body, html {
     width: 96% !important;
     margin: 0 auto !important;
     padding: 10px 14px 20px 14px !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* ── ELIMINA LA CAJA EXTERIOR QUE CUBRE A TODOS LOS MÓDULOS ── */
+.gradio-container,
+.gradio-container-6-30-0,
+.gradio-container > .main,
+.gradio-container .main,
+.gradio-container .wrap,
+.gradio-container .contain,
+main.contain,
+gradio-app {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* ── PREVIENE QUE CONTENEDORES PADRE CAPTUREN POSITION: FIXED ── */
+html,
+body,
+gradio-app,
+.gradio-container,
+.gradio-container > .main,
+.main,
+.wrap,
+.contain,
+main.contain {
+    transform: none !important;
+    filter: none !important;
+    perspective: none !important;
+    contain: none !important;
 }
 
 /* ── NAVBAR HEADER ────────────────────────────────── */
@@ -443,11 +476,9 @@ body, html {
 
 /* ── DROPDOWNS Y MENÚS DESPLEGABLES (AURORA BOREAL) ── */
 .module-card .wrap:has(.secondary-wrap),
-.gradio-container .wrap:has(.secondary-wrap),
-.module-card div:has(> .wrap-inner),
-.gradio-container div:has(> .wrap-inner),
+.module-card .gradio-dropdown .wrap,
 .module-card .wrap-inner,
-.gradio-container .wrap-inner {
+.module-card .gradio-dropdown .wrap-inner {
     background: var(--arctic-input) !important;
     border: 1px solid rgba(0, 212, 255, 0.16) !important;
     border-radius: 10px !important;
@@ -456,8 +487,18 @@ body, html {
     position: relative !important;
 }
 
-.module-card .secondary-wrap,
-.gradio-container .secondary-wrap {
+/* El contenedor envolvente de la página NUNCA debe tener borde ni fondo */
+.main > .wrap,
+.contain > .wrap,
+div.wrap.svelte-zxu34v,
+div.wrap:not(.module-card *) {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background: transparent !important;
+}
+
+.module-card .secondary-wrap {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
@@ -467,9 +508,9 @@ body, html {
 }
 
 .module-card .wrap:has(.secondary-wrap):focus-within,
-.gradio-container .wrap:has(.secondary-wrap):focus-within,
+.module-card .gradio-dropdown .wrap:focus-within,
 .module-card .wrap-inner:focus-within,
-.gradio-container .wrap-inner:focus-within {
+.module-card .gradio-dropdown .wrap-inner:focus-within {
     border-color: var(--aurora-green) !important;
     box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.22), 0 0 12px rgba(0, 255, 135, 0.15) !important;
 }
@@ -489,6 +530,9 @@ body, html {
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
     overflow: hidden !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    caret-color: transparent !important;
 }
 
 .dropdown-arrow,
@@ -510,48 +554,70 @@ body, html {
     color: var(--aurora-green) !important;
 }
 
-/* El despliegue del menú debe ir debajo de las opciones */
+/* ── MENÚ DE OPCIONES DESPLEGABLE (CON CUADRITOS ESTILIZADOS) ── */
 .options,
 ul.options,
 .option-list,
-div[class*="options"] {
+div[class*="options"],
+ul[role="listbox"],
+div[role="listbox"],
+.dropdown-menu {
     background: #060E1D !important;
-    border: 1px solid rgba(0, 212, 255, 0.3) !important;
-    border-radius: 10px !important;
+    border: 1px solid rgba(0, 212, 255, 0.28) !important;
+    border-radius: 12px !important;
     box-shadow: 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 18px rgba(0, 212, 255, 0.18) !important;
     z-index: 999999 !important;
     color: var(--frost-white) !important;
     max-height: 230px !important;
     overflow-y: auto !important;
-    margin-top: 4px !important;
+    margin-top: 5px !important;
+    padding: 6px !important;
 }
 
 li[role="option"],
 .item,
 div[class*="options"] li,
-.option-list li {
+.option-list li,
+ul.options > li,
+.options .item,
+[role="listbox"] > li,
+[role="listbox"] > div,
+[role="option"] {
     padding: 8px 12px !important;
     font-size: 0.80rem !important;
     font-family: 'Montserrat', sans-serif !important;
     color: var(--frost-white) !important;
     cursor: pointer !important;
-    border-bottom: 1px solid rgba(0, 212, 255, 0.06) !important;
-    transition: background 0.15s ease, color 0.15s ease !important;
+    border: 1px solid rgba(0, 212, 255, 0.14) !important;
+    border-radius: 8px !important;
+    margin-bottom: 5px !important;
+    background: rgba(10, 22, 40, 0.8) !important;
+    transition: all 0.15s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
 }
 
 li[role="option"]:last-child,
-.item:last-child {
-    border-bottom: none !important;
+.item:last-child,
+ul.options > li:last-child,
+[role="listbox"] > :last-child {
+    margin-bottom: 0 !important;
 }
 
 li[role="option"]:hover,
 li[role="option"].selected,
 li[role="option"][aria-selected="true"],
 .item:hover,
-.item.selected {
+.item.selected,
+[role="option"]:hover,
+[role="option"].selected,
+[role="option"][aria-selected="true"] {
     background: rgba(0, 255, 135, 0.18) !important;
+    border-color: var(--aurora-green) !important;
     color: var(--aurora-green) !important;
     font-weight: 600 !important;
+    box-shadow: 0 0 12px rgba(0, 255, 135, 0.18) !important;
 }
 
 .module-card label:has(input[type="checkbox"]) {
@@ -663,9 +729,16 @@ li[role="option"][aria-selected="true"],
 }
 
 /* ── MODULO 4: RESULTADO DE LA TRANSCRIPCIÓN (ALTURA SIMÉTRICA) ── */
+.result-column {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
 .result-card {
     display: flex !important;
     flex-direction: column !important;
+    justify-content: space-between !important;
+    height: 100% !important;
 }
 
 .output-textbox {
@@ -673,12 +746,24 @@ li[role="option"][aria-selected="true"],
     background: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.output-textbox > div,
+.output-textbox .container,
+.output-textbox label {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
 }
 
 .output-textbox textarea {
-    height: 520px !important;
-    max-height: 520px !important;
-    min-height: 520px !important;
+    height: 760px !important;
+    min-height: 760px !important;
+    flex: 1 1 auto !important;
     background-color: #040813 !important;
     border: 1px solid rgba(0, 212, 255, 0.12) !important;
     border-radius: 12px !important;
@@ -811,19 +896,23 @@ li[role="option"][aria-selected="true"],
     box-shadow: 0 0 12px rgba(0, 255, 135, 0.12) !important;
 }
 
-/* ── MODAL ADMIN (ESTRICTAMENTE CENTRADO Y ACOTADO AL CONTENIDO) ── */
-.modal-overlay {
+/* ── MODAL ADMIN (ESTRICTAMENTE CENTRADO EN PANTALLA Y ACOMPAÑA SCROLL) ── */
+.modal-overlay,
+div.modal-overlay,
+.gradio-container .modal-overlay,
+.gradio-container div.modal-overlay {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
+    inset: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
     background: rgba(3, 7, 18, 0.85) !important;
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
-    z-index: 99999 !important;
+    z-index: 9999999 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -832,7 +921,10 @@ li[role="option"][aria-selected="true"],
     box-sizing: border-box !important;
 }
 
-.modal-dialog {
+.modal-dialog,
+div.modal-dialog,
+.gradio-container .modal-dialog,
+.gradio-container div.modal-dialog {
     background: #0A1628 !important;
     border: 1px solid rgba(0, 212, 255, 0.22) !important;
     border-radius: 18px !important;
@@ -1077,16 +1169,16 @@ with gr.Blocks(**blocks_kwargs) as demo:
                             ProviderType.DEEPGRAM.value,
                             ProviderType.ASSEMBLYAI.value,
                         ],
-                        value=ProviderType.WHISPERX.value,
+                        value=ProviderType.DEEPGRAM.value,
                         label="Proveedor de Transcripción",
+                        filterable=False,
                         scale=1,
                     )
-
-                with gr.Row():
                     model_dropdown = gr.Dropdown(
-                        choices=PROVIDER_MODEL_CHOICES[ProviderType.WHISPERX.value],
-                        value=ModelName.LARGE_V3_TURBO.value,
+                        choices=PROVIDER_MODEL_CHOICES[ProviderType.DEEPGRAM.value],
+                        value=DeepgramModel.NOVA_2.value,
                         label="Modelo de Transcripción",
+                        filterable=False,
                         scale=1,
                     )
 
@@ -1104,6 +1196,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         ],
                         value="Simple ([HH:MM:SS])",
                         label="Formato de Marcas de Tiempo",
+                        filterable=False,
                         scale=1,
                     )
 
@@ -1111,7 +1204,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     """
                     <div class="info-notice">
                         <span>💡</span>
-                        <span><b>WhisperX:</b> Inferencia GPU local / ZeroGPU. Modelo large-v3-turbo ofrece máxima velocidad y eficiencia.</span>
+                        <span><b>Deepgram:</b> Inferencia ultrarrápida (~20s por audio largo). Modelo <code>nova-2</code> es el más económico y <code>nova-3</code> óptimo para ruido y acentos.</span>
                     </div>
                     """
                 )
@@ -1138,7 +1231,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         <span>WhisperX en GPU es 100% gratuito y no requiere ninguna clave de API externa.</span>
                     </div>
                     """,
-                    visible=True,
+                    visible=False,
                 )
 
                 hf_token_box = gr.Textbox(
@@ -1154,7 +1247,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     placeholder="Pega tu clave de API de Deepgram...",
                     type="password",
                     info="Obtén tu clave con créditos iniciales gratuitos en console.deepgram.com",
-                    visible=False,
+                    visible=True,
                 )
 
                 assemblyai_key_box = gr.Textbox(
@@ -1178,7 +1271,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 )
 
         # Columna Derecha: Módulo del Resultado de la Transcripción
-        with gr.Column(scale=6):
+        with gr.Column(scale=6, elem_classes=["result-column"]):
             # Módulo 4: Resultado de la Transcripción
             with gr.Column(min_width=0, elem_classes=["module-card", "result-card"]):
                 with gr.Row(elem_classes=["module-header"]):
@@ -1277,7 +1370,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
         panel_vis = update_guest_api_panel(selected_provider, is_diarize, is_admin)
 
         return (
-            gr.Dropdown(choices=choices, value=default_val),
+            gr.Dropdown(choices=choices, value=default_val, filterable=False),
             gr.HTML(value=info_dict.get(selected_provider, "")),
             *panel_vis,
         )
