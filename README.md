@@ -91,49 +91,78 @@ Test the pipeline directly on Hugging Face Spaces:
 
 The system workflow consists of two simple, decoupled processes: how audio files are transcribed, and how code is continuously deployed.
 
-### 1. Audio Processing & Transcription Flow
+### 1. Layered Architecture & Processing Pipeline
 
 ```mermaid
 flowchart TD
-    A["1. Media Input (MP4, MP3, WAV, etc.)"] --> B["2. Interface (Web Browser or Terminal CLI)"]
-    
-    B --> C{"3. Engine Selection"}
+    subgraph Ingestion ["1. Presentation & Ingestion Layer"]
+        Audio["Media Input (Audio / Video)"]
+        WebUI["Web Interface (Gradio)"]
+        CLI["Terminal Interface (CLI / Argparse)"]
+        Audio --> WebUI
+        Audio --> CLI
+    end
 
-    C -->|"Option A: WhisperX"| D["WhisperX Engine (ZeroGPU on Hugging Face)
-    • Free of charge (Zero GPU quota)
-    • Faster-Whisper ASR
-    • Word alignment with Wav2Vec2
-    • Speaker diarization with Pyannote"]
+    subgraph Core ["2. Security & Orchestration Layer"]
+        AuthGuard{"Access Guard (Admin PIN / BYOK)"}
+        Dispatcher["Engine Dispatcher (Factory Pattern)"]
+        WebUI --> AuthGuard
+        CLI --> Dispatcher
+        AuthGuard -->|"Authorized Session / BYOK"| Dispatcher
+    end
 
-    C -->|"Option B: Deepgram"| E["Deepgram Engine (Cloud)
-    • Ultra-fast (~20 sec for 2 hours)
-    • Nova-2 model (maximum cost-efficiency)
-    • Requires user personal API key"]
+    subgraph Engines ["3. ASR Processing Engines (Strategy Pattern)"]
+        subgraph LocalPipeline ["WhisperX Pipeline (ZeroGPU / Local CUDA)"]
+            ASR["Faster-Whisper (CTranslate2 INT8)"]
+            Align["Phonetic Alignment (Wav2Vec2)"]
+            Diarize["Speaker Diarization (Pyannote 3.1)"]
+            ASR --> Align --> Diarize
+        end
 
-    C -->|"Option C: AssemblyAI"| F["AssemblyAI Engine (Cloud)
-    • Maximum editorial precision
-    • Universal-1 model
-    • Requires user personal API key"]
+        subgraph CloudPipeline ["Cloud Foundation Engines"]
+            Deepgram["Deepgram SDK (Nova-2 / Nova-3)"]
+            Assembly["AssemblyAI SDK (Universal-1 / Nano)"]
+        end
 
-    D --> G["4. Result Normalizer"]
-    E --> G
-    F --> G
+        Dispatcher -->|"WhisperX"| ASR
+        Dispatcher -->|"Deepgram"| Deepgram
+        Dispatcher -->|"AssemblyAI"| Assembly
+    end
 
-    G --> H["5. Unified Output Formats
-    • Plain text (.txt)
-    • Video subtitles (.srt)
-    • Web subtitles (.vtt)
-    • Timestamped data (.json)"]
+    subgraph OutputLayer ["4. Normalization & Export Layer"]
+        Normalizer["Unified Transcript Normalizer"]
+        Exporter["Multi-format Serializer (TXT, SRT, VTT, JSON)"]
+        
+        Diarize --> Normalizer
+        Deepgram --> Normalizer
+        Assembly --> Normalizer
+        Normalizer --> Exporter
+    end
 ```
 
-### 2. Continuous Deployment Flow (CI/CD)
+### 2. Continuous Deployment Pipeline (CI/CD)
 
 ```mermaid
 flowchart LR
-    A["GitHub Repository
-    (Source Code)"] -->|"git push (main)"| B["GitHub Actions
-    (Automated Synchronizer)"] -->|"Updates Space"| C["Hugging Face Space
-    (Live Web Application)"]
+    subgraph Development ["Development Environment"]
+        Dev["Developer / Local Workstation"]
+        Repo["GitHub Repository (Branch: main)"]
+        Dev -->|"git push"| Repo
+    end
+
+    subgraph Automation ["CI/CD Pipeline"]
+        GHA["GitHub Actions (sync-to-space.yml)"]
+        Secrets["Repository Secrets (HF_TOKEN)"]
+        Repo --> GHA
+        Secrets -.-> GHA
+    end
+
+    subgraph Production ["Production Infrastructure"]
+        Space["Hugging Face Space (ZeroGPU Runtime)"]
+        App["Live Gradio Application"]
+        GHA -->|"Git Mirror Sync"| Space
+        Space --> App
+    end
 ```
 
 ---

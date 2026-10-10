@@ -94,49 +94,78 @@ Puedes probar el pipeline directamente en la nube sin configuración local:
 
 El funcionamiento del sistema se divide en dos procesos sencillos: cómo se procesa el audio y cómo se despliega el código automáticamente.
 
-### 1. Flujo de Transcripción y Procesamiento de Audio
+### 1. Arquitectura en Capas y Flujo de Procesamiento
 
 ```mermaid
 flowchart TD
-    A["1. Archivo Multimedia (MP4, MP3, WAV, etc.)"] --> B["2. Interfaz (Web en navegador o Consola CLI)"]
-    
-    B --> C{"3. Selección de Motor"}
+    subgraph Ingestion ["1. Capa de Entrada e Interfaz"]
+        Audio["Archivo Multimedia (Audio / Video)"]
+        WebUI["Interfaz Web (Gradio)"]
+        CLI["Interfaz Consola (CLI / Argparse)"]
+        Audio --> WebUI
+        Audio --> CLI
+    end
 
-    C -->|"Opción A: WhisperX"| D["Motor WhisperX (ZeroGPU en Hugging Face)
-    • Gratuito (sin coste de API)
-    • Transcripción con Faster-Whisper
-    • Alineación de palabras con Wav2Vec2
-    • Diarización de hablantes con Pyannote"]
+    subgraph Core ["2. Capa de Seguridad y Despacho"]
+        AuthGuard{"Control de Acceso (Admin PIN / BYOK)"}
+        Dispatcher["Despachador de Motores (Factory Pattern)"]
+        WebUI --> AuthGuard
+        CLI --> Dispatcher
+        AuthGuard -->|"Sesión Autorizada / Clave Propia"| Dispatcher
+    end
 
-    C -->|"Opción B: Deepgram"| E["Motor Deepgram (Nube)
-    • Ultrarrápido (~20 seg para 2 horas)
-    • Modelo Nova-2 (máxima relación calidad-precio)
-    • Requiere clave personal del usuario"]
+    subgraph Engines ["3. Capa de Motores ASR (Strategy Pattern)"]
+        subgraph LocalPipeline ["Pipeline WhisperX (ZeroGPU / Local CUDA)"]
+            ASR["Faster-Whisper (CTranslate2 INT8)"]
+            Align["Alineación Fonética (Wav2Vec2)"]
+            Diarize["Diarización de Hablantes (Pyannote 3.1)"]
+            ASR --> Align --> Diarize
+        end
 
-    C -->|"Opción C: AssemblyAI"| F["Motor AssemblyAI (Nube)
-    • Máxima fidelidad ortográfica
-    • Modelo Universal-1
-    • Requiere clave personal del usuario"]
+        subgraph CloudPipeline ["Motores Cloud Foundation"]
+            Deepgram["Deepgram SDK (Nova-2 / Nova-3)"]
+            Assembly["AssemblyAI SDK (Universal-1 / Nano)"]
+        end
 
-    D --> G["4. Normalizador de Resultados"]
-    E --> G
-    F --> G
+        Dispatcher -->|"WhisperX"| ASR
+        Dispatcher -->|"Deepgram"| Deepgram
+        Dispatcher -->|"AssemblyAI"| Assembly
+    end
 
-    G --> H["5. Archivos de Salida Listos para Descarga
-    • Texto limpio (.txt)
-    • Subtítulos de video (.srt)
-    • Subtítulos web (.vtt)
-    • Datos con marcas de tiempo (.json)"]
+    subgraph OutputLayer ["4. Capa de Normalización y Exportación"]
+        Normalizer["Normalizador Unificado de Transcripción"]
+        Exporter["Generador de Salidas (TXT, SRT, VTT, JSON)"]
+        
+        Diarize --> Normalizer
+        Deepgram --> Normalizer
+        Assembly --> Normalizer
+        Normalizer --> Exporter
+    end
 ```
 
 ### 2. Flujo de Despliegue Continuo (CI/CD)
 
 ```mermaid
 flowchart LR
-    A["Repositorio en GitHub
-    (Tu código fuente)"] -->|"git push (main)"| B["GitHub Actions
-    (Sincronizador automático)"] -->|"Actualiza el Space"| C["Hugging Face Space
-    (Aplicación web en vivo)"]
+    subgraph Development ["Entorno de Desarrollo"]
+        Dev["Desarrollador / Local"]
+        Repo["GitHub Repository (Rama: main)"]
+        Dev -->|"git push"| Repo
+    end
+
+    subgraph Automation ["Pipeline CI/CD"]
+        GHA["GitHub Actions (sync-to-space.yml)"]
+        Secrets["Secretos del Repositorio (HF_TOKEN)"]
+        Repo --> GHA
+        Secrets -.-> GHA
+    end
+
+    subgraph Production ["Infraestructura de Producción"]
+        Space["Hugging Face Space (ZeroGPU Runtime)"]
+        App["Aplicación Web Gradio (En Vivo)"]
+        GHA -->|"Git Mirror Sync"| Space
+        Space --> App
+    end
 ```
 
 ---
