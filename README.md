@@ -14,66 +14,48 @@
 ---
 
 > [!IMPORTANT]
-> # 🔑 MASTER GUIDE TO API KEYS & SECRETS (MANDATORY CONFIGURATION!)
-> This repository bridges **GitHub** and **Hugging Face Spaces**. For automated deployment and speaker diarization to work properly, you must configure the following tokens:
+> ## Credential Architecture & Secret Management
 >
-> ### 1️⃣ TOKEN IN GITHUB: For Syncing Code to Hugging Face (`HF_TOKEN`)
-> * **Purpose:** Enables GitHub Actions to push repository changes directly to your Hugging Face Space ([Klopezxd/transcriptor-whisperx](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx)) whenever you run `git push`.
-> * **How to obtain it:**
->   1. Go to [Hugging Face Settings > Access Tokens](https://huggingface.co/settings/tokens).
->   2. Generate a token with **WRITE (`Write`)** permissions *(a `Read` token will fail during git push)*.
-> * **Where to configure it in GitHub:**
->   1. Navigate to your GitHub repository: [whisperx-transcriptor](https://github.com/Klopezxd/whisperx-transcriptor).
->   2. Click on **Settings** ➔ Left sidebar: **Secrets and variables** ➔ **Actions**.
->   3. Click the green button **New repository secret**.
->   4. **Name:** `HF_TOKEN` | **Secret:** Your Hugging Face write token (`hf_...`).
+> The system operates across a continuous deployment lifecycle bridging **GitHub** and **Hugging Face Spaces**, supporting both local execution and external cloud foundation services. The configuration breakdown by infrastructure tier is detailed below:
 >
-> ---
->
-> ### 2️⃣ TOKEN IN HUGGING FACE SPACES: For Speaker Diarization (`HF_TOKEN`)
-> * **Purpose:** Allows WhisperX to pull Pyannote audio models in the Space to identify individual speakers.
-> * **MANDATORY PREREQUISITE (Accept Licenses):** Using your Hugging Face account, you MUST visit and click **"Accept conditions"** on **BOTH** model repositories:
->   * 👉 [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)
->   * 👉 [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0) *(missing this will trigger a 401/403 authorization error!)*.
-> * **Where to configure it in Hugging Face Spaces:**
->   1. Open your Space: [huggingface.co/spaces/Klopezxd/transcriptor-whisperx](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx).
->   2. Navigate to **Settings** ➔ Scroll down to **Variables and secrets**.
->   3. Under **Secrets**, click **New secret**.
->   4. **Name:** `HF_TOKEN` | **Value:** Your Hugging Face token (`hf_...`).
->   *(Note: You can also enter the token directly in the "Token de Hugging Face" field inside the web UI).*
+> ### 1. Automated Deployment via GitHub Actions (`HF_TOKEN`)
+> * **Purpose:** Authorizes the automated synchronization pipeline (`.github/workflows/sync-to-hf.yml`) to deploy repository updates directly to the Hugging Face Space repository ([Klopezxd/transcriptor-whisperx](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx)) upon `git push`.
+> * **Token Scope:** Personal Access Token created in [Hugging Face Settings > Access Tokens](https://huggingface.co/settings/tokens) with **Write (`Write`)** role.
+> * **Configuration Steps:**
+>   1. Navigate to the GitHub repository: [whisperx-transcriptor](https://github.com/Klopezxd/whisperx-transcriptor).
+>   2. Go to **Settings** ➔ **Secrets and variables** ➔ **Actions**.
+>   3. Click **New repository secret**.
+>   4. Set **Name:** `HF_TOKEN` | **Secret:** Your write-scoped token (`hf_...`).
 >
 > ---
 >
-> ### 3️⃣ FREE $200 USD PROMOTIONAL CREDIT: Deepgram Cloud API (Recommended for large audio)
-> * **Purpose:** Transcribe massive audio files (2 to 5+ hours) in under 20 seconds with built-in diarization without burning ZeroGPU quotas.
-> * **Requirements:** None. No credit card required, open to all new users.
-> * **How to get it:**
->   1. Sign up at [console.deepgram.com/signup](https://console.deepgram.com/signup) with any email or GitHub.
->   2. Your account is automatically credited with **$200 in free credits** (+700 hours of transcription).
->   3. Navigate to **API Keys** ➔ **Create a New API Key**.
-> * **Where to configure it:** Hugging Face Space Secrets (`DEEPGRAM_API_KEY`), local `.env` file, or directly in the web UI.
+> ### 2. Diarization Neural Models in Hugging Face Spaces (`HF_TOKEN`)
+> * **Purpose:** Authorizes runtime downloads of pre-trained Pyannote Audio speaker segmentation and diarization weights when using the WhisperX engine under local or ZeroGPU execution.
+> * **Mandatory Model Licenses:** The authenticated account must formally accept user agreements on both model repositories:
+>   * [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)
+>   * [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0)
+> * **Configuration Steps:**
+>   1. Open the Space settings: [huggingface.co/spaces/Klopezxd/transcriptor-whisperx/settings](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx/settings).
+>   2. Scroll to **Variables and secrets** ➔ **New secret**.
+>   3. Set **Name:** `HF_TOKEN` | **Value:** Your read-scoped token (`hf_...`).
 >
 > ---
 >
-> ### 4️⃣ FREE $50 USD PROMOTIONAL CREDIT: AssemblyAI Cloud API (High-precision alternative)
-> * **Purpose:** Studio-grade transcription fidelity (Universal-1) and utterance-level diarization without GPU consumption.
-> * **Requirements:** None. No credit card required.
-> * **How to get it:**
->   1. Sign up at [assemblyai.com/dashboard/signup](https://www.assemblyai.com/dashboard/signup).
->   2. Your dashboard is automatically credited with **$50 in free credits** (~150 hours of transcription).
->   3. Copy your key under **API Keys**.
-> * **Where to configure it:** Hugging Face Space Secrets (`ASSEMBLYAI_API_KEY`), local `.env` file, or directly in the web UI.
+> ### 3. Cloud Foundation ASR Engines (Optional)
+> * **Deepgram API (`DEEPGRAM_API_KEY`):** Provides sub-minute batch processing powered by Nova speech foundation architectures with integrated word-level diarization. Obtainable at [Deepgram Console](https://console.deepgram.com).
+> * **AssemblyAI API (`ASSEMBLYAI_API_KEY`):** Provides high-precision acoustic speech processing powered by Conformer (Universal-1) and Nano architectures. Obtainable at [AssemblyAI Dashboard](https://www.assemblyai.com).
+> * **Configuration Steps:** Injected into Hugging Face Space Secrets (`Settings > Variables and secrets`), locally in `.env`, or supplied dynamically at runtime in the web interface.
 >
 > ---
 >
-> ### 📋 SECRETS & CONFIGURATION MATRIX
+> ### Credential Specification Matrix
 >
-> | Key / Environment Variable | Provider | Where to Obtain | Where to Configure | Required? | Primary Purpose |
-> | :--- | :--- | :--- | :--- | :--- | :--- |
-> | **`HF_TOKEN`** *(Write)* | Hugging Face | [HF Tokens](https://huggingface.co/settings/tokens) | **GitHub Repository Secrets** (`Settings > Secrets > Actions`) | **Yes** | Syncs code from GitHub to Hugging Face Space on every `git push`. |
-> | **`HF_TOKEN`** *(Read)* | Hugging Face | [HF Tokens](https://huggingface.co/settings/tokens) | **HF Space Secrets** or Web UI | **Yes** *(for WhisperX)* | Downloads Pyannote speaker diarization models (requires model license consent). |
-> | **`DEEPGRAM_API_KEY`** | Deepgram | [Deepgram Console](https://console.deepgram.com) | **HF Space Secrets**, Web UI or `.env` | Optional | Fast cloud transcription (20s) and diarization without GPU quotas. |
-> | **`ASSEMBLYAI_API_KEY`** | AssemblyAI | [AssemblyAI Dashboard](https://www.assemblyai.com) | **HF Space Secrets**, Web UI or `.env` | Optional | High-precision cloud transcription without GPU quotas. |
+> | Identifier | Provider | Configuration Scope | Requirement Level | Primary Function |
+> | :--- | :--- | :--- | :--- | :--- |
+> | **`HF_TOKEN`** *(Write)* | Hugging Face | **GitHub Actions Secrets** | Mandatory for CI/CD | Automatic code deployment to Hugging Face Spaces on push. |
+> | **`HF_TOKEN`** *(Read)* | Hugging Face | **HF Space Secrets** or Web UI | Required for WhisperX | Authorizes neural model downloads for Pyannote Audio. |
+> | **`DEEPGRAM_API_KEY`** | Deepgram | **HF Space Secrets**, Web UI or `.env` | Optional | External Nova batch inference bypassing GPU compute limits. |
+> | **`ASSEMBLYAI_API_KEY`** | AssemblyAI | **HF Space Secrets**, Web UI or `.env` | Optional | External Conformer/Nano inference bypassing GPU compute limits. |
 
 
 ## Key Features
@@ -97,46 +79,84 @@ Test the pipeline directly on Hugging Face Spaces:
 
 ---
 
-## 🏛️ System Architecture
+## System Architecture
 
-The pipeline implements a decoupled, multi-engine architecture continuously synced between GitHub and Hugging Face Spaces. Users can switch between local/ZeroGPU execution and high-speed cloud APIs with a single click:
+The pipeline implements a decoupled, multi-engine architecture continuously synchronized between GitHub and Hugging Face Spaces. Users can switch between local/ZeroGPU execution and high-speed cloud APIs with a single click:
 
 ```mermaid
 flowchart TD
-    subgraph CI["🔄 Continuous Deployment (CI/CD)"]
-        GH["GitHub Repository<br><b>whisperx-transcriptor</b>"] -->|git push| GHA["GitHub Actions<br><code>sync-to-hf.yml</code>"]
-        GHA -->|Uses HF_TOKEN Write| HFS["Hugging Face Space<br><code>Klopezxd/transcriptor-whisperx</code>"]
+    subgraph SCM["Source Control & Continuous Integration"]
+        GH["GitHub Repository<br><code>whisperx-transcriptor</code>"]
+        GHA["GitHub Actions CI/CD<br><code>sync-to-hf.yml</code>"]
+        HFS["Hugging Face Space<br><code>Klopezxd/transcriptor-whisperx</code>"]
+        GH -->|Push Event (main)| GHA
+        GHA -->|Automated Synchronization| HFS
     end
 
-    subgraph INGRESS["🖥️ Ingress & User Interface"]
-        USER(["User / Web Browser"]) --> UI["Web UI (Gradio)<br><code>app.py</code><br><i>Nordic Aurora Theme + Statusbar</i>"]
-        CLI["Terminal CLI<br><code>main.py</code>"] --> ROUTER
-        UI --> ROUTER{"Engine Router<br><code>src/transcriber.py</code>"}
+    subgraph CLIENT["Presentation & Interface Layer"]
+        BROWSER(["Web Client / Browser"]) --> GRADIO["Gradio Web UI<br><code>app.py</code>"]
+        SHELL(["Terminal / Shell"]) --> CLI_ENTRY["CLI Dispatcher<br><code>main.py</code> / <code>cli.py</code>"]
     end
 
-    subgraph ENGINES["⚙️ ASR & Diarization Engines"]
-        ROUTER -->|Provider: WhisperX| WX_BOX["WhisperX Engine (ZeroGPU / Local)<br><code>src/transcriber.py</code>"]
-        ROUTER -->|Provider: Deepgram| DG_BOX["Deepgram REST API<br><code>src/cloud_providers.py</code>"]
-        ROUTER -->|Provider: AssemblyAI| AAI_BOX["AssemblyAI REST API<br><code>src/cloud_providers.py</code>"]
-
-        WX_BOX -->|@spaces.GPU| WX_PIPE["1. Faster-Whisper ASR<br>2. Wav2Vec2 Alignment<br>3. Pyannote 3.1 Diarization"]
-        WX_PIPE -.->|Requires HF_TOKEN Read| HF_MODELS[("Hugging Face Hub<br><i>Pyannote Models</i>")]
-
-        DG_BOX -->|Direct HTTP POST| DG_API[("Deepgram Cloud<br>Models: nova-2 / nova-3<br><i>$200 USD Credit</i>")]
-        AAI_BOX -->|HTTP Chunked Upload| AAI_API[("AssemblyAI Cloud<br>Models: best / nano<br><i>$50 USD Credit</i>")]
+    subgraph ORCHESTRATION["Domain Orchestration Layer"]
+        GRADIO --> FACTORY{"Transcription Factory<br><code>src.transcriber.create_transcription_pipeline</code>"}
+        CLI_ENTRY --> FACTORY
+        CONFIG["Typed Configuration Specification<br><code>src.config.TranscriptionConfig</code>"] -.-> FACTORY
     end
 
-    subgraph EGRESS["📄 Unified Normalization & Multi-Format Export"]
-        WX_PIPE --> HARMONIZER["Result Normalizer<br><code>TranscriptionResult</code>"]
-        DG_API --> HARMONIZER
-        AAI_API --> HARMONIZER
+    subgraph ENGINES["Heterogeneous Inference Engines"]
+        FACTORY -->|Local / ZeroGPU Route| WX_ENGINE["WhisperX Pipeline<br><code>src.transcriber.WhisperXPipeline</code>"]
+        FACTORY -->|Cloud REST Route| DG_ENGINE["Deepgram Pipeline Adapter<br><code>src.cloud_providers.DeepgramPipeline</code>"]
+        FACTORY -->|Cloud REST Route| AAI_ENGINE["AssemblyAI Pipeline Adapter<br><code>src.cloud_providers.AssemblyAIPipeline</code>"]
 
-        HARMONIZER --> EXPORTS["Output Artifacts:<br>• Plain Text (.txt)<br>• Subtitles (.srt)<br>• Web Subtitles (.vtt)<br>• Structured Data (.json)"]
-        EXPORTS --> DOWNLOADS["Direct Download Buttons<br>& Interactive Speaker Preview"]
+        WX_ENGINE --> ASR_WX["CTranslate2 Faster-Whisper"]
+        ASR_WX --> ALIGN_W2V["Wav2Vec2 Phoneme Alignment"]
+        ALIGN_W2V --> DIARIZE_PYANNOTE["Pyannote Audio 3.1 Diarization"]
+
+        DG_ENGINE --> DG_API[("Deepgram Cloud API<br>Nova Architecture")]
+        AAI_ENGINE --> AAI_API[("AssemblyAI Cloud API<br>Conformer Architecture")]
     end
 
-    HFS -.->|Deploys & Serves| UI
+    subgraph POSTPROCESSING["Normalization & Multi-Format Egress"]
+        DIARIZE_PYANNOTE --> NORM["Domain Result Normalizer<br><code>src.transcriber.TranscriptionResult</code>"]
+        DG_API --> NORM
+        AAI_API --> NORM
+
+        NORM --> EXPORT["Multi-Format Exporter:<br>Plain Text (.txt) | SubRip (.srt) | WebVTT (.vtt) | JSON (.json)"]
+    end
+
+    HFS -.->|Hosts & Serves| GRADIO
 ```
+
+---
+
+## Model Taxonomy & Performance Evaluation
+
+Technical and economic comparison of implemented speech recognition models relative to each provider's full catalog:
+
+### 1. Deepgram Models (Nova Foundation Architecture)
+
+| Model | Pipeline Status | Relative Throughput | Word Error Rate (WER) | Estimated Cost | Deployment Profile |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`nova-2`** | **Default** | **~40x Real-Time** | **Benchmark Leader** | ~$0.26 / hour | **Optimal Price-to-Performance.** Best general accuracy and fastest throughput for standard speech. |
+| **`nova-3`** | **Supported** | ~30x Real-Time | Superior in Noise | ~$0.31 / hour | **Acoustic Robustness.** Recommended for accented speech, overlapping speakers, or ambient noise. |
+| `enhanced` | Deprecated | ~15x Real-Time | Inferior to Nova-2 | ~$0.87 / hour | *Not Recommended:* Legacy generation model with 3.3x higher cost and inferior accuracy. |
+| `base` | Deprecated | ~20x Real-Time | Baseline Quality | ~$0.75 / hour | *Not Recommended:* Legacy architecture superseded by Nova-2 across all metrics. |
+
+### 2. AssemblyAI Models (Conformer & Nano Architectures)
+
+| Model | Pipeline Status | Relative Throughput | Word Error Rate (WER) | Estimated Cost | Deployment Profile |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`best`** *(Universal-1)* | **Default** | ~18x Real-Time | **Editorial Fidelity** | ~$0.39 / hour | **Maximum Precision.** Ideal for specialized vocabulary, academic nomenclature, and strict syntax. |
+| **`nano`** | **Supported** | ~35x Real-Time | Acceptable | ~$0.17 / hour | **Cost-Optimized.** Lightweight model suitable for rough drafts, indexing, and high-volume pipelines. |
+
+### 3. WhisperX Models (CTranslate2 + Wav2Vec2 + Pyannote 3.1)
+
+| Model | Pipeline Status | Parameters | ZeroGPU Throughput | Compute Cost | Deployment Profile |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`large-v3-turbo`** | **Default** | 809M | **~8x vs Large-v3** | **$0.00** *(ZeroGPU quota)* | **Open-Weights Gold Standard.** Same accuracy as Large-v3 with half the VRAM and compute latency. |
+| **`large-v3`** | **Supported** | 1550M | Standard (~180s/2h) | $0.00 *(ZeroGPU quota)* | High-capacity model recommended for low-resource languages or edge dialects. |
+| **`medium` / `small` / `base`** | **Supported** | 769M / 244M / 74M | Ultra-fast | $0.00 *(Resource-limited)* | Tailored for low-memory environments (<4GB VRAM). |
 
 ---
 

@@ -23,11 +23,12 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   * Píldora de versión del sistema: **v2.1.0**.
 * **Entrada Directa de Credenciales en la Web:**
   * Nuevo campo `Token de Hugging Face (HF_TOKEN)` en el acordeón de configuración de diarización para permitir transcribir sin depender exclusivamente de los Secrets del Space.
-* **Guía Maestra de Secretos y API Keys:**
-  * Documentación destacada en la cabecera de `README.md` y `README.es.md` con matriz rápida de configuración de secretos para GitHub Actions, Hugging Face Spaces, Deepgram y AssemblyAI.
-* **Diagrama de Arquitectura Global y Mapa del Repositorio:**
-  * Diagrama de flujo multimodelo con Mermaid en la documentación técnica describiendo el ciclo completo CI/CD, interfaz, enrutador de motores (WhisperX, Deepgram, AssemblyAI) y exportador unificado.
-  * Mapa detallado de archivos y responsabilidades por módulo para auditoría rápida sin necesidad de clon local.
+* **Especificación Formal de Credenciales y Secretos:**
+  * Documentación técnica estandarizada para la inyección de secretos en GitHub Actions, Hugging Face Spaces y entornos locales.
+* **Diagrama de Arquitectura de Sistemas y Taxonomía de Modelos:**
+  * Modelado formal de arquitectura de software en Mermaid describiendo los subsistemas de integración continua (CI/CD), presentación, enrutamiento desacoplado, motores de inferencia heterogéneos y exportación de artefactos.
+  * Evaluación comparativa y taxonomía de rendimiento para modelos ASR en Deepgram (Nova), AssemblyAI (Conformer/Nano) y WhisperX (Open-Weights).
+  * Mapa detallado de módulos y responsabilidades para auditoría técnica de repositorio.
 
 ### Cambiado / Optimizado
 * **Duración Extendida en Hugging Face ZeroGPU:**

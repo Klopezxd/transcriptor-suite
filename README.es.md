@@ -14,66 +14,50 @@
 ---
 
 > [!IMPORTANT]
-> # 🔑 GUÍA MAESTRA DE API KEYS Y SECRETOS (¡CONFIGURACIÓN OBLIGATORIA!)
-> Este proyecto conecta **GitHub** con **Hugging Face Spaces**. Para que todo funcione al 100% (sincronización automática del repositorio y diarización de interlocutores), debes configurar los siguientes tokens:
+> ## Arquitectura de Credenciales y Configuración de Secretos
 >
-> ### 1️⃣ TOKEN EN GITHUB: Para sincronizar el código con Hugging Face (`HF_TOKEN`)
-> * **Para qué sirve:** Permite que cada vez que hagas `git push` a GitHub, el workflow de GitHub Actions actualice automáticamente tu aplicación en Hugging Face Spaces ([Klopezxd/transcriptor-whisperx](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx)).
-> * **Cómo obtenerlo:**
->   1. Entra a [Hugging Face Settings > Access Tokens](https://huggingface.co/settings/tokens).
->   2. Crea un nuevo token con permisos de **ESCRITURA (`Write`)** *(si creas uno de lectura `Read`, GitHub no podrá subir los cambios al Space y fallará)*.
-> * **Dónde configurarlo en GitHub:**
->   1. Ve a tu repositorio en GitHub: [whisperx-transcriptor](https://github.com/Klopezxd/whisperx-transcriptor).
->   2. Entra a la pestaña **Settings** ➔ Menú lateral izquierdo: **Secrets and variables** ➔ **Actions**.
->   3. Clic en el botón verde **New repository secret**.
->   4. **Name:** `HF_TOKEN` | **Secret:** Tu token de Hugging Face (`hf_...`).
+> La plataforma opera en un entorno de integración continua entre **GitHub** y **Hugging Face Spaces**, con soporte para ejecución local y servicios en la nube. A continuación se detalla la configuración requerida para cada nivel de la infraestructura:
 >
-> ---
->
-> ### 2️⃣ TOKEN EN HUGGING FACE SPACES: Para Diarización de Hablantes (`HF_TOKEN`)
-> * **Para qué sirve:** Permite que WhisperX descargue los modelos de Pyannote en el Space para separar e identificar quién habla.
-> * **PASO OBLIGATORIO PREVIO (Aceptar licencias):** Con tu cuenta de Hugging Face, debes entrar y hacer clic en **"Aceptar condiciones"** en **AMBOS** modelos:
->   * 👉 [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)
->   * 👉 [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0) *(¡si falta aceptar este segundo modelo, la diarización fallará con error 401/403!)*.
-> * **Dónde configurarlo en Hugging Face Spaces:**
->   1. Ve a tu Space: [huggingface.co/spaces/Klopezxd/transcriptor-whisperx](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx).
->   2. Entra a la pestaña **Settings** ➔ Baja hasta la sección **Variables and secrets**.
->   3. En la subsección **Secrets**, haz clic en **New secret**.
->   4. **Name:** `HF_TOKEN` | **Value:** Tu token de Hugging Face (`hf_...`).
->   *(Nota: También puedes ingresar tu token directamente en el campo "Token de Hugging Face" dentro de la interfaz web si no deseas guardarlo en Secrets).*
+> ### 1. Sincronización Automática en GitHub Actions (`HF_TOKEN`)
+> * **Propósito:** Autorizar al flujo de trabajo automatizado (`.github/workflows/sync-to-hf.yml`) a desplegar las actualizaciones del código fuente directamente al repositorio del Space en Hugging Face ([Klopezxd/transcriptor-whisperx](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx)).
+> * **Requisitos del Token:** Token de acceso personal generado en [Hugging Face Tokens](https://huggingface.co/settings/tokens) con rol **Escritura (`Write`)**.
+> * **Ubicación de Configuración:**
+>   1. Acceder al repositorio en GitHub: [whisperx-transcriptor](https://github.com/Klopezxd/whisperx-transcriptor).
+>   2. Navegar a **Settings** ➔ **Secrets and variables** ➔ **Actions**.
+>   3. Seleccionar **New repository secret**.
+>   4. Definir nombre: `HF_TOKEN` | Valor: Token con permisos de escritura (`hf_...`).
 >
 > ---
 >
-> ### 3️⃣ SALDO GRATUITO DE $200 USD: Deepgram Cloud API (Recomendado para audios largos)
-> * **Para qué sirve:** Transcribir audios pesados (de 2 a 5+ horas) en menos de 20 segundos con diarización incluida, sin consumir cuota de ZeroGPU ni interferir con la cuota de Hermes Agent en Groq.
-> * **Requisitos:** Cero. No requiere tarjeta de crédito ni correo institucional. Válido para cualquier usuario nuevo.
-> * **Cómo obtenerlo:**
->   1. Entra a [console.deepgram.com/signup](https://console.deepgram.com/signup) y regístrate con tu correo (o con Google/GitHub).
->   2. Al ingresar al panel, verás tus **$200 USD de saldo de bienvenida** activos automáticamente (rinden para +700 horas de audio).
->   3. En el menú lateral izquierdo, ve a **API Keys** ➔ **Create a New API Key** para generar tu clave.
-> * **Dónde configurarlo:** En los Secrets de Hugging Face (`DEEPGRAM_API_KEY`), en tu archivo `.env` local, o directamente en la casilla de Deepgram en la interfaz web.
+> ### 2. Modelos de Diarización en Hugging Face Spaces (`HF_TOKEN`)
+> * **Propósito:** Permitir la descarga de los pesos preentrenados de segmentación y diarización de locutores de Pyannote Audio cuando se ejecuta el motor WhisperX en ZeroGPU o local.
+> * **Requisito Previo de Licencia:** La cuenta de Hugging Face debe aceptar formalmente los términos de uso en los dos repositorios oficiales de modelos:
+>   * [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)
+>   * [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0)
+> * **Ubicación de Configuración:**
+>   1. Acceder a la configuración del Space: [huggingface.co/spaces/Klopezxd/transcriptor-whisperx/settings](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx/settings).
+>   2. Navegar a **Variables and secrets** ➔ **New secret**.
+>   3. Definir nombre: `HF_TOKEN` | Valor: Token de lectura (`hf_...`).
 >
 > ---
 >
-> ### 4️⃣ SALDO GRATUITO DE $50 USD: AssemblyAI Cloud API (Alternativa de máxima precisión)
-> * **Para qué sirve:** Transcripción de máxima precisión fonética (Universal-1) y diarización detallada por hablante sin consumir GPU.
-> * **Requisitos:** Cero. No requiere tarjeta de crédito ni verificación compleja.
-> * **Cómo obtenerlo:**
->   1. Entra a [assemblyai.com/dashboard/signup](https://www.assemblyai.com/dashboard/signup) y crea tu cuenta gratuita.
->   2. En el panel principal obtendrás tus **$50 USD de saldo de bienvenida** (rinden para ~150 horas de audio).
->   3. Copia tu clave desde la sección **API Keys**.
-> * **Dónde configurarlo:** En los Secrets de Hugging Face (`ASSEMBLYAI_API_KEY`), en tu `.env` local, o en la casilla de AssemblyAI en la interfaz web.
+> ### 3. Proveedores de Inferencia en la Nube (Opcionales)
+> * **Deepgram API (`DEEPGRAM_API_KEY`):** Para procesamiento por lotes de alta velocidad mediante modelos de la familia Nova con diarización acústica integrada.
+>   * Clave obtenible en [Deepgram Console](https://console.deepgram.com).
+> * **AssemblyAI API (`ASSEMBLYAI_API_KEY`):** Para transcripción de máxima resolución fonética mediante arquitecturas Conformer (Universal-1) y Nano.
+>   * Clave obtenible en [AssemblyAI Dashboard](https://www.assemblyai.com).
+> * **Ubicación de Configuración:** En los secretos del Space de Hugging Face (`Settings > Variables and secrets`), en el archivo local `.env`, o suministrados dinámicamente en tiempo de ejecución en la interfaz de usuario.
 >
 > ---
 >
-> ### 📋 MATRIZ RESUMEN DE SECRETOS Y CONFIGURACIÓN
+> ### Matriz de Especificación de Secretos
 >
-> | Clave / Variable | Proveedor | Dónde obtenerla | Dónde configurarla | Obligatoria | Propósito |
-> | :--- | :--- | :--- | :--- | :--- | :--- |
-> | **`HF_TOKEN`** *(Write)* | Hugging Face | [Tokens (HF)](https://huggingface.co/settings/tokens) | **GitHub Repository Secrets** (`Settings > Secrets > Actions`) | **Sí** | Permite que GitHub Actions actualice el Space al hacer `git push`. |
-> | **`HF_TOKEN`** *(Read)* | Hugging Face | [Tokens (HF)](https://huggingface.co/settings/tokens) | **HF Space Secrets** o en la Interfaz Web | **Sí** *(para WhisperX)* | Permite descargar modelos Pyannote (requiere aceptar términos de uso). |
-> | **`DEEPGRAM_API_KEY`** | Deepgram | [Console Deepgram](https://console.deepgram.com) | **HF Space Secrets**, Web UI o `.env` | Opcional | Transcripción ultrarrápida (20s) y diarización sin gastar cuota de GPU. |
-> | **`ASSEMBLYAI_API_KEY`** | AssemblyAI | [Dashboard AssemblyAI](https://www.assemblyai.com) | **HF Space Secrets**, Web UI o `.env` | Opcional | Transcripción de alta fidelidad acústica sin gastar cuota de GPU. |
+> | Identificador | Proveedor | Ámbito de Configuración | Nivel de Requisito | Función en el Sistema |
+> | :--- | :--- | :--- | :--- | :--- |
+> | **`HF_TOKEN`** *(Write)* | Hugging Face | **GitHub Actions Secrets** | Mandatorio para CI/CD | Sincronización automática de código fuente hacia Hugging Face Spaces. |
+> | **`HF_TOKEN`** *(Read)* | Hugging Face | **HF Space Secrets** o Web UI | Requerido para WhisperX | Acceso y descarga de modelos neuronales de Pyannote Audio. |
+> | **`DEEPGRAM_API_KEY`** | Deepgram | **HF Space Secrets**, Web UI o `.env` | Opcional | Inferencia externa con modelos Nova sin consumo de cuota ZeroGPU. |
+> | **`ASSEMBLYAI_API_KEY`** | AssemblyAI | **HF Space Secrets**, Web UI o `.env` | Opcional | Inferencia externa con modelos Conformer/Nano sin consumo de cuota ZeroGPU. |
 
 
 ## Características Principales
@@ -97,46 +81,84 @@ Puedes probar el pipeline directamente en la nube sin configuración local:
 
 ---
 
-## 🏛️ Arquitectura Global del Sistema
+## Arquitectura Global del Sistema
 
-El sistema implementa una arquitectura desacoplada y multimodelo, diseñada para sincronizarse continuamente entre GitHub y Hugging Face Spaces, permitiendo alternar con un solo clic entre inferencia local/ZeroGPU y procesamiento en la nube:
+El sistema implementa una arquitectura desacoplada y multimodelo, diseñada para sincronizarse de forma continua entre GitHub y Hugging Face Spaces, permitiendo alternar con un solo clic entre inferencia local/ZeroGPU y procesamiento en la nube:
 
 ```mermaid
 flowchart TD
-    subgraph CI["🔄 Despliegue Continuo (CI/CD)"]
-        GH["GitHub Repository<br><b>whisperx-transcriptor</b>"] -->|git push| GHA["GitHub Actions<br><code>sync-to-hf.yml</code>"]
-        GHA -->|Usa HF_TOKEN Write| HFS["Hugging Face Space<br><code>Klopezxd/transcriptor-whisperx</code>"]
+    subgraph SCM["Control de Versiones & CI/CD"]
+        GH["GitHub Repository<br><code>whisperx-transcriptor</code>"]
+        GHA["GitHub Actions CI/CD<br><code>sync-to-hf.yml</code>"]
+        HFS["Hugging Face Space<br><code>Klopezxd/transcriptor-whisperx</code>"]
+        GH -->|Evento Push (main)| GHA
+        GHA -->|Sincronización Automatizada| HFS
     end
 
-    subgraph INGRESS["🖥️ Entrada e Interfaz de Usuario"]
-        USER(["Usuario / Navegador"]) --> UI["Web UI (Gradio)<br><code>app.py</code><br><i>Tema Aurora Boreal + Statusbar</i>"]
-        CLI["Consola / Terminal<br><code>main.py</code>"] --> ROUTER
-        UI --> ROUTER{"Enrutador de Motor<br><code>src/transcriber.py</code>"}
+    subgraph CLIENT["Capa de Presentación e Interfaces"]
+        BROWSER(["Cliente Web / Navegador"]) --> GRADIO["Interfaz Web Gradio<br><code>app.py</code>"]
+        SHELL(["Terminal / Consola"]) --> CLI_ENTRY["Despachador CLI<br><code>main.py</code> / <code>cli.py</code>"]
     end
 
-    subgraph ENGINES["⚙️ Motores de Transcripción & Diarización"]
-        ROUTER -->|Proveedor: WhisperX| WX_BOX["Motor WhisperX (ZeroGPU / Local)<br><code>src/transcriber.py</code>"]
-        ROUTER -->|Proveedor: Deepgram| DG_BOX["API REST Deepgram<br><code>src/cloud_providers.py</code>"]
-        ROUTER -->|Proveedor: AssemblyAI| AAI_BOX["API REST AssemblyAI<br><code>src/cloud_providers.py</code>"]
-
-        WX_BOX -->|@spaces.GPU| WX_PIPE["1. Transcripción Faster-Whisper<br>2. Alineación Wav2Vec2<br>3. Diarización Pyannote 3.1"]
-        WX_PIPE -.->|Requiere HF_TOKEN Read| HF_MODELS[("Hugging Face Hub<br><i>Modelos Pyannote</i>")]
-
-        DG_BOX -->|HTTP POST Directo| DG_API[("Deepgram Cloud<br>Modelos: nova-2 / nova-3<br><i>$200 USD Saldo</i>")]
-        AAI_BOX -->|HTTP Chunked Upload| AAI_API[("AssemblyAI Cloud<br>Modelos: best / nano<br><i>$50 USD Saldo</i>")]
+    subgraph ORCHESTRATION["Enrutamiento y Dominio"]
+        GRADIO --> FACTORY{"Factoría de Pipeline<br><code>src.transcriber.create_transcription_pipeline</code>"}
+        CLI_ENTRY --> FACTORY
+        CONFIG["Configuración Tipada<br><code>src.config.TranscriptionConfig</code>"] -.-> FACTORY
     end
 
-    subgraph EGRESS["📄 Normalización y Exportación Multiformato"]
-        WX_PIPE --> HARMONIZER["Normalizador de Resultados<br><code>TranscriptionResult</code>"]
-        DG_API --> HARMONIZER
-        AAI_API --> HARMONIZER
+    subgraph ENGINES["Motores de Inferencia Heterogéneos"]
+        FACTORY -->|Ruta Local / ZeroGPU| WX_ENGINE["Pipeline WhisperX<br><code>src.transcriber.WhisperXPipeline</code>"]
+        FACTORY -->|Ruta REST Cloud| DG_ENGINE["Adaptador Deepgram<br><code>src.cloud_providers.DeepgramPipeline</code>"]
+        FACTORY -->|Ruta REST Cloud| AAI_ENGINE["Adaptador AssemblyAI<br><code>src.cloud_providers.AssemblyAIPipeline</code>"]
 
-        HARMONIZER --> EXPORTS["Archivos de Salida:<br>• Transcripción (.txt)<br>• Subtítulos (.srt)<br>• Web Subtitles (.vtt)<br>• Estructura (.json)"]
-        EXPORTS --> DOWNLOADS["Descarga Inmediata en UI<br>& Vista Previa con Hablantes"]
+        WX_ENGINE --> ASR_WX["CTranslate2 Faster-Whisper"]
+        ASR_WX --> ALIGN_W2V["Alineación Fonética Wav2Vec2"]
+        ALIGN_W2V --> DIARIZE_PYANNOTE["Diarización Pyannote Audio 3.1"]
+
+        DG_ENGINE --> DG_API[("Deepgram Cloud API<br>Arquitectura Nova")]
+        AAI_ENGINE --> AAI_API[("AssemblyAI Cloud API<br>Arquitectura Conformer")]
     end
 
-    HFS -.->|Despliega y Ejecuta| UI
+    subgraph POSTPROCESSING["Normalización y Exportación"]
+        DIARIZE_PYANNOTE --> NORM["Normalizador de Dominio<br><code>src.transcriber.TranscriptionResult</code>"]
+        DG_API --> NORM
+        AAI_API --> NORM
+
+        NORM --> EXPORT["Generador Multiformato:<br>Texto (.txt) | SubRip (.srt) | WebVTT (.vtt) | JSON (.json)"]
+    end
+
+    HFS -.->|Aloja y Ejecuta| GRADIO
 ```
+
+---
+
+## Taxonomía de Modelos y Evaluación de Rendimiento
+
+A continuación se detalla la comparativa técnica y económica de los modelos implementados frente al catálogo completo de cada proveedor:
+
+### 1. Modelos Deepgram (Arquitectura Nova)
+
+| Modelo | Estado en la App | Velocidad Relativa | Tasa de Error (WER) | Coste Aprox. | Perfil de Aplicación |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`nova-2`** | **Por defecto** | **~40x Tiempo Real** | **Líder general** | ~$0.26 / hora | **Óptimo Calidad-Precio.** Máxima eficiencia para el 95% de transcripciones en español/inglés. |
+| **`nova-3`** | **Disponible** | ~30x Tiempo Real | Superior en ruido | ~$0.31 / hora | **Alta Complejidad.** Recomendado para conferencias con voces superpuestas o acentos regionales difíciles. |
+| `enhanced` | Descartado | ~15x Tiempo Real | Inferior a Nova-2 | ~$0.87 / hora | *Desaconsejado:* Modelo heredado de generación previa; coste 3.3x superior con menor precisión. |
+| `base` | Descartado | ~20x Tiempo Real | Calidad básica | ~$0.75 / hora | *Desaconsejado:* Modelo legacy superado por Nova-2 tanto en coste como en fidelidad. |
+
+### 2. Modelos AssemblyAI (Arquitecturas Conformer & Nano)
+
+| Modelo | Estado en la App | Velocidad Relativa | Tasa de Error (WER) | Coste Aprox. | Perfil de Aplicación |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`best`** *(Universal-1)* | **Por defecto** | ~18x Tiempo Real | **Máxima Fidelidad** | ~$0.39 / hora | **Precisión Editorial.** Óptimo para vocabulario técnico, terminología académica y signos de puntuación. |
+| **`nano`** | **Disponible** | ~35x Tiempo Real | Aceptable | ~$0.17 / hora | **Máximo Ahorro.** Ideal para borradores rápidos o procesamiento de gran volumen con bajo consumo de saldo. |
+
+### 3. Modelos WhisperX (CTranslate2 + Wav2Vec2 + Pyannote 3.1)
+
+| Modelo | Estado en la App | Parámetros | Velocidad en ZeroGPU | Coste de Cómputo | Perfil de Aplicación |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`large-v3-turbo`** | **Por defecto** | 809M | **~8x vs Large-v3** | **$0.00** *(Cuota ZeroGPU)* | **Estándar de Oro Abierto.** Misma exactitud que Large-v3 con la mitad de VRAM y tiempo de cómputo. |
+| **`large-v3`** | **Disponible** | 1550M | Estándar (~180s/2h) | $0.00 *(Cuota ZeroGPU)* | Recomendado para lenguas con menor representación o sintaxis excepcional. |
+| **`medium` / `small` / `base`** | **Disponibles** | 769M / 244M / 74M | Ultrarrápida | $0.00 *(Hardware limitado)* | Diseñados para entornos locales con menos de 4GB de VRAM. |
 
 ---
 
