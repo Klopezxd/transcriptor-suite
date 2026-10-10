@@ -4,7 +4,6 @@ Aplicación Web Gradio para WhisperX Transcriptor.
 Diseñada para despliegue en Hugging Face Spaces (ZeroGPU) y ejecución local.
 """
 
-import os
 import sys
 
 if sys.platform == "win32":
@@ -18,8 +17,6 @@ import gradio as gr
 
 from src.config import (
     PROVIDER_MODELS,
-    AssemblyAIModel,
-    DeepgramModel,
     ModelName,
     ProviderType,
     TimestampMode,
@@ -43,6 +40,7 @@ try:
 
     GPU_DECORATOR = spaces.GPU(duration=180)
 except (ImportError, TypeError, AttributeError):
+
     def GPU_DECORATOR(func):
         return func
 
@@ -95,7 +93,9 @@ def process_transcription(
                 "1. Aceptar condiciones en: https://huggingface.co/pyannote/speaker-diarization-3.1\n"
                 "2. Aceptar condiciones en: https://huggingface.co/pyannote/segmentation-3.0\n"
                 "3. Crear token con permisos 'Read' en: https://huggingface.co/settings/tokens",
-                gr.DownloadButton(label="Descargar Documento (.txt)", value=None, interactive=False),
+                gr.DownloadButton(
+                    label="Descargar Documento (.txt)", value=None, interactive=False
+                ),
             )
 
     elif provider == ProviderType.DEEPGRAM.value:
@@ -105,7 +105,9 @@ def process_transcription(
                 "⚠️ Se requiere una API Key de Deepgram para utilizar este motor.\n\n"
                 "1. Ingrésala en el campo 'Deepgram API Key' abajo o configúrala como 'DEEPGRAM_API_KEY' en los Secrets.\n"
                 "2. Si aún no tienes una, obtén tus $200 USD gratis en: https://console.deepgram.com/signup",
-                gr.DownloadButton(label="Descargar Documento (.txt)", value=None, interactive=False),
+                gr.DownloadButton(
+                    label="Descargar Documento (.txt)", value=None, interactive=False
+                ),
             )
 
     elif provider == ProviderType.ASSEMBLYAI.value:
@@ -115,7 +117,9 @@ def process_transcription(
                 "⚠️ Se requiere una API Key de AssemblyAI para utilizar este motor.\n\n"
                 "1. Ingrésala en el campo 'AssemblyAI API Key' abajo o configúrala como 'ASSEMBLYAI_API_KEY' en los Secrets.\n"
                 "2. Si aún no tienes una, obtén tus $50 USD gratis en: https://www.assemblyai.com/dashboard/signup",
-                gr.DownloadButton(label="Descargar Documento (.txt)", value=None, interactive=False),
+                gr.DownloadButton(
+                    label="Descargar Documento (.txt)", value=None, interactive=False
+                ),
             )
 
     def on_progress(p: float, msg: str) -> None:
@@ -690,7 +694,9 @@ with gr.Blocks(**blocks_kwargs) as demo:
             )
 
             # Acordeón Credenciales Hugging Face (para WhisperX)
-            with gr.Accordion("Credenciales de Hugging Face (Pyannote Diarización)", open=False, visible=True) as hf_acc:
+            with gr.Accordion(
+                "Credenciales de Hugging Face (Pyannote Diarización)", open=False, visible=True
+            ) as hf_acc:
                 hf_token_input = gr.Textbox(
                     label="Token de Hugging Face (HF_TOKEN)",
                     placeholder="hf_... (opcional si ya está configurado en Secrets)",
@@ -699,7 +705,9 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 )
 
             # Acordeón Credenciales Deepgram
-            with gr.Accordion("Credenciales de Deepgram ($200 USD Saldo)", open=True, visible=False) as deepgram_acc:
+            with gr.Accordion(
+                "Credenciales de Deepgram ($200 USD Saldo)", open=True, visible=False
+            ) as deepgram_acc:
                 deepgram_key_input = gr.Textbox(
                     label="Deepgram API Key",
                     placeholder="Pega tu API Key de Deepgram aquí (o configúrala como DEEPGRAM_API_KEY)",
@@ -708,7 +716,9 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 )
 
             # Acordeón Credenciales AssemblyAI
-            with gr.Accordion("Credenciales de AssemblyAI ($50 USD Saldo)", open=True, visible=False) as assemblyai_acc:
+            with gr.Accordion(
+                "Credenciales de AssemblyAI ($50 USD Saldo)", open=True, visible=False
+            ) as assemblyai_acc:
                 assemblyai_key_input = gr.Textbox(
                     label="AssemblyAI API Key",
                     placeholder="Pega tu API Key de AssemblyAI aquí (o configúrala como ASSEMBLYAI_API_KEY)",
@@ -780,7 +790,9 @@ with gr.Blocks(**blocks_kwargs) as demo:
         }
 
         return (
-            gr.Dropdown(choices=models, value=default_val, info=info_texts.get(selected_provider, "")),
+            gr.Dropdown(
+                choices=models, value=default_val, info=info_texts.get(selected_provider, "")
+            ),
             gr.Accordion(visible=is_wx),
             gr.Accordion(visible=is_dg),
             gr.Accordion(visible=is_aai),
@@ -794,7 +806,9 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
     btn_clear.add([input_media, output_text])
     btn_clear.click(
-        fn=lambda: gr.DownloadButton(label="Descargar Documento (.txt)", value=None, interactive=False),
+        fn=lambda: gr.DownloadButton(
+            label="Descargar Documento (.txt)", value=None, interactive=False
+        ),
         outputs=download_file,
     )
 
@@ -846,5 +860,3 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
 if __name__ == "__main__":
     demo.launch(**launch_kwargs)
-
-

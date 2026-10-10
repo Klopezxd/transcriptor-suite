@@ -35,6 +35,13 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 * **Resiliencia en Diarización con Pyannote Audio:**
   * Soporte retrocompatible dual para `DiarizationPipeline(token=...)` y `DiarizationPipeline(use_auth_token=...)`.
   * Captura descriptiva de errores de autenticación con enlaces directos para aceptar las licencias de `pyannote/speaker-diarization-3.1` y `pyannote/segmentation-3.0`.
+* **Auditoría Integral de Código (Clean Code & Refactorización):**
+  * Eliminación de importaciones y modelos huérfanos en `app.py`.
+  * Refactorización DRY (Don't Repeat Yourself) de resolución de secretos (`_resolve_secret`) en `src/utils.py`.
+  * Creación del wrapper de compatibilidad `main.py` delegando a `cli.main()`.
+  * Actualización de `cli.py` con soporte multiplataforma para `--provider` y `--api-key`.
+  * Sincronización de dependencias en `environment.yml` y actualización de versión a `2.1.0` en `pyproject.toml`.
+  * Formateo y validación de código con `ruff` (`ruff format` y `ruff check`) con 0 advertencias.
 
 ---
 

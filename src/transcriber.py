@@ -25,6 +25,7 @@ logger = setup_logger("whisperx_pipeline")
 @dataclass
 class TranscriptionResult:
     """Resultado estructurado de un proceso de transcripción."""
+
     raw_segments: list[dict[str, Any]]
     detected_language: str
     formatted_text: str
@@ -57,7 +58,7 @@ class WhisperXPipeline:
         self,
         media_path: str | Path,
         output_dir: str | Path | None = None,
-        progress_callback: Callable[[float, str], None] | None = None
+        progress_callback: Callable[[float, str], None] | None = None,
     ) -> TranscriptionResult:
         """
         Ejecuta el pipeline completo sobre el archivo de audio o video provisto.
@@ -93,12 +94,14 @@ class WhisperXPipeline:
             audio = whisperx.load_audio(str(input_path))
 
             # --- FASE 2: Transcripción ASR con WhisperX ---
-            notify(0.25, f"Transcribiendo con modelo '{self.config.model_name}' ({compute_type})...")
+            notify(
+                0.25, f"Transcribiendo con modelo '{self.config.model_name}' ({compute_type})..."
+            )
             model = whisperx.load_model(
                 self.config.model_name,
                 device=device,
                 compute_type=compute_type,
-                language=self.config.language
+                language=self.config.language,
             )
             raw_result = model.transcribe(audio, batch_size=self.config.batch_size)
             detected_language = raw_result.get("language", "es")
@@ -108,8 +111,7 @@ class WhisperXPipeline:
             # --- FASE 3: Alineación Fonética de Marcas de Tiempo ---
             notify(0.55, "Alineando marcas de tiempo a nivel de palabra...")
             align_model, metadata = whisperx.load_align_model(
-                language_code=detected_language,
-                device=device
+                language_code=detected_language, device=device
             )
             aligned_result = whisperx.align(
                 raw_result["segments"],
@@ -117,7 +119,7 @@ class WhisperXPipeline:
                 metadata,
                 audio,
                 device,
-                return_char_alignments=False
+                return_char_alignments=False,
             )
             del align_model
             clear_gpu_vram()
@@ -143,7 +145,10 @@ class WhisperXPipeline:
                 except Exception as diarize_err:
                     clear_gpu_vram()
                     err_str = str(diarize_err)
-                    if any(term in err_str.lower() for term in ["401", "403", "gated", "restricted", "unauthorized"]):
+                    if any(
+                        term in err_str.lower()
+                        for term in ["401", "403", "gated", "restricted", "unauthorized"]
+                    ):
                         raise TranscriptionError(
                             "Error de acceso a los modelos de Pyannote en Hugging Face.\n\n"
                             "Verifica los siguientes requisitos:\n"
@@ -151,7 +156,9 @@ class WhisperXPipeline:
                             "2. Aceptar condiciones en: https://huggingface.co/pyannote/segmentation-3.0\n"
                             "3. Asegurarte de que tu token de Hugging Face tenga permisos de lectura (Read)."
                         ) from diarize_err
-                    raise TranscriptionError(f"Error durante la diarización: {diarize_err}") from diarize_err
+                    raise TranscriptionError(
+                        f"Error durante la diarización: {diarize_err}"
+                    ) from diarize_err
 
             # --- FASE 5: Generación y Escritura del Archivo Final ---
             notify(0.90, "Generando archivo de transcripción...")
@@ -167,7 +174,7 @@ class WhisperXPipeline:
                     start=start,
                     end=end,
                     speaker=speaker,
-                    mode=self.config.timestamp_mode
+                    mode=self.config.timestamp_mode,
                 )
                 if line:
                     formatted_lines.append(line)
@@ -188,7 +195,7 @@ class WhisperXPipeline:
                 raw_segments=segments,
                 detected_language=detected_language,
                 formatted_text=formatted_text,
-                output_path=output_file
+                output_path=output_file,
             )
 
         except Exception as e:
@@ -207,10 +214,11 @@ def create_transcription_pipeline(config: TranscriptionConfig):
 
     if config.provider == ProviderType.DEEPGRAM.value:
         from src.cloud_providers import DeepgramPipeline
+
         return DeepgramPipeline(config)
     elif config.provider == ProviderType.ASSEMBLYAI.value:
         from src.cloud_providers import AssemblyAIPipeline
+
         return AssemblyAIPipeline(config)
     else:
         return WhisperXPipeline(config)
-

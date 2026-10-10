@@ -106,7 +106,9 @@ class DeepgramPipeline:
             channel_alt = data["results"]["channels"][0]["alternatives"][0]
             detected_language = data["results"]["channels"][0].get("detected_language", "es")
         except (KeyError, IndexError) as err:
-            raise TranscriptionError("La respuesta de Deepgram no contiene transcripciones válidas.") from err
+            raise TranscriptionError(
+                "La respuesta de Deepgram no contiene transcripciones válidas."
+            ) from err
 
         words = channel_alt.get("words", [])
         segments: list[dict[str, Any]] = []
@@ -132,35 +134,45 @@ class DeepgramPipeline:
                     current_words.append(w_text)
                     seg_end = w_end
                 else:
-                    speaker_label = f"SPEAKER_{current_speaker:02d}" if current_speaker is not None else None
-                    segments.append({
-                        "text": " ".join(current_words),
-                        "start": seg_start,
-                        "end": seg_end,
-                        "speaker": speaker_label,
-                    })
+                    speaker_label = (
+                        f"SPEAKER_{current_speaker:02d}" if current_speaker is not None else None
+                    )
+                    segments.append(
+                        {
+                            "text": " ".join(current_words),
+                            "start": seg_start,
+                            "end": seg_end,
+                            "speaker": speaker_label,
+                        }
+                    )
                     current_speaker = spk
                     seg_start = w_start
                     seg_end = w_end
                     current_words = [w_text]
 
             if current_words:
-                speaker_label = f"SPEAKER_{current_speaker:02d}" if current_speaker is not None else None
-                segments.append({
-                    "text": " ".join(current_words),
-                    "start": seg_start,
-                    "end": seg_end,
-                    "speaker": speaker_label,
-                })
+                speaker_label = (
+                    f"SPEAKER_{current_speaker:02d}" if current_speaker is not None else None
+                )
+                segments.append(
+                    {
+                        "text": " ".join(current_words),
+                        "start": seg_start,
+                        "end": seg_end,
+                        "speaker": speaker_label,
+                    }
+                )
         else:
             full_transcript = channel_alt.get("transcript", "")
             if full_transcript:
-                segments.append({
-                    "text": full_transcript,
-                    "start": 0.0,
-                    "end": 0.0,
-                    "speaker": None,
-                })
+                segments.append(
+                    {
+                        "text": full_transcript,
+                        "start": 0.0,
+                        "end": 0.0,
+                        "speaker": None,
+                    }
+                )
 
         notify(0.95, "Escribiendo archivo de transcripción...")
 
@@ -314,7 +326,9 @@ class AssemblyAIPipeline:
                         break
                     elif status == "error":
                         error_msg = status_data.get("error", "Error desconocido")
-                        raise TranscriptionError(f"AssemblyAI falló durante el procesamiento: {error_msg}")
+                        raise TranscriptionError(
+                            f"AssemblyAI falló durante el procesamiento: {error_msg}"
+                        )
             except requests.exceptions.RequestException as err:
                 logger.warning("Fallo temporal de sondeo: %s", err)
 
@@ -330,12 +344,14 @@ class AssemblyAIPipeline:
                 end_s = float(utt.get("end", 0)) / 1000.0
                 spk = utt.get("speaker", "A")
                 text = utt.get("text", "")
-                segments.append({
-                    "text": text,
-                    "start": start_s,
-                    "end": end_s,
-                    "speaker": f"SPEAKER_{spk}",
-                })
+                segments.append(
+                    {
+                        "text": text,
+                        "start": start_s,
+                        "end": end_s,
+                        "speaker": f"SPEAKER_{spk}",
+                    }
+                )
         else:
             words = final_data.get("words", [])
             if words:
@@ -350,30 +366,36 @@ class AssemblyAIPipeline:
                     seg_end = w_end
 
                     if (seg_end - seg_start) >= 20.0 or w_text.endswith((".", "?", "!")):
-                        segments.append({
-                            "text": " ".join(current_words),
-                            "start": seg_start,
-                            "end": seg_end,
-                            "speaker": None,
-                        })
+                        segments.append(
+                            {
+                                "text": " ".join(current_words),
+                                "start": seg_start,
+                                "end": seg_end,
+                                "speaker": None,
+                            }
+                        )
                         current_words = []
                         seg_start = seg_end
 
                 if current_words:
-                    segments.append({
-                        "text": " ".join(current_words),
-                        "start": seg_start,
-                        "end": seg_end,
-                        "speaker": None,
-                    })
+                    segments.append(
+                        {
+                            "text": " ".join(current_words),
+                            "start": seg_start,
+                            "end": seg_end,
+                            "speaker": None,
+                        }
+                    )
             else:
                 full_text = final_data.get("text", "")
-                segments.append({
-                    "text": full_text,
-                    "start": 0.0,
-                    "end": 0.0,
-                    "speaker": None,
-                })
+                segments.append(
+                    {
+                        "text": full_text,
+                        "start": 0.0,
+                        "end": 0.0,
+                        "speaker": None,
+                    }
+                )
 
         formatted_lines: list[str] = []
         for seg in segments:

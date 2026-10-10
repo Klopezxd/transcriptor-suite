@@ -9,6 +9,7 @@ from enum import Enum
 
 class ProviderType(str, Enum):
     """Proveedores de transcripción soportados."""
+
     WHISPERX = "WhisperX (ZeroGPU / Local)"
     DEEPGRAM = "Deepgram (Cloud API)"
     ASSEMBLYAI = "AssemblyAI (Cloud API)"
@@ -16,6 +17,7 @@ class ProviderType(str, Enum):
 
 class ModelName(str, Enum):
     """Modelos Whisper soportados."""
+
     LARGE_V3_TURBO = "large-v3-turbo"
     LARGE_V3 = "large-v3"
     MEDIUM = "medium"
@@ -25,18 +27,21 @@ class ModelName(str, Enum):
 
 class DeepgramModel(str, Enum):
     """Modelos de voz de Deepgram."""
-    NOVA_2 = "nova-2"       # Recomendado: ultrarrápido y coste óptimo
-    NOVA_3 = "nova-3"       # Nueva generación: máxima precisión contextual
+
+    NOVA_2 = "nova-2"  # Recomendado: ultrarrápido y coste óptimo
+    NOVA_3 = "nova-3"  # Nueva generación: máxima precisión contextual
 
 
 class AssemblyAIModel(str, Enum):
     """Modelos de voz de AssemblyAI."""
-    BEST = "best"           # Universal-1: máxima precisión acústica
-    NANO = "nano"           # Ligero: procesamiento rápido para pruebas
+
+    BEST = "best"  # Universal-1: máxima precisión acústica
+    NANO = "nano"  # Ligero: procesamiento rápido para pruebas
 
 
 class ComputeType(str, Enum):
     """Tipos de computación para cuantización de VRAM."""
+
     FLOAT16 = "float16"
     INT8 = "int8"
     FLOAT32 = "float32"
@@ -44,9 +49,10 @@ class ComputeType(str, Enum):
 
 class TimestampMode(str, Enum):
     """Formatos de visualización para marcas de tiempo."""
-    SIMPLE = "simple"       # [HH:MM:SS]
-    RANGE = "range"         # [HH:MM:SS - HH:MM:SS]
-    NONE = "none"           # Sin marcas de tiempo
+
+    SIMPLE = "simple"  # [HH:MM:SS]
+    RANGE = "range"  # [HH:MM:SS - HH:MM:SS]
+    NONE = "none"  # Sin marcas de tiempo
 
 
 @dataclass(frozen=True)
@@ -66,6 +72,7 @@ class TranscriptionConfig:
         api_key: Clave de API para proveedores en la nube (Deepgram / AssemblyAI).
         language: Código de idioma ISO (opcional, detección automática por defecto).
     """
+
     provider: str = ProviderType.WHISPERX.value
     model_name: str = ModelName.LARGE_V3_TURBO.value
     device: str = "cuda"
@@ -86,7 +93,7 @@ class TranscriptionConfig:
         hf_token: str | None = None,
         api_key: str | None = None,
         device: str | None = None,
-        compute_type: str | None = None
+        compute_type: str | None = None,
     ) -> "TranscriptionConfig":
         """Crea una configuración con selección automática de hardware y proveedor."""
         detected_device = "cpu"
@@ -96,6 +103,7 @@ class TranscriptionConfig:
         if provider == ProviderType.WHISPERX.value:
             try:
                 import torch
+
                 detected_device = device or ("cuda" if torch.cuda.is_available() else "cpu")
                 detected_compute = compute_type or ("int8" if detected_device == "cuda" else "int8")
             except ImportError:
@@ -130,4 +138,3 @@ PROVIDER_MODELS: dict[str, list[str]] = {
         AssemblyAIModel.NANO.value,
     ],
 }
-

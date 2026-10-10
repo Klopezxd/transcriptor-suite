@@ -8,7 +8,7 @@ echo   Iniciando WhisperX Transcriptor (Entorno Conda)
 echo ========================================================
 echo.
 
-:: 1. Detectar Miniconda / Anaconda en rutas est?ndar
+:: 1. Detectar Miniconda / Anaconda en rutas estandar
 if exist "%USERPROFILE%\miniconda3\Scripts\activate.bat" (
     call "%USERPROFILE%\miniconda3\Scripts\activate.bat" transcriptor
 ) else if exist "%USERPROFILE%\anaconda3\Scripts\activate.bat" (
@@ -17,7 +17,7 @@ if exist "%USERPROFILE%\miniconda3\Scripts\activate.bat" (
     call conda activate transcriptor 2>nul
 )
 
-:: 2. Ejecutar CLI (abrir? el selector gr?fico de archivo autom?ticamente)
+:: 2. Ejecutar CLI (abrira el selector grafico de archivo automaticamente si no se pasa parametro)
 python cli.py %*
 
 if %ERRORLEVEL% neq 0 (
