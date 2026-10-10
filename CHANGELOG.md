@@ -24,7 +24,10 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 * **Entrada Directa de Credenciales en la Web:**
   * Nuevo campo `Token de Hugging Face (HF_TOKEN)` en el acordeón de configuración de diarización para permitir transcribir sin depender exclusivamente de los Secrets del Space.
 * **Guía Maestra de Secretos y API Keys:**
-  * Documentación destacada en la cabecera de `README.md` y `README.es.md` con instrucciones paso a paso para tokens de GitHub Actions, Hugging Face Spaces y proveedores de nube (Deepgram y AssemblyAI).
+  * Documentación destacada en la cabecera de `README.md` y `README.es.md` con matriz rápida de configuración de secretos para GitHub Actions, Hugging Face Spaces, Deepgram y AssemblyAI.
+* **Diagrama de Arquitectura Global y Mapa del Repositorio:**
+  * Diagrama de flujo multimodelo con Mermaid en la documentación técnica describiendo el ciclo completo CI/CD, interfaz, enrutador de motores (WhisperX, Deepgram, AssemblyAI) y exportador unificado.
+  * Mapa detallado de archivos y responsabilidades por módulo para auditoría rápida sin necesidad de clon local.
 
 ### Cambiado / Optimizado
 * **Duración Extendida en Hugging Face ZeroGPU:**

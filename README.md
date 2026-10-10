@@ -44,15 +44,36 @@
 >
 > ---
 >
-> ### 3️⃣ FREE $200 USD PROMOTIONAL CREDIT: Deepgram Cloud API (Optional)
+> ### 3️⃣ FREE $200 USD PROMOTIONAL CREDIT: Deepgram Cloud API (Recommended for large audio)
 > * **Purpose:** Transcribe massive audio files (2 to 5+ hours) in under 20 seconds with built-in diarization without burning ZeroGPU quotas.
 > * **Requirements:** None. No credit card required, open to all new users.
 > * **How to get it:**
 >   1. Sign up at [console.deepgram.com/signup](https://console.deepgram.com/signup) with any email or GitHub.
->   2. Your account is automatically credited with **$200 in free credits** (+600 hours of transcription).
+>   2. Your account is automatically credited with **$200 in free credits** (+700 hours of transcription).
 >   3. Navigate to **API Keys** ➔ **Create a New API Key**.
+> * **Where to configure it:** Hugging Face Space Secrets (`DEEPGRAM_API_KEY`), local `.env` file, or directly in the web UI.
 >
 > ---
+>
+> ### 4️⃣ FREE $50 USD PROMOTIONAL CREDIT: AssemblyAI Cloud API (High-precision alternative)
+> * **Purpose:** Studio-grade transcription fidelity (Universal-1) and utterance-level diarization without GPU consumption.
+> * **Requirements:** None. No credit card required.
+> * **How to get it:**
+>   1. Sign up at [assemblyai.com/dashboard/signup](https://www.assemblyai.com/dashboard/signup).
+>   2. Your dashboard is automatically credited with **$50 in free credits** (~150 hours of transcription).
+>   3. Copy your key under **API Keys**.
+> * **Where to configure it:** Hugging Face Space Secrets (`ASSEMBLYAI_API_KEY`), local `.env` file, or directly in the web UI.
+>
+> ---
+>
+> ### 📋 SECRETS & CONFIGURATION MATRIX
+>
+> | Key / Environment Variable | Provider | Where to Obtain | Where to Configure | Required? | Primary Purpose |
+> | :--- | :--- | :--- | :--- | :--- | :--- |
+> | **`HF_TOKEN`** *(Write)* | Hugging Face | [HF Tokens](https://huggingface.co/settings/tokens) | **GitHub Repository Secrets** (`Settings > Secrets > Actions`) | **Yes** | Syncs code from GitHub to Hugging Face Space on every `git push`. |
+> | **`HF_TOKEN`** *(Read)* | Hugging Face | [HF Tokens](https://huggingface.co/settings/tokens) | **HF Space Secrets** or Web UI | **Yes** *(for WhisperX)* | Downloads Pyannote speaker diarization models (requires model license consent). |
+> | **`DEEPGRAM_API_KEY`** | Deepgram | [Deepgram Console](https://console.deepgram.com) | **HF Space Secrets**, Web UI or `.env` | Optional | Fast cloud transcription (20s) and diarization without GPU quotas. |
+> | **`ASSEMBLYAI_API_KEY`** | AssemblyAI | [AssemblyAI Dashboard](https://www.assemblyai.com) | **HF Space Secrets**, Web UI or `.env` | Optional | High-precision cloud transcription without GPU quotas. |
 
 
 ## Key Features
@@ -76,21 +97,97 @@ Test the pipeline directly on Hugging Face Spaces:
 
 ---
 
-## Pipeline Architecture
+## 🏛️ System Architecture
 
-The transcription workflow executes across 5 isolated stages, clearing GPU VRAM at each boundary to prevent Out-Of-Memory (OOM) faults:
+The pipeline implements a decoupled, multi-engine architecture continuously synced between GitHub and Hugging Face Spaces. Users can switch between local/ZeroGPU execution and high-speed cloud APIs with a single click:
 
 ```mermaid
 flowchart TD
-    A["Input Media File<br>(MP4 / WAV / MP3)"] --> B["Audio Extraction<br>& Preprocessing"]
-    B --> C["1. ASR Transcription<br>(WhisperX Engine)"]
-    C -->|VRAM Flush| D["2. Phoneme Alignment<br>(Wav2Vec2)"]
-    D -->|VRAM Flush| E{"Diarization<br>Requested?"}
-    E -->|Yes| F["3. Speaker Segmentation<br>(Pyannote Audio)"]
-    E -->|No| G["4. Segment Formatter"]
-    F -->|VRAM Flush| G
-    G --> H["Output Transcript (.txt)<br>& UI Preview"]
+    subgraph CI["🔄 Continuous Deployment (CI/CD)"]
+        GH["GitHub Repository<br><b>whisperx-transcriptor</b>"] -->|git push| GHA["GitHub Actions<br><code>sync-to-hf.yml</code>"]
+        GHA -->|Uses HF_TOKEN Write| HFS["Hugging Face Space<br><code>Klopezxd/transcriptor-whisperx</code>"]
+    end
+
+    subgraph INGRESS["🖥️ Ingress & User Interface"]
+        USER(["User / Web Browser"]) --> UI["Web UI (Gradio)<br><code>app.py</code><br><i>Nordic Aurora Theme + Statusbar</i>"]
+        CLI["Terminal CLI<br><code>main.py</code>"] --> ROUTER
+        UI --> ROUTER{"Engine Router<br><code>src/transcriber.py</code>"}
+    end
+
+    subgraph ENGINES["⚙️ ASR & Diarization Engines"]
+        ROUTER -->|Provider: WhisperX| WX_BOX["WhisperX Engine (ZeroGPU / Local)<br><code>src/transcriber.py</code>"]
+        ROUTER -->|Provider: Deepgram| DG_BOX["Deepgram REST API<br><code>src/cloud_providers.py</code>"]
+        ROUTER -->|Provider: AssemblyAI| AAI_BOX["AssemblyAI REST API<br><code>src/cloud_providers.py</code>"]
+
+        WX_BOX -->|@spaces.GPU| WX_PIPE["1. Faster-Whisper ASR<br>2. Wav2Vec2 Alignment<br>3. Pyannote 3.1 Diarization"]
+        WX_PIPE -.->|Requires HF_TOKEN Read| HF_MODELS[("Hugging Face Hub<br><i>Pyannote Models</i>")]
+
+        DG_BOX -->|Direct HTTP POST| DG_API[("Deepgram Cloud<br>Models: nova-2 / nova-3<br><i>$200 USD Credit</i>")]
+        AAI_BOX -->|HTTP Chunked Upload| AAI_API[("AssemblyAI Cloud<br>Models: best / nano<br><i>$50 USD Credit</i>")]
+    end
+
+    subgraph EGRESS["📄 Unified Normalization & Multi-Format Export"]
+        WX_PIPE --> HARMONIZER["Result Normalizer<br><code>TranscriptionResult</code>"]
+        DG_API --> HARMONIZER
+        AAI_API --> HARMONIZER
+
+        HARMONIZER --> EXPORTS["Output Artifacts:<br>• Plain Text (.txt)<br>• Subtitles (.srt)<br>• Web Subtitles (.vtt)<br>• Structured Data (.json)"]
+        EXPORTS --> DOWNLOADS["Direct Download Buttons<br>& Interactive Speaker Preview"]
+    end
+
+    HFS -.->|Deploys & Serves| UI
 ```
+
+---
+
+### 📂 Project Structure & Module Responsibilities
+
+If you need to audit or manage this repository in the future without a local clone, here is the exact architectural breakdown of each component:
+
+```text
+whisperx-transcriptor/
+│
+├── app.py                  # Gradio Web Interface: Nordic Aurora theme, academic statusbar v2.1.0,
+│                           # reactive model dropdowns, and isolated @spaces.GPU decorator execution.
+│
+├── main.py                 # Terminal CLI entry point: direct parameter execution (--media, --model,
+│                           # --diarize) with interactive graphical file picker fallback.
+│
+├── requirements.txt        # Runtime dependencies (torch, whisperx, gradio, requests, pyannote).
+├── CHANGELOG.md            # Formal versioning and release notes conforming to Keep a Changelog.
+├── .env.example            # Environment variable template for local development and secrets testing.
+│
+├── .github/workflows/
+│   └── sync-to-hf.yml      # CI/CD Workflow: Automatically syncs git commits on main to Hugging Face
+│                           # Space using secret HF_TOKEN (with Write permissions).
+│
+└── src/
+    ├── config.py           # Strongly typed data models and enums: ProviderType, WhisperModel,
+    │                       # DeepgramModel, AssemblyAIModel, PROVIDER_MODELS, and TranscriptionConfig.
+    │
+    ├── transcriber.py      # Pipeline factory: create_transcription_pipeline, VRAM memory managers,
+    │                       # Pyannote Audio integration, and local WhisperXPipeline orchestrator.
+    │
+    ├── cloud_providers.py  # Lightweight cloud REST connectors: DeepgramPipeline & AssemblyAIPipeline
+    │                       # featuring word-level diarization, async polling, and ZERO GPU usage.
+    │
+    └── utils.py            # Utility helpers: hierarchical API key resolution (arg > os.getenv > .env),
+                            # subtitle formatters (.srt, .vtt, .json), and VRAM garbage collectors.
+```
+
+---
+
+### ⚡ Engine Execution Lifecycle
+
+1. **WhisperX Pipeline (Local GPU or Hugging Face ZeroGPU):**
+   * **Compute Cost:** Local GPU VRAM or Hugging Face ZeroGPU minutes (timeout set to 180s for files up to ~2 hours).
+   * **Sequential Stages with VRAM Eviction:**
+     * `Audio Loading` ➔ `WhisperX ASR` (CTranslate2) ➔ `VRAM Flush`
+     * ➔ `Wav2Vec2 Alignment` ➔ `VRAM Flush`
+     * ➔ `Pyannote 3.1 Diarization` (if enabled, authenticated via `HF_TOKEN`) ➔ `VRAM Flush`.
+2. **Cloud Pipelines (Deepgram & AssemblyAI):**
+   * **Compute Cost:** Zero GPU compute (0 seconds consumed from ZeroGPU quotas).
+   * **Stages:** Raw media is streamed or uploaded over HTTPS authenticated with `DEEPGRAM_API_KEY` or `ASSEMBLYAI_API_KEY`. Word/utterance timestamps and speaker labels are normalized into the standard `TranscriptionResult` object.
 
 ---
 
