@@ -189,45 +189,46 @@ def process_transcription(
         )
 
 
-# --- Sistema de Diseño: Aurora Boreal Nórdica ---
-# Inspirado en minimalismo escandinavo, noche ártica (#050B1A), Aurora Green (#00FF87) y Cyan Glacial (#00D4FF)
+# --- Sistema de Diseño: Aurora Studio Enterprise ---
+# Inspirado en diseño nórdico minimalista, noche ártica profunda (#030712), Aurora Green (#00FF87), Cyan Glacial (#00D4FF) y Amethyst (#A855F7)
 
 custom_css = """
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Montserrat:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
     --aurora-green: #00FF87;
-    --arctic-blue: #0A1628;
-    --deep-midnight: #050B1A;
-    --frost-white: #E8F4F8;
-    --snow: #FAFBFC;
     --ice-cyan: #00D4FF;
-    --violet-sky: #7B2FBE;
-    --glacier-pink: #FF6EC7;
-    --muted-slate: #8CA0BA;
-    --glass-border: rgba(0, 212, 255, 0.16);
-    --glass-surface: rgba(10, 22, 40, 0.72);
+    --sky-cyan: #38BDF8;
+    --amethyst: #A855F7;
+    --deep-midnight: #030712;
+    --surface-slate: rgba(15, 23, 42, 0.75);
+    --surface-darker: rgba(7, 12, 24, 0.88);
+    --glass-border: rgba(56, 189, 248, 0.16);
+    --glass-border-focus: rgba(0, 255, 135, 0.45);
+    --frost-white: #F8FAFC;
+    --muted-slate: #94A3B8;
+    --dark-text: #030712;
 }
 
 /* Atmósfera de Noche Ártica con Ondas de Aurora Boreal */
 body, gradio-app {
     background-color: var(--deep-midnight) !important;
     background-image: 
-        radial-gradient(circle at 18% 10%, rgba(0, 255, 135, 0.08) 0%, transparent 45%),
-        radial-gradient(circle at 82% 14%, rgba(123, 47, 190, 0.12) 0%, transparent 50%),
-        radial-gradient(circle at 50% 60%, rgba(0, 212, 255, 0.06) 0%, transparent 55%),
-        radial-gradient(circle at 85% 85%, rgba(255, 110, 199, 0.04) 0%, transparent 40%) !important;
+        radial-gradient(circle at 15% 12%, rgba(0, 255, 135, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 85% 10%, rgba(168, 85, 247, 0.09) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 85%, rgba(0, 255, 135, 0.04) 0%, transparent 35%) !important;
     background-attachment: fixed !important;
     color: var(--frost-white) !important;
-    font-family: 'Montserrat', system-ui, -apple-system, sans-serif !important;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
     -webkit-font-smoothing: antialiased;
 }
 
 .gradio-container {
-    max-width: 1360px !important;
-    width: 95% !important;
+    max-width: 1400px !important;
+    width: 96% !important;
     margin: 0 auto !important;
-    padding-top: 1.5rem !important;
+    padding-top: 1.25rem !important;
     padding-bottom: 2.5rem !important;
 }
 
@@ -235,139 +236,232 @@ body, gradio-app {
 .gradio-container .block,
 .gradio-container .panel,
 .gradio-container .form {
-    background: var(--glass-surface) !important;
-    backdrop-filter: blur(14px) !important;
-    -webkit-backdrop-filter: blur(14px) !important;
+    background: var(--surface-slate) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
     border: 1px solid var(--glass-border) !important;
-    border-radius: 8px !important;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
 }
 
 /* Cabecera Estilo Nórdico */
 #app-header {
     text-align: center;
-    padding: 1.5rem 1rem 1.25rem 1rem;
+    padding: 1.75rem 1rem 1.25rem 1rem;
     position: relative;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
 .aurora-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.35rem 0.9rem;
+    gap: 0.55rem;
+    padding: 0.4rem 1.05rem;
     border-radius: 9999px;
-    background: rgba(0, 255, 135, 0.08);
-    border: 1px solid rgba(0, 255, 135, 0.28);
+    background: rgba(0, 255, 135, 0.09);
+    border: 1px solid rgba(0, 255, 135, 0.32);
     color: var(--aurora-green);
-    font-size: 0.74rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    margin-bottom: 0.9rem;
+    margin-bottom: 0.85rem;
+    box-shadow: 0 2px 12px rgba(0, 255, 135, 0.15);
 }
 
 .aurora-badge-dot {
-    width: 7px;
-    height: 7px;
+    width: 7.5px;
+    height: 7.5px;
     border-radius: 50%;
     background-color: var(--aurora-green);
-    box-shadow: 0 0 8px var(--aurora-green);
+    box-shadow: 0 0 10px var(--aurora-green);
     animation: aurora-pulse 2.2s infinite ease-in-out;
 }
 
 @keyframes aurora-pulse {
     0%, 100% { opacity: 0.5; transform: scale(0.9); }
-    50% { opacity: 1; transform: scale(1.2); }
+    50% { opacity: 1; transform: scale(1.25); }
 }
 
 .aurora-title {
-    font-size: 2.35rem;
+    font-size: 2.6rem;
     font-weight: 800;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.035em;
     margin: 0 0 0.5rem 0;
-    background: linear-gradient(135deg, #FFFFFF 25%, var(--aurora-green) 75%, var(--ice-cyan) 100%);
+    background: linear-gradient(135deg, #FFFFFF 20%, var(--aurora-green) 70%, var(--ice-cyan) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
+    gap: 0.85rem;
+}
+
+.header-mic-svg {
+    stroke: var(--aurora-green);
+    filter: drop-shadow(0 0 14px rgba(0, 255, 135, 0.55));
 }
 
 .aurora-subtitle {
     color: var(--muted-slate);
     font-size: 1.02rem;
-    max-width: 680px;
-    margin: 0 auto;
+    max-width: 720px;
+    margin: 0 auto 0.9rem auto;
     line-height: 1.55;
     font-weight: 400;
 }
 
-/* Botón Principal (Aurora Green #00FF87) */
-.btn-primary, button.btn-primary, button.primary {
-    background: var(--aurora-green) !important;
-    color: var(--deep-midnight) !important;
-    font-weight: 700 !important;
+.header-engine-chips {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 0.5rem;
+}
+
+.engine-chip {
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 3.5px 11px;
+    border-radius: 9999px;
+    letter-spacing: 0.02em;
+}
+
+.engine-chip-wx {
+    background: rgba(0, 255, 135, 0.1);
+    color: var(--aurora-green);
+    border: 1px solid rgba(0, 255, 135, 0.28);
+}
+
+.engine-chip-dg {
+    background: rgba(0, 212, 255, 0.1);
+    color: var(--ice-cyan);
+    border: 1px solid rgba(0, 212, 255, 0.28);
+}
+
+.engine-chip-aai {
+    background: rgba(168, 85, 247, 0.12);
+    color: #D8B4FE;
+    border: 1px solid rgba(168, 85, 247, 0.32);
+}
+
+/* Panel Header Card Ribbons */
+.panel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    margin-bottom: 14px;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.panel-header-icon {
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.panel-header-title {
+    font-size: 0.96rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.panel-header-desc {
+    font-size: 0.77rem;
+    color: var(--muted-slate);
+    margin: 2px 0 0 0;
+}
+
+/* Segmented Engine Selector Radio */
+.engine-tabs-selector fieldset {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
     border: none !important;
-    border-radius: 8px !important;
-    letter-spacing: 0.01em !important;
-    transition: all 0.22s ease-in-out !important;
-    box-shadow: 0 2px 14px rgba(0, 255, 135, 0.25) !important;
-    padding: 0.75rem 1.5rem !important;
+    padding: 0 !important;
+    background: transparent !important;
+    flex-wrap: wrap !important;
 }
 
-.btn-primary:hover, button.btn-primary:hover, button.primary:hover {
-    background: #00E67A !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 22px rgba(0, 255, 135, 0.45) !important;
-}
-
-.btn-primary:active, button.btn-primary:active, button.primary:active {
-    transform: translateY(1px) !important;
-}
-
-/* Botón Secundario (Limpiar) */
-.btn-secondary, button.btn-secondary, button.secondary {
-    background: rgba(15, 29, 52, 0.75) !important;
-    color: var(--frost-white) !important;
-    border: 1px solid rgba(0, 212, 255, 0.25) !important;
-    border-radius: 8px !important;
+.engine-tabs-selector label {
+    flex: 1 1 160px !important;
+    background: rgba(15, 23, 42, 0.8) !important;
+    border: 1px solid rgba(56, 189, 248, 0.22) !important;
+    border-radius: 10px !important;
+    padding: 11px 12px !important;
+    cursor: pointer !important;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    color: #E2E8F0 !important;
+    font-size: 0.88rem !important;
     font-weight: 600 !important;
-    transition: all 0.2s ease !important;
 }
 
-.btn-secondary:hover, button.btn-secondary:hover, button.secondary:hover {
+.engine-tabs-selector label:hover {
+    border-color: var(--ice-cyan) !important;
     background: rgba(0, 212, 255, 0.12) !important;
-    border-color: rgba(0, 212, 255, 0.5) !important;
     color: #FFFFFF !important;
+    transform: translateY(-1px) !important;
 }
 
-/* Botón de Descarga */
-.btn-download {
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-    border: 1px solid rgba(0, 212, 255, 0.35) !important;
-    transition: all 0.2s ease !important;
+.engine-tabs-selector label.selected,
+.engine-tabs-selector label:has(input:checked) {
+    border-color: var(--aurora-green) !important;
+    background: rgba(0, 255, 135, 0.14) !important;
+    box-shadow: 0 0 16px rgba(0, 255, 135, 0.25) !important;
+    color: var(--aurora-green) !important;
 }
 
-/* Área de Salida: Tipografía Monospace JetBrains */
-.output-transcript textarea {
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.92rem !important;
-    line-height: 1.65 !important;
-    background: #060e1d !important;
-    border: 1px solid var(--glass-border) !important;
-    border-radius: 8px !important;
-    color: var(--frost-white) !important;
+/* Zona de Carga de Archivos */
+.gradio-container .file-upload,
+.gradio-container [data-testid="file-upload"] {
+    border: 1.5px dashed rgba(56, 189, 248, 0.35) !important;
+    border-radius: 12px !important;
+    background: rgba(8, 14, 26, 0.7) !important;
+    transition: all 0.25s ease !important;
+    padding: 1.25rem !important;
 }
 
-/* Acordeones Frosted Glass */
-.gradio-container .accordion {
-    border: 1px solid var(--glass-border) !important;
-    border-radius: 8px !important;
-    background: rgba(10, 22, 40, 0.5) !important;
-    margin-bottom: 0.75rem !important;
+.gradio-container .file-upload:hover,
+.gradio-container [data-testid="file-upload"]:hover {
+    border-color: var(--aurora-green) !important;
+    background: rgba(0, 255, 135, 0.05) !important;
+    box-shadow: 0 0 20px rgba(0, 255, 135, 0.18) !important;
+}
+
+.format-badges-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    margin-bottom: 12px;
+}
+
+.format-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2.5px 7px;
+    border-radius: 5px;
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--sky-cyan);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.format-chip-note {
+    font-size: 0.74rem;
+    color: var(--muted-slate);
+    margin-left: 4px;
 }
 
 /* Inputs, Selectores y Foco */
@@ -375,9 +469,9 @@ body, gradio-app {
 .gradio-container input[type="password"],
 .gradio-container select,
 .gradio-container textarea {
-    background-color: #07101e !important;
-    border: 1px solid rgba(0, 212, 255, 0.2) !important;
-    border-radius: 8px !important;
+    background-color: var(--surface-darker) !important;
+    border: 1px solid rgba(56, 189, 248, 0.22) !important;
+    border-radius: 10px !important;
     color: var(--frost-white) !important;
     transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
@@ -386,23 +480,106 @@ body, gradio-app {
 .gradio-container select:focus,
 .gradio-container textarea:focus {
     border-color: var(--aurora-green) !important;
-    box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.3) !important;
+    box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.35) !important;
     outline: none !important;
 }
 
-/* Zona de Carga de Archivos */
-.gradio-container .file-upload,
-.gradio-container [data-testid="file-upload"] {
-    border: 1.5px dashed rgba(0, 212, 255, 0.3) !important;
-    border-radius: 8px !important;
-    background: rgba(8, 18, 34, 0.5) !important;
-    transition: all 0.25s ease !important;
+/* Área de Salida: Tipografía Monospace JetBrains */
+.output-transcript textarea {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.92rem !important;
+    line-height: 1.72 !important;
+    background: #040914 !important;
+    border: 1px solid rgba(56, 189, 248, 0.24) !important;
+    border-radius: 10px !important;
+    color: #F1F5F9 !important;
+    padding: 1.1rem !important;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.65) !important;
 }
 
-.gradio-container .file-upload:hover,
-.gradio-container [data-testid="file-upload"]:hover {
-    border-color: var(--aurora-green) !important;
-    background: rgba(0, 255, 135, 0.04) !important;
+/* Botón Principal (Aurora Green + Cyan Gradient) */
+.btn-primary, button.btn-primary, button.primary {
+    background: linear-gradient(135deg, #00FF87 0%, #00D4FF 100%) !important;
+    color: var(--dark-text) !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    border: none !important;
+    border-radius: 10px !important;
+    letter-spacing: 0.02em !important;
+    transition: all 0.24s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 20px rgba(0, 255, 135, 0.35) !important;
+    padding: 0.85rem 1.6rem !important;
+    cursor: pointer !important;
+}
+
+.btn-primary:hover, button.btn-primary:hover, button.primary:hover {
+    transform: translateY(-2px) scale(1.01) !important;
+    box-shadow: 0 6px 28px rgba(0, 255, 135, 0.55), 0 0 15px rgba(0, 212, 255, 0.4) !important;
+    filter: brightness(1.06) !important;
+}
+
+.btn-primary:active, button.btn-primary:active, button.primary:active {
+    transform: translateY(1px) scale(0.99) !important;
+}
+
+/* Botón Secundario (Limpiar) */
+.btn-secondary, button.btn-secondary, button.secondary {
+    background: rgba(15, 23, 42, 0.85) !important;
+    color: #E2E8F0 !important;
+    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-secondary:hover, button.btn-secondary:hover, button.secondary:hover {
+    background: rgba(56, 189, 248, 0.15) !important;
+    border-color: var(--sky-cyan) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Botón de Descarga */
+.btn-download, button.btn-download {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    border: 1px solid rgba(56, 189, 248, 0.32) !important;
+    background: rgba(15, 23, 42, 0.85) !important;
+    color: var(--frost-white) !important;
+    transition: all 0.22s ease !important;
+}
+
+.btn-download:hover:not(:disabled), button.btn-download:hover:not(:disabled) {
+    border-color: var(--ice-cyan) !important;
+    background: rgba(0, 212, 255, 0.18) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 18px rgba(0, 212, 255, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Barras de Desplazamiento Personalizadas */
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.35);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--aurora-green);
+}
+
+/* Acordeones Frosted Glass */
+.gradio-container .accordion {
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 10px !important;
+    background: rgba(10, 22, 40, 0.55) !important;
+    margin-bottom: 0.75rem !important;
 }
 
 /* Pie de Página Nórdico */
@@ -448,16 +625,16 @@ body, gradio-app {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 7px 16px;
-    background: rgba(5, 11, 26, 0.88);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(0, 212, 255, 0.18);
-    border-radius: 8px;
+    padding: 9px 18px;
+    background: rgba(3, 7, 18, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 10px;
     font-size: 11.5px;
     color: var(--muted-slate);
     margin-top: 2rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 }
 
 .statusbar-left {
@@ -469,39 +646,46 @@ body, gradio-app {
 .statusbar-stats {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
-    color: #cbd5e1;
+    color: #CBD5E1;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
 }
 
 .statusbar-stats-dot {
-    width: 6.5px;
-    height: 6.5px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: var(--aurora-green);
-    box-shadow: 0 0 8px var(--aurora-green);
+    box-shadow: 0 0 10px var(--aurora-green);
     display: inline-block;
 }
 
 .statusbar-right {
     display: flex;
-    gap: 8px;
+    gap: 9px;
     align-items: center;
 }
 
 .author-badge {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     background: rgba(0, 212, 255, 0.1);
-    padding: 3px 10px;
+    padding: 3.5px 11px;
     border-radius: 6px;
     color: var(--ice-cyan);
-    font-weight: 500;
+    font-weight: 600;
     font-size: 11.5px;
-    border: 1px solid rgba(0, 212, 255, 0.25);
+    border: 1px solid rgba(0, 212, 255, 0.28);
     white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.author-badge:hover {
+    background: rgba(0, 212, 255, 0.2);
+    border-color: var(--ice-cyan);
+    transform: translateY(-1px);
 }
 
 .author-badge svg {
@@ -514,40 +698,40 @@ body, gradio-app {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: rgba(123, 47, 190, 0.15);
-    padding: 3px 9px;
+    background: rgba(168, 85, 247, 0.15);
+    padding: 3.5px 10px;
     border-radius: 6px;
-    color: #d8b4fe;
+    color: #D8B4FE;
     font-size: 11.5px;
-    font-weight: 500;
-    border: 1px solid rgba(123, 47, 190, 0.35);
+    font-weight: 600;
+    border: 1px solid rgba(168, 85, 247, 0.35);
     transition: all 0.2s ease;
     white-space: nowrap;
     cursor: default;
 }
 
 .antigravity-badge:hover {
-    background: rgba(123, 47, 190, 0.28);
-    border-color: #c084fc;
-    box-shadow: 0 0 10px rgba(192, 132, 252, 0.35);
+    background: rgba(168, 85, 247, 0.28);
+    border-color: #C084FC;
+    box-shadow: 0 0 12px rgba(192, 132, 252, 0.4);
     transform: translateY(-1px);
 }
 
 .antigravity-badge svg {
-    color: var(--glacier-pink);
+    color: #F472B6;
     width: 12px;
     height: 12px;
 }
 
 .version-badge {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    font-weight: 600;
-    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3.5px 9px;
     border-radius: 6px;
     background: rgba(0, 255, 135, 0.12);
     color: var(--aurora-green);
-    border: 1px solid rgba(0, 255, 135, 0.3);
+    border: 1px solid rgba(0, 255, 135, 0.32);
     letter-spacing: 0.03em;
     transition: all 0.2s ease;
     white-space: nowrap;
@@ -555,9 +739,9 @@ body, gradio-app {
 }
 
 .version-badge:hover {
-    background: rgba(0, 255, 135, 0.24);
+    background: rgba(0, 255, 135, 0.25);
     border-color: var(--aurora-green);
-    box-shadow: 0 0 10px rgba(0, 255, 135, 0.35);
+    box-shadow: 0 0 12px rgba(0, 255, 135, 0.4);
     transform: translateY(-1px);
 }
 
@@ -568,23 +752,22 @@ body, gradio-app {
         padding: 0.75rem !important;
     }
     .aurora-title {
-        font-size: 1.65rem;
+        font-size: 1.85rem;
     }
     .aurora-subtitle {
-        font-size: 0.9rem;
+        font-size: 0.92rem;
+    }
+    .engine-tabs-selector label {
+        flex: 1 1 100% !important;
     }
     .statusbar {
         flex-direction: column;
-        gap: 8px;
-        padding: 10px 12px;
+        gap: 10px;
+        padding: 12px 14px;
     }
-    .statusbar-left {
-        justify-content: center;
-    }
-    .statusbar-right {
+    .statusbar-left, .statusbar-right {
         justify-content: center;
         flex-wrap: wrap;
-        gap: 6px;
     }
 }
 """
@@ -593,61 +776,61 @@ theme = gr.themes.Base(
     primary_hue=gr.themes.colors.emerald,
     secondary_hue=gr.themes.colors.cyan,
     neutral_hue=gr.themes.colors.slate,
-    font=[gr.themes.GoogleFont("Montserrat"), "system-ui", "sans-serif"],
+    font=[gr.themes.GoogleFont("Plus Jakarta Sans"), "system-ui", "sans-serif"],
     font_mono=[gr.themes.GoogleFont("JetBrains Mono"), "monospace"],
 ).set(
-    body_background_fill="#050B1A",
-    body_background_fill_dark="#050B1A",
-    body_text_color="#E8F4F8",
-    body_text_color_dark="#E8F4F8",
-    body_text_color_subdued="#8CA0BA",
-    body_text_color_subdued_dark="#8CA0BA",
-    background_fill_primary="#0A1628",
-    background_fill_primary_dark="#0A1628",
-    background_fill_secondary="#081220",
-    background_fill_secondary_dark="#081220",
-    block_background_fill="rgba(10, 22, 40, 0.72)",
-    block_background_fill_dark="rgba(10, 22, 40, 0.72)",
-    block_border_color="rgba(0, 212, 255, 0.16)",
-    block_border_color_dark="rgba(0, 212, 255, 0.16)",
-    block_radius="8px",
-    block_shadow="0 4px 20px rgba(0, 0, 0, 0.4)",
-    block_title_text_color="#E8F4F8",
-    block_title_text_color_dark="#E8F4F8",
-    block_label_text_color="#8CA0BA",
-    block_label_text_color_dark="#8CA0BA",
-    border_color_primary="rgba(0, 212, 255, 0.16)",
-    border_color_primary_dark="rgba(0, 212, 255, 0.16)",
+    body_background_fill="#030712",
+    body_background_fill_dark="#030712",
+    body_text_color="#F8FAFC",
+    body_text_color_dark="#F8FAFC",
+    body_text_color_subdued="#94A3B8",
+    body_text_color_subdued_dark="#94A3B8",
+    background_fill_primary="#0F172A",
+    background_fill_primary_dark="#0F172A",
+    background_fill_secondary="#080E1A",
+    background_fill_secondary_dark="#080E1A",
+    block_background_fill="rgba(15, 23, 42, 0.75)",
+    block_background_fill_dark="rgba(15, 23, 42, 0.75)",
+    block_border_color="rgba(56, 189, 248, 0.16)",
+    block_border_color_dark="rgba(56, 189, 248, 0.16)",
+    block_radius="10px",
+    block_shadow="0 6px 24px rgba(0, 0, 0, 0.45)",
+    block_title_text_color="#F8FAFC",
+    block_title_text_color_dark="#F8FAFC",
+    block_label_text_color="#94A3B8",
+    block_label_text_color_dark="#94A3B8",
+    border_color_primary="rgba(56, 189, 248, 0.16)",
+    border_color_primary_dark="rgba(56, 189, 248, 0.16)",
     button_primary_background_fill="#00FF87",
     button_primary_background_fill_dark="#00FF87",
     button_primary_background_fill_hover="#00E67A",
     button_primary_background_fill_hover_dark="#00E67A",
-    button_primary_text_color="#050B1A",
-    button_primary_text_color_dark="#050B1A",
-    button_secondary_background_fill="rgba(15, 29, 52, 0.75)",
-    button_secondary_background_fill_dark="rgba(15, 29, 52, 0.75)",
-    button_secondary_border_color="rgba(0, 212, 255, 0.25)",
-    button_secondary_border_color_dark="rgba(0, 212, 255, 0.25)",
-    button_secondary_text_color="#E8F4F8",
-    button_secondary_text_color_dark="#E8F4F8",
-    input_background_fill="#07101E",
-    input_background_fill_dark="#07101E",
-    input_border_color="rgba(0, 212, 255, 0.2)",
-    input_border_color_dark="rgba(0, 212, 255, 0.2)",
+    button_primary_text_color="#030712",
+    button_primary_text_color_dark="#030712",
+    button_secondary_background_fill="rgba(15, 23, 42, 0.85)",
+    button_secondary_background_fill_dark="rgba(15, 23, 42, 0.85)",
+    button_secondary_border_color="rgba(56, 189, 248, 0.25)",
+    button_secondary_border_color_dark="rgba(56, 189, 248, 0.25)",
+    button_secondary_text_color="#F8FAFC",
+    button_secondary_text_color_dark="#F8FAFC",
+    input_background_fill="#080E1A",
+    input_background_fill_dark="#080E1A",
+    input_border_color="rgba(56, 189, 248, 0.22)",
+    input_border_color_dark="rgba(56, 189, 248, 0.22)",
     input_border_color_focus="#00FF87",
     input_border_color_focus_dark="#00FF87",
     checkbox_background_color_selected="#00FF87",
     checkbox_background_color_selected_dark="#00FF87",
     checkbox_border_color_selected="#00FF87",
     checkbox_border_color_selected_dark="#00FF87",
-    checkbox_label_text_color="#E8F4F8",
-    checkbox_label_text_color_dark="#E8F4F8",
+    checkbox_label_text_color="#F8FAFC",
+    checkbox_label_text_color_dark="#F8FAFC",
     color_accent="#00D4FF",
     color_accent_soft="rgba(0, 212, 255, 0.15)",
 )
 
 # Compatibilidad entre Gradio < 6.0 y Gradio >= 6.0 (theme y css pasaron de Blocks a launch)
-blocks_kwargs = {"title": "WhisperX Transcriptor · Aurora Boreal"}
+blocks_kwargs = {"title": "WhisperX Studio · Enterprise ASR Suite"}
 launch_kwargs = {}
 
 try:
@@ -668,10 +851,10 @@ with gr.Blocks(**blocks_kwargs) as demo:
         <div id="app-header">
             <div class="aurora-badge">
                 <span class="aurora-badge-dot"></span>
-                <span>Arquitectura Nórdica · Acelerada con ZeroGPU</span>
+                <span>WhisperX Studio · ZeroGPU & Cloud Hybrid Engine</span>
             </div>
             <h1 class="aurora-title">
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#00FF87" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; filter: drop-shadow(0 0 10px rgba(0,255,135,0.45));">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00FF87" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="header-mic-svg">
                     <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
                     <line x1="12" x2="12" y1="19" y2="22"/>
@@ -679,8 +862,13 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 <span>WhisperX Transcriptor</span>
             </h1>
             <p class="aurora-subtitle">
-                Transcripción fonética de alta velocidad, alineación temporal de palabras y diarización de interlocutores
+                Transcripción fonética neuronal de alta velocidad, alineación acústica palabra por palabra y diarización de interlocutores
             </p>
+            <div class="header-engine-chips">
+                <span class="engine-chip engine-chip-wx">⚡ WhisperX (ZeroGPU / Local CUDA)</span>
+                <span class="engine-chip engine-chip-dg">⚡ Deepgram (Nova-2 / Nova-3)</span>
+                <span class="engine-chip engine-chip-aai">⚡ AssemblyAI (Universal-1 / Conformer)</span>
+            </div>
         </div>
         """
     )
@@ -689,7 +877,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
     with gr.Accordion("🔐 Acceso Propietario / Modo Administrador", open=False) as admin_acc:
         gr.Markdown(
-            "<span style='font-size: 12.5px; color: var(--text-subdued);'>"
+            "<span style='font-size: 12.5px; color: var(--muted-slate);'>"
             "Permite al propietario del Space habilitar automáticamente sus claves maestras de Deepgram y AssemblyAI sin escribirlas a mano."
             "</span>"
         )
@@ -709,6 +897,18 @@ with gr.Blocks(**blocks_kwargs) as demo:
     with gr.Row(equal_height=False):
         # Columna Izquierda: Entrada y Controles
         with gr.Column(scale=1):
+            gr.HTML(
+                """
+                <div class="panel-header">
+                    <span class="panel-header-icon">🎙️</span>
+                    <div>
+                        <h3 class="panel-header-title">Ingesta y Configuración del Motor</h3>
+                        <p class="panel-header-desc">Selecciona el motor acústico y carga tu archivo multimedia</p>
+                    </div>
+                </div>
+                """
+            )
+
             provider_selector = gr.Radio(
                 choices=[
                     ProviderType.WHISPERX.value,
@@ -718,12 +918,28 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 value=ProviderType.WHISPERX.value,
                 label="Motor de Transcripción",
                 info="Elige entre aceleración ZeroGPU (Hugging Face) o procesamiento ultrarrápido en la nube.",
+                elem_classes=["engine-tabs-selector"],
             )
 
             input_media = gr.File(
                 label="Archivo Multimedia",
                 file_types=["audio", "video"],
                 file_count="single",
+            )
+
+            gr.HTML(
+                """
+                <div class="format-badges-row">
+                    <span class="format-chip">MP4</span>
+                    <span class="format-chip">MP3</span>
+                    <span class="format-chip">WAV</span>
+                    <span class="format-chip">M4A</span>
+                    <span class="format-chip">FLAC</span>
+                    <span class="format-chip">OGG</span>
+                    <span class="format-chip">WEBM</span>
+                    <span class="format-chip-note">Hasta 4GB · Inferencia Acelerada</span>
+                </div>
+                """
             )
 
             diarization_checkbox = gr.Checkbox(
@@ -790,7 +1006,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     elem_classes=["btn-secondary"],
                 )
                 btn_transcribe = gr.Button(
-                    "Iniciar Transcripción",
+                    "⚡ Iniciar Transcripción",
                     variant="primary",
                     size="lg",
                     elem_classes=["btn-primary"],
@@ -798,10 +1014,22 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
         # Columna Derecha: Salida y Descarga
         with gr.Column(scale=1):
+            gr.HTML(
+                """
+                <div class="panel-header">
+                    <span class="panel-header-icon">📄</span>
+                    <div>
+                        <h3 class="panel-header-title">Consola de Transcripción y Salida</h3>
+                        <p class="panel-header-desc">Previsualización de texto normalizado y descarga de artefactos</p>
+                    </div>
+                </div>
+                """
+            )
+
             output_text = gr.Textbox(
                 label="Resultado de la Transcripción",
-                placeholder="El texto transcrito aparecerá aquí...",
-                lines=14,
+                placeholder="El texto transcrito con marcas temporales y locutores aparecerá aquí una vez finalizado el procesamiento...",
+                lines=15,
                 elem_classes=["output-transcript"],
             )
             download_file = gr.DownloadButton(
