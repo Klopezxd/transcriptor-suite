@@ -16,7 +16,7 @@ if sys.platform == "win32":
 import gradio as gr
 
 from src.config import (
-    PROVIDER_MODELS,
+    PROVIDER_MODEL_CHOICES,
     ModelName,
     ProviderType,
     TimestampMode,
@@ -102,9 +102,10 @@ def process_transcription(
         resolved_api_key = resolve_deepgram_api_key(deepgram_key_input)
         if not resolved_api_key:
             return (
-                "⚠️ Se requiere una API Key de Deepgram para utilizar este motor.\n\n"
-                "1. Ingrésala en el campo 'Deepgram API Key' abajo o configúrala como 'DEEPGRAM_API_KEY' en los Secrets.\n"
-                "2. Si aún no tienes una, obtén tus $200 USD gratis en: https://console.deepgram.com/signup",
+                "⚠️ Se requiere una clave de API de Deepgram para utilizar este motor.\n\n"
+                "• Si tienes tu propia clave, ingrésala en el acordeón 'Credenciales de Deepgram Cloud API'.\n"
+                "• Si aún no dispones de una, puedes crear una cuenta gratuita en: https://console.deepgram.com/signup\n"
+                "• Para transcribir de forma 100% gratuita sin necesidad de claves externas, selecciona 'WhisperX (ZeroGPU / Local)'.",
                 gr.DownloadButton(
                     label="Descargar Documento (.txt)", value=None, interactive=False
                 ),
@@ -114,9 +115,10 @@ def process_transcription(
         resolved_api_key = resolve_assemblyai_api_key(assemblyai_key_input)
         if not resolved_api_key:
             return (
-                "⚠️ Se requiere una API Key de AssemblyAI para utilizar este motor.\n\n"
-                "1. Ingrésala en el campo 'AssemblyAI API Key' abajo o configúrala como 'ASSEMBLYAI_API_KEY' en los Secrets.\n"
-                "2. Si aún no tienes una, obtén tus $50 USD gratis en: https://www.assemblyai.com/dashboard/signup",
+                "⚠️ Se requiere una clave de API de AssemblyAI para utilizar este motor.\n\n"
+                "• Si tienes tu propia clave, ingrésala en el acordeón 'Credenciales de AssemblyAI Cloud API'.\n"
+                "• Si aún no dispones de una, puedes crear una cuenta gratuita en: https://www.assemblyai.com/dashboard/signup\n"
+                "• Para transcribir de forma 100% gratuita sin necesidad de claves externas, selecciona 'WhisperX (ZeroGPU / Local)'.",
                 gr.DownloadButton(
                     label="Descargar Documento (.txt)", value=None, interactive=False
                 ),
@@ -706,32 +708,32 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
             # Acordeón Credenciales Deepgram
             with gr.Accordion(
-                "Credenciales de Deepgram ($200 USD Saldo)", open=True, visible=False
+                "Credenciales de Deepgram Cloud API", open=True, visible=False
             ) as deepgram_acc:
                 deepgram_key_input = gr.Textbox(
                     label="Deepgram API Key",
-                    placeholder="Pega tu API Key de Deepgram aquí (o configúrala como DEEPGRAM_API_KEY)",
+                    placeholder="Pega tu clave personal de Deepgram aquí (o defínela como DEEPGRAM_API_KEY)",
                     type="password",
-                    info="Aprovecha tus $200 USD de saldo de bienvenida. Modelo Nova-2 / Nova-3 con diarización nativa.",
+                    info="Permite usar Nova-2 / Nova-3 con diarización ultrarrápida. Obtén tu clave en console.deepgram.com.",
                 )
 
             # Acordeón Credenciales AssemblyAI
             with gr.Accordion(
-                "Credenciales de AssemblyAI ($50 USD Saldo)", open=True, visible=False
+                "Credenciales de AssemblyAI Cloud API", open=True, visible=False
             ) as assemblyai_acc:
                 assemblyai_key_input = gr.Textbox(
                     label="AssemblyAI API Key",
-                    placeholder="Pega tu API Key de AssemblyAI aquí (o configúrala como ASSEMBLYAI_API_KEY)",
+                    placeholder="Pega tu clave personal de AssemblyAI aquí (o defínela como ASSEMBLYAI_API_KEY)",
                     type="password",
-                    info="Aprovecha tus $50 USD de saldo de bienvenida. Modelo Universal-1 con diarización nativa.",
+                    info="Permite usar Universal-1 (máxima precisión) y Nano (ahorro). Obtén tu clave en assemblyai.com.",
                 )
 
             with gr.Accordion("Opciones avanzadas", open=False):
                 model_selector = gr.Dropdown(
-                    choices=PROVIDER_MODELS[ProviderType.WHISPERX.value],
+                    choices=PROVIDER_MODEL_CHOICES[ProviderType.WHISPERX.value],
                     value=ModelName.LARGE_V3_TURBO.value,
                     label="Modelo de Voz",
-                    info="'large-v3-turbo' ofrece máxima precisión con la velocidad más alta.",
+                    info="Gratuito en ZeroGPU · large-v3-turbo es la opción recomendada (más rápida y misma precisión que large-v3).",
                 )
 
                 timestamp_selector = gr.Radio(
@@ -776,22 +778,31 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
     # Conexión de eventos reactivos
     def on_provider_change(selected_provider: str):
-        models = PROVIDER_MODELS.get(selected_provider, [])
-        default_val = models[0] if models else ""
+        choices = PROVIDER_MODEL_CHOICES.get(selected_provider, [])
+        default_val = choices[0][1] if choices else ""
 
         is_wx = selected_provider == ProviderType.WHISPERX.value
         is_dg = selected_provider == ProviderType.DEEPGRAM.value
         is_aai = selected_provider == ProviderType.ASSEMBLYAI.value
 
         info_texts = {
-            ProviderType.WHISPERX.value: "Modelos Whisper optimizados con CTranslate2 (GPU local / ZeroGPU).",
-            ProviderType.DEEPGRAM.value: "Modelos Nova de Deepgram: ultrarrápidos, transcripción en segundos con diarización incluida.",
-            ProviderType.ASSEMBLYAI.value: "Modelos Universal-1 y Nano de AssemblyAI con alta precisión acústica.",
+            ProviderType.WHISPERX.value: (
+                "Inferencia en GPU (Gratuita en ZeroGPU). "
+                "large-v3-turbo es la opción más rápida (~90s/2h) y eficiente."
+            ),
+            ProviderType.DEEPGRAM.value: (
+                "Inferencia ultrarrápida (~20s/2h). "
+                "nova-2 es el más económico (~$0.26/h) · nova-3 para acústica con ruido o acentos (~$0.31/h)."
+            ),
+            ProviderType.ASSEMBLYAI.value: (
+                "Inferencia acústica de alta fidelidad (~60s/2h). "
+                "best para precisión editorial (~$0.39/h) · nano para máximo ahorro (~$0.17/h)."
+            ),
         }
 
         return (
             gr.Dropdown(
-                choices=models, value=default_val, info=info_texts.get(selected_provider, "")
+                choices=choices, value=default_val, info=info_texts.get(selected_provider, "")
             ),
             gr.Accordion(visible=is_wx),
             gr.Accordion(visible=is_dg),

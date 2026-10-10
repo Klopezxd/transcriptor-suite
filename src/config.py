@@ -121,20 +121,27 @@ class TranscriptionConfig:
         )
 
 
-PROVIDER_MODELS: dict[str, list[str]] = {
+PROVIDER_MODEL_CHOICES: dict[str, list[tuple[str, str]]] = {
     ProviderType.WHISPERX.value: [
-        ModelName.LARGE_V3_TURBO.value,
-        ModelName.LARGE_V3.value,
-        ModelName.MEDIUM.value,
-        ModelName.SMALL.value,
-        ModelName.BASE.value,
+        (
+            "large-v3-turbo  ·  [Recomendado · Rápido & Gratuito en GPU]",
+            ModelName.LARGE_V3_TURBO.value,
+        ),
+        ("large-v3  ·  [Alta Capacidad · Mayor Tiempo GPU]", ModelName.LARGE_V3.value),
+        ("medium  ·  [Equilibrado · Menor VRAM]", ModelName.MEDIUM.value),
+        ("small  ·  [Ligero · Inferencia Rápida]", ModelName.SMALL.value),
+        ("base  ·  [Ultraligero · Básico]", ModelName.BASE.value),
     ],
     ProviderType.DEEPGRAM.value: [
-        DeepgramModel.NOVA_2.value,
-        DeepgramModel.NOVA_3.value,
+        ("nova-2  ·  [Recomendado · Ultrarrápido & Más Económico]", DeepgramModel.NOVA_2.value),
+        ("nova-3  ·  [Última Gen · Robusto en Ruido & Acentos]", DeepgramModel.NOVA_3.value),
     ],
     ProviderType.ASSEMBLYAI.value: [
-        AssemblyAIModel.BEST.value,
-        AssemblyAIModel.NANO.value,
+        ("best  ·  [Universal-1 · Máxima Fidelidad Editorial]", AssemblyAIModel.BEST.value),
+        ("nano  ·  [Ultraligero · Mayor Ahorro de Créditos]", AssemblyAIModel.NANO.value),
     ],
+}
+
+PROVIDER_MODELS: dict[str, list[str]] = {
+    provider: [val for _, val in choices] for provider, choices in PROVIDER_MODEL_CHOICES.items()
 }
