@@ -44,7 +44,14 @@
 > ### 3. Cloud Foundation ASR Engines (Optional)
 > * **Deepgram API (`DEEPGRAM_API_KEY`):** Provides sub-minute batch processing powered by Nova speech foundation architectures with integrated word-level diarization. Obtainable at [Deepgram Console](https://console.deepgram.com).
 > * **AssemblyAI API (`ASSEMBLYAI_API_KEY`):** Provides high-precision acoustic speech processing powered by Conformer (Universal-1) and Nano architectures. Obtainable at [AssemblyAI Dashboard](https://www.assemblyai.com).
-> * **Configuration Steps:** Injected into Hugging Face Space Secrets (`Settings > Variables and secrets`), locally in `.env`, or supplied dynamically at runtime in the web interface.
+> ---
+>
+> ### 4. Master Administration PIN (`ADMIN_PIN`)
+> * **Purpose:** Shields your personal Deepgram and AssemblyAI API keys from public consumption when sharing the Space URL.
+> * **Behavior:**
+>   * Public visitors are restricted to free WhisperX (ZeroGPU) or supplying their own personal API keys.
+>   * You can authenticate with your PIN (or through the private bookmark link `?pin=YOUR_PIN`) to automatically unlock your server-configured master keys without copying and pasting them.
+> * **Configuration Steps:** Set in Space Secrets (`Settings > Variables and secrets > New secret`) under the key `ADMIN_PIN`.
 >
 > ---
 >
@@ -56,6 +63,7 @@
 > | **`HF_TOKEN`** *(Read)* | Hugging Face | **HF Space Secrets** or Web UI | Required for WhisperX | Authorizes neural model downloads for Pyannote Audio. |
 > | **`DEEPGRAM_API_KEY`** | Deepgram | **HF Space Secrets**, Web UI or `.env` | Optional | External Nova batch inference bypassing GPU compute limits. |
 > | **`ASSEMBLYAI_API_KEY`** | AssemblyAI | **HF Space Secrets**, Web UI or `.env` | Optional | External Conformer/Nano inference bypassing GPU compute limits. |
+> | **`ADMIN_PIN`** | Space Owner | **HF Space Secrets** or `.env` | Recommended | Authorizes automatic server master credentials without public exposure. |
 
 
 ## Key Features

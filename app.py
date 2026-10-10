@@ -30,6 +30,7 @@ from src.utils import (
     resolve_deepgram_api_key,
     resolve_hf_token,
     setup_logger,
+    verify_admin_pin,
 )
 
 logger = setup_logger("whisperx_app")
@@ -60,6 +61,7 @@ def process_transcription(
     hf_token_input: str = "",
     deepgram_key_input: str = "",
     assemblyai_key_input: str = "",
+    is_admin_session: bool = False,
     progress=gr.Progress(),
 ):
     """Procesa el archivo multimedia según el proveedor seleccionado y retorna texto y descarga."""
@@ -99,12 +101,19 @@ def process_transcription(
             )
 
     elif provider == ProviderType.DEEPGRAM.value:
-        resolved_api_key = resolve_deepgram_api_key(deepgram_key_input)
+        # Prioridad: Si ingresó clave en la interfaz, se respeta. Si no, solo se usa la clave del servidor si es administrador.
+        if deepgram_key_input and deepgram_key_input.strip():
+            resolved_api_key = resolve_deepgram_api_key(deepgram_key_input)
+        elif is_admin_session:
+            resolved_api_key = resolve_deepgram_api_key()
+        else:
+            resolved_api_key = None
+
         if not resolved_api_key:
             return (
                 "⚠️ Se requiere una clave de API de Deepgram para utilizar este motor.\n\n"
                 "• Si tienes tu propia clave, ingrésala en el acordeón 'Credenciales de Deepgram Cloud API'.\n"
-                "• Si aún no dispones de una, puedes crear una cuenta gratuita en: https://console.deepgram.com/signup\n"
+                "• Si eres el propietario, desbloquea el 'Acceso Propietario / Modo Administrador' arriba para autorizar tus claves maestras.\n"
                 "• Para transcribir de forma 100% gratuita sin necesidad de claves externas, selecciona 'WhisperX (ZeroGPU / Local)'.",
                 gr.DownloadButton(
                     label="Descargar Documento (.txt)", value=None, interactive=False
@@ -112,12 +121,19 @@ def process_transcription(
             )
 
     elif provider == ProviderType.ASSEMBLYAI.value:
-        resolved_api_key = resolve_assemblyai_api_key(assemblyai_key_input)
+        # Prioridad: Si ingresó clave en la interfaz, se respeta. Si no, solo se usa la clave del servidor si es administrador.
+        if assemblyai_key_input and assemblyai_key_input.strip():
+            resolved_api_key = resolve_assemblyai_api_key(assemblyai_key_input)
+        elif is_admin_session:
+            resolved_api_key = resolve_assemblyai_api_key()
+        else:
+            resolved_api_key = None
+
         if not resolved_api_key:
             return (
                 "⚠️ Se requiere una clave de API de AssemblyAI para utilizar este motor.\n\n"
                 "• Si tienes tu propia clave, ingrésala en el acordeón 'Credenciales de AssemblyAI Cloud API'.\n"
-                "• Si aún no dispones de una, puedes crear una cuenta gratuita en: https://www.assemblyai.com/dashboard/signup\n"
+                "• Si eres el propietario, desbloquea el 'Acceso Propietario / Modo Administrador' arriba para autorizar tus claves maestras.\n"
                 "• Para transcribir de forma 100% gratuita sin necesidad de claves externas, selecciona 'WhisperX (ZeroGPU / Local)'.",
                 gr.DownloadButton(
                     label="Descargar Documento (.txt)", value=None, interactive=False
@@ -669,6 +685,27 @@ with gr.Blocks(**blocks_kwargs) as demo:
         """
     )
 
+    admin_session_state = gr.State(value=False)
+
+    with gr.Accordion("🔐 Acceso Propietario / Modo Administrador", open=False) as admin_acc:
+        gr.Markdown(
+            "<span style='font-size: 12.5px; color: var(--text-subdued);'>"
+            "Permite al propietario del Space habilitar automáticamente sus claves maestras de Deepgram y AssemblyAI sin escribirlas a mano."
+            "</span>"
+        )
+        with gr.Row():
+            admin_pin_input = gr.Textbox(
+                label="PIN Maestro",
+                placeholder="Ingresa tu PIN de Administrador...",
+                type="password",
+                show_label=False,
+                scale=3,
+            )
+            btn_unlock_admin = gr.Button(
+                "Desbloquear Credenciales Maestras", variant="secondary", scale=1
+            )
+        admin_status_banner = gr.Markdown("", visible=False)
+
     with gr.Row(equal_height=False):
         # Columna Izquierda: Entrada y Controles
         with gr.Column(scale=1):
@@ -815,6 +852,60 @@ with gr.Blocks(**blocks_kwargs) as demo:
         outputs=[model_selector, hf_acc, deepgram_acc, assemblyai_acc],
     )
 
+    def handle_admin_unlock(entered_pin: str):
+        if verify_admin_pin(entered_pin):
+            return (
+                True,
+                gr.Markdown(
+                    '<div style="background: rgba(0,255,135,0.12); border: 1px solid rgba(0,255,135,0.4); padding: 8px 14px; border-radius: 6px; color: #00FF87; font-size: 13px; font-weight: 500; margin-top: 6px;">'
+                    "✓ Modo Administrador activo: Credenciales maestras del servidor autorizadas para esta sesión."
+                    "</div>",
+                    visible=True,
+                ),
+            )
+        return (
+            False,
+            gr.Markdown(
+                '<div style="background: rgba(255,110,199,0.12); border: 1px solid rgba(255,110,199,0.4); padding: 8px 14px; border-radius: 6px; color: #FF6EC7; font-size: 13px; font-weight: 500; margin-top: 6px;">'
+                "✗ PIN maestro incorrecto o no configurado en ADMIN_PIN."
+                "</div>",
+                visible=True,
+            ),
+        )
+
+    btn_unlock_admin.click(
+        fn=handle_admin_unlock,
+        inputs=[admin_pin_input],
+        outputs=[admin_session_state, admin_status_banner],
+    )
+
+    def handle_url_auth(request: gr.Request):
+        if request:
+            params = getattr(request, "query_params", {})
+            pin_val = None
+            if isinstance(params, dict):
+                pin_val = params.get("pin")
+            elif hasattr(params, "get"):
+                pin_val = params.get("pin")
+
+            if pin_val and verify_admin_pin(pin_val):
+                return (
+                    True,
+                    gr.Markdown(
+                        '<div style="background: rgba(0,255,135,0.12); border: 1px solid rgba(0,255,135,0.4); padding: 8px 14px; border-radius: 6px; color: #00FF87; font-size: 13px; font-weight: 500; margin-top: 6px;">'
+                        "✓ Modo Administrador autenticado automáticamente vía URL. Credenciales maestras habilitadas."
+                        "</div>",
+                        visible=True,
+                    ),
+                )
+        return False, gr.Markdown("", visible=False)
+
+    demo.load(
+        fn=handle_url_auth,
+        inputs=None,
+        outputs=[admin_session_state, admin_status_banner],
+    )
+
     btn_clear.add([input_media, output_text])
     btn_clear.click(
         fn=lambda: gr.DownloadButton(
@@ -834,6 +925,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             hf_token_input,
             deepgram_key_input,
             assemblyai_key_input,
+            admin_session_state,
         ],
         outputs=[output_text, download_file],
     )

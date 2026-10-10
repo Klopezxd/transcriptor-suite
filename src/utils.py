@@ -168,3 +168,23 @@ def resolve_deepgram_api_key(explicit_key: str | None = None) -> str | None:
 def resolve_assemblyai_api_key(explicit_key: str | None = None) -> str | None:
     """Resuelve la API Key de AssemblyAI (ASSEMBLYAI_API_KEY)."""
     return _resolve_secret("ASSEMBLYAI_API_KEY", explicit_key)
+
+
+def resolve_admin_pin(explicit_pin: str | None = None) -> str | None:
+    """Resuelve el PIN maestro de administración (ADMIN_PIN o ADMIN_PASSWORD)."""
+    if explicit_pin and explicit_pin.strip():
+        return explicit_pin.strip()
+    pin = _resolve_secret("ADMIN_PIN")
+    if not pin:
+        pin = _resolve_secret("ADMIN_PASSWORD")
+    return pin
+
+
+def verify_admin_pin(entered_pin: str | None) -> bool:
+    """Valida si el PIN ingresado coincide con el configurado en el servidor."""
+    if not entered_pin or not str(entered_pin).strip():
+        return False
+    master_pin = resolve_admin_pin()
+    if not master_pin:
+        return False
+    return str(entered_pin).strip() == str(master_pin).strip()

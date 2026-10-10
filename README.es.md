@@ -47,6 +47,14 @@
 > * **AssemblyAI API (`ASSEMBLYAI_API_KEY`):** Para transcripción de máxima resolución fonética mediante arquitecturas Conformer (Universal-1) y Nano.
 >   * Clave obtenible en [AssemblyAI Dashboard](https://www.assemblyai.com).
 > * **Ubicación de Configuración:** En los secretos del Space de Hugging Face (`Settings > Variables and secrets`), en el archivo local `.env`, o suministrados dinámicamente en tiempo de ejecución en la interfaz de usuario.
+> ---
+>
+> ### 4. PIN Maestro de Administrador (`ADMIN_PIN`)
+> * **Propósito:** Blindar tus claves de Deepgram y AssemblyAI para que visitantes o compañeros no puedan consumir tus créditos en la web pública.
+> * **Comportamiento:** 
+>   * Si un visitante accede a la web, solo puede usar WhisperX (gratuito en ZeroGPU) o ingresar su propia clave.
+>   * Si tú accedes con tu PIN (o usando tu enlace privado `?pin=TU_PIN`), la aplicación desbloquea automáticamente tus claves maestras sin que tengas que copiarlas y pegarlas nunca.
+> * **Ubicación de Configuración:** En los secretos del Space (`Settings > Variables and secrets > New secret`) con el nombre `ADMIN_PIN`.
 >
 > ---
 >
@@ -58,6 +66,7 @@
 > | **`HF_TOKEN`** *(Read)* | Hugging Face | **HF Space Secrets** o Web UI | Requerido para WhisperX | Acceso y descarga de modelos neuronales de Pyannote Audio. |
 > | **`DEEPGRAM_API_KEY`** | Deepgram | **HF Space Secrets**, Web UI o `.env` | Opcional | Inferencia externa con modelos Nova sin consumo de cuota ZeroGPU. |
 > | **`ASSEMBLYAI_API_KEY`** | AssemblyAI | **HF Space Secrets**, Web UI o `.env` | Opcional | Inferencia externa con modelos Conformer/Nano sin consumo de cuota ZeroGPU. |
+> | **`ADMIN_PIN`** | Propietario | **HF Space Secrets** o `.env` | Recomendado | Autoriza el uso automático de credenciales maestras sin exponerlas al público. |
 
 
 ## Características Principales
