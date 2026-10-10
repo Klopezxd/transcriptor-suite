@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-WhisperX Transcriptor - Interfaz Gráfica Moderna (Gradio).
-Desarrollada desde cero con arquitectura modular, diseño responsivo y gestión limpia de credenciales.
+WhisperX Transcriptor - Interfaz Gráfica Aurora Boreal Nórdica (Gradio).
+Desarrollada desde cero con arquitectura modular, diseño responsivo,
+patrón Aurora Boreal Nórdica y gestión limpia de credenciales.
 """
 
 import sys
@@ -64,15 +65,11 @@ def process_transcription(
     is_admin_session: bool = False,
     progress=gr.Progress(),
 ):
-    """
-    Procesa el archivo multimedia y retorna la transcripción, el botón de descarga y estadísticas.
-    """
+    """Procesa el archivo multimedia y retorna la transcripción, el botón de descarga y estadísticas."""
     if not media_file:
         return (
             "⚠️ Por favor selecciona o arrastra un archivo de audio o video para comenzar.",
-            gr.DownloadButton(
-                label="Descargar transcripción (.txt)", value=None, interactive=False
-            ),
+            gr.DownloadButton(label="📥 Descargar Documento (.txt)", value=None, interactive=False),
             '<span class="status-badge status-warning">Sin archivo</span>',
         )
 
@@ -98,7 +95,7 @@ def process_transcription(
                 "2. Acepta los términos en: https://huggingface.co/pyannote/segmentation-3.0\n"
                 "3. Ingresa tu token con permisos de lectura en el campo de Hugging Face.",
                 gr.DownloadButton(
-                    label="Descargar transcripción (.txt)", value=None, interactive=False
+                    label="📥 Descargar Documento (.txt)", value=None, interactive=False
                 ),
                 '<span class="status-badge status-error">Token HF requerido</span>',
             )
@@ -118,7 +115,7 @@ def process_transcription(
                 "• Si eres administrador, inicia sesión para utilizar las claves del servidor.\n"
                 "• O selecciona 'WhisperX (ZeroGPU / Local)' para transcribir de forma 100% gratuita.",
                 gr.DownloadButton(
-                    label="Descargar transcripción (.txt)", value=None, interactive=False
+                    label="📥 Descargar Documento (.txt)", value=None, interactive=False
                 ),
                 '<span class="status-badge status-error">API Key requerida</span>',
             )
@@ -138,7 +135,7 @@ def process_transcription(
                 "• Si eres administrador, inicia sesión para utilizar las claves del servidor.\n"
                 "• O selecciona 'WhisperX (ZeroGPU / Local)' para transcribir de forma 100% gratuita.",
                 gr.DownloadButton(
-                    label="Descargar transcripción (.txt)", value=None, interactive=False
+                    label="📥 Descargar Documento (.txt)", value=None, interactive=False
                 ),
                 '<span class="status-badge status-error">API Key requerida</span>',
             )
@@ -176,7 +173,7 @@ def process_transcription(
         return (
             result.formatted_text,
             gr.DownloadButton(
-                label=f"Descargar {result.output_path.name}",
+                label=f"📥 Descargar {result.output_path.name}",
                 value=str(result.output_path),
                 interactive=True,
             ),
@@ -188,9 +185,7 @@ def process_transcription(
         logger.error("Error en procesamiento web: %s", e)
         return (
             f"❌ Error de transcripción:\n{e}",
-            gr.DownloadButton(
-                label="Descargar transcripción (.txt)", value=None, interactive=False
-            ),
+            gr.DownloadButton(label="📥 Descargar Documento (.txt)", value=None, interactive=False),
             '<span class="status-badge status-error">Error</span>',
         )
     except Exception as e:
@@ -198,19 +193,16 @@ def process_transcription(
         logger.exception("Error inesperado en aplicación web")
         return (
             f"❌ Ocurrió un error inesperado durante el procesamiento:\n{e}",
-            gr.DownloadButton(
-                label="Descargar transcripción (.txt)", value=None, interactive=False
-            ),
+            gr.DownloadButton(label="📥 Descargar Documento (.txt)", value=None, interactive=False),
             '<span class="status-badge status-error">Error inesperado</span>',
         )
 
 
-# --- Hojas de Estilo CSS Modernas: Skin Aurora Boreal Nórdica ---
+# --- Hojas de Estilo CSS: Skin Aurora Boreal Nórdica ---
 custom_css = """
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-    /* Paleta Aurora Boreal Nórdica (design.md) */
     --aurora-green: #00FF87;
     --arctic-blue: #0A1628;
     --deep-midnight: #050B1A;
@@ -220,20 +212,6 @@ custom_css = """
     --frost-white: #E8F4F8;
     --snow: #FAFBFC;
     --arctic-input: #060E1D;
-
-    /* Tokens semánticos de la interfaz */
-    --bg-base: var(--deep-midnight);
-    --bg-surface: rgba(10, 22, 40, 0.82);
-    --bg-surface-elevated: #0F1E36;
-    --bg-input: var(--arctic-input);
-    --border-color: rgba(0, 212, 255, 0.14);
-    --border-hover: rgba(0, 255, 135, 0.45);
-    --border-focus: #00FF87;
-    --primary-gradient: linear-gradient(135deg, #00FF87 0%, #00D4FF 100%);
-    --primary-hover: linear-gradient(135deg, #00D4FF 0%, #7B2FBE 100%);
-    --text-primary: var(--frost-white);
-    --text-secondary: #94A3B8;
-    --text-muted: #5A6E85;
 }
 
 *, *::before, *::after {
@@ -243,158 +221,74 @@ custom_css = """
 body, html {
     background-color: var(--deep-midnight) !important;
     background-image:
-        radial-gradient(circle at 16% 12%, rgba(0, 255, 135, 0.09) 0%, transparent 45%),
-        radial-gradient(circle at 84% 10%, rgba(123, 47, 190, 0.12) 0%, transparent 45%),
-        radial-gradient(circle at 50% 48%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
-        radial-gradient(circle at 78% 88%, rgba(255, 110, 199, 0.04) 0%, transparent 40%) !important;
+        radial-gradient(circle at 18% 12%, rgba(0, 255, 135, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 82% 10%, rgba(123, 47, 190, 0.10) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.04) 0%, transparent 50%),
+        radial-gradient(circle at 80% 90%, rgba(255, 110, 199, 0.04) 0%, transparent 40%) !important;
     background-attachment: fixed !important;
-    color: var(--text-primary) !important;
+    color: var(--frost-white) !important;
     font-family: 'Montserrat', system-ui, -apple-system, sans-serif !important;
     margin: 0 !important;
     padding: 0 !important;
-}
-
-/* ── MODO SINGLE-LANDING VIEWPORT (DESKTOP: SIN SCROLL DE PÁGINA) ─── */
-@media (min-width: 900px) {
-    html, body {
-        height: 100vh !important;
-        max-height: 100vh !important;
-        overflow: hidden !important;
-    }
-
-    .gradio-container {
-        height: 100vh !important;
-        max-height: 100vh !important;
-        display: flex !important;
-        flex-direction: column !important;
-        overflow: hidden !important;
-        padding: 8px 16px 6px 16px !important;
-    }
-
-    .gradio-container > div:not(.modal-overlay) {
-        display: flex !important;
-        flex-direction: column !important;
-        min-height: 0 !important;
-        overflow: hidden !important;
-    }
-
-    .main-dashboard-row {
-        flex: 1 1 0% !important;
-        min-height: 0 !important;
-        display: flex !important;
-        align-items: stretch !important;
-        gap: 14px !important;
-        margin: 0 !important;
-        overflow: hidden !important;
-    }
-
-    .dashboard-col {
-        display: flex !important;
-        flex-direction: column !important;
-        height: 100% !important;
-        min-height: 0 !important;
-        overflow: hidden !important;
-    }
-
-    .panel-card {
-        height: 100% !important;
-        min-height: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        margin-bottom: 0 !important;
-    }
-}
-
-/* ── RESPONSIVE FALLBACK (MOBILE/PANTALLAS PEQUEÑAS) ── */
-@media (max-width: 899px) {
-    body, html {
-        overflow-y: auto !important;
-    }
-
-    .gradio-container {
-        padding: 10px 10px 20px 10px !important;
-        height: auto !important;
-    }
-
-    .main-dashboard-row {
-        flex-direction: column !important;
-        gap: 12px !important;
-    }
-
-    .dashboard-col {
-        width: 100% !important;
-    }
-
-    .panel-card {
-        margin-bottom: 12px !important;
-    }
-
-    .output-textbox textarea {
-        min-height: 300px !important;
-    }
+    -webkit-font-smoothing: antialiased;
 }
 
 .gradio-container {
-    max-width: 1460px !important;
+    max-width: 1440px !important;
     width: 96% !important;
     margin: 0 auto !important;
+    padding: 10px 14px 20px 14px !important;
 }
 
-/* ── NAVBAR HEADER AURORA SLIM ────────────────────── */
+/* ── NAVBAR HEADER ────────────────────────────────── */
 .app-navbar {
     display: flex !important;
-    flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
-    flex-wrap: nowrap !important;
-    padding: 6px 16px !important;
-    background: rgba(10, 22, 40, 0.78) !important;
+    padding: 8px 18px !important;
+    background: rgba(10, 22, 40, 0.82) !important;
     backdrop-filter: blur(18px) !important;
     -webkit-backdrop-filter: blur(18px) !important;
-    border: 1px solid var(--border-color) !important;
+    border: 1px solid rgba(0, 212, 255, 0.14) !important;
     border-radius: 16px !important;
-    margin-bottom: 8px !important;
-    height: 46px !important;
-    min-height: 46px !important;
-    box-shadow: 0 4px 20px rgba(5, 11, 26, 0.5), 0 0 1px 1px rgba(0, 212, 255, 0.1) !important;
-    flex-shrink: 0 !important;
+    margin-bottom: 12px !important;
+    box-shadow: 0 4px 20px rgba(5, 11, 26, 0.5), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
 }
 
 .nav-brand {
     display: flex !important;
     align-items: center !important;
-    gap: 10px !important;
-    flex: 1 1 auto !important;
+    gap: 12px !important;
 }
 
 .brand-icon {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 30px !important;
-    height: 30px !important;
+    width: 32px !important;
+    height: 32px !important;
     background: rgba(0, 255, 135, 0.1) !important;
     border: 1px solid rgba(0, 255, 135, 0.35) !important;
-    border-radius: 8px !important;
+    border-radius: 9px !important;
     color: var(--aurora-green) !important;
     box-shadow: 0 0 12px rgba(0, 255, 135, 0.18) !important;
     flex-shrink: 0 !important;
 }
 
 .brand-titles h1 {
-    font-size: 1.02rem !important;
+    font-size: 1.08rem !important;
     font-weight: 800 !important;
     margin: 0 !important;
-    line-height: 1.15 !important;
+    line-height: 1.2 !important;
     background: linear-gradient(135deg, #FAFBFC 15%, #00FF87 55%, #00D4FF 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
 }
 
 .brand-titles p {
-    font-size: 0.70rem !important;
-    color: var(--text-secondary) !important;
-    margin: 0 !important;
+    font-size: 0.72rem !important;
+    color: #8BA2BF !important;
+    margin: 1px 0 0 0 !important;
 }
 
 .nav-actions {
@@ -403,25 +297,22 @@ body, html {
     justify-content: flex-end !important;
     flex: 0 0 auto !important;
     width: auto !important;
-    min-width: unset !important;
     margin: 0 !important;
-    padding: 0 !important;
-    gap: 8px !important;
 }
 
-/* ── BOTÓN DE LOGIN COMPACTO (FROSTED GLASS PILL) ─── */
+/* ── BOTONCITO DE LOGIN ADMIN (ESQUINA SUPERIOR DERECHA) ── */
 .btn-login-compact {
     width: auto !important;
     min-width: unset !important;
-    max-width: 115px !important;
-    height: 30px !important;
+    max-width: 110px !important;
+    height: 32px !important;
     padding: 4px 12px !important;
-    font-size: 0.76rem !important;
+    font-size: 0.78rem !important;
     font-weight: 600 !important;
     border-radius: 9px !important;
-    background: rgba(232, 244, 248, 0.04) !important;
-    border: 1px solid rgba(0, 212, 255, 0.16) !important;
-    color: var(--text-primary) !important;
+    background: rgba(232, 244, 248, 0.05) !important;
+    border: 1px solid rgba(0, 212, 255, 0.2) !important;
+    color: var(--frost-white) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -439,29 +330,29 @@ body, html {
     transform: translateY(-1px) !important;
 }
 
-/* ── MÓDULOS PRINCIPALES CON BORDES DIFUMINADOS ───── */
-.panel-card {
-    background: var(--bg-surface) !important;
+/* ── MODULOS EN CUADROS REDONDEADOS (AURORA BOREAL) ── */
+.module-card {
+    background: rgba(10, 22, 40, 0.78) !important;
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: 20px !important;
-    padding: 14px 16px !important;
-    box-shadow: 0 8px 32px rgba(5, 11, 26, 0.65), 0 0 1px 1px rgba(0, 212, 255, 0.08), inset 0 1px 0 rgba(232, 244, 248, 0.05) !important;
+    border: 1px solid rgba(0, 212, 255, 0.14) !important;
+    border-radius: 16px !important;
+    padding: 13px 16px !important;
+    margin-bottom: 11px !important;
+    box-shadow: 0 4px 20px rgba(5, 11, 26, 0.6), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
     transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
-    box-sizing: border-box !important;
 }
 
-.panel-card:hover {
-    border-color: rgba(0, 255, 135, 0.3) !important;
-    box-shadow: 0 10px 38px rgba(5, 11, 26, 0.75), 0 0 18px rgba(0, 255, 135, 0.12), inset 0 1px 0 rgba(232, 244, 248, 0.08) !important;
+.module-card:hover {
+    border-color: rgba(0, 255, 135, 0.35) !important;
+    box-shadow: 0 6px 26px rgba(5, 11, 26, 0.7), 0 0 16px rgba(0, 255, 135, 0.12) !important;
 }
 
-/* ── ELIMINACIÓN DE CUADROS ANIDADOS (CERO BORDES REDUNDANTES EN GRADIO BLOCKS) ── */
-.panel-card .block,
-.panel-card .gr-block,
-.panel-card .form,
-.panel-card fieldset {
+/* ── CERO CUADROS ANIDADOS (ELIMINA BORDES INTERNOS DE GRADIO) ── */
+.module-card .block,
+.module-card .gr-block,
+.module-card .form,
+.module-card fieldset {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -469,67 +360,38 @@ body, html {
     margin: 0 !important;
 }
 
-.panel-header {
+.module-header {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
     margin-bottom: 8px !important;
     padding-bottom: 6px !important;
     border-bottom: 1px solid rgba(0, 212, 255, 0.1) !important;
-    flex-shrink: 0 !important;
 }
 
-.panel-title {
+.module-title {
     display: flex !important;
     align-items: center !important;
     gap: 7px !important;
-    font-size: 0.86rem !important;
+    font-size: 0.84rem !important;
     font-weight: 700 !important;
     color: var(--frost-white) !important;
     letter-spacing: -0.01em !important;
 }
 
-.panel-title-icon {
+.module-title-icon {
     font-size: 0.95rem !important;
 }
 
-.section-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #8BA2BF;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-bottom: 3px;
-}
-
-.config-panel {
-    overflow-y: auto !important;
-}
-
-.config-panel::-webkit-scrollbar {
-    width: 5px;
-}
-
-.config-panel::-webkit-scrollbar-thumb {
-    background: rgba(0, 212, 255, 0.2);
-    border-radius: 8px;
-}
-
-.config-panel::-webkit-scrollbar-thumb:hover {
-    background: var(--aurora-green);
-}
-
-/* ── FORM ELEMENTS EN ESTILO ÁRTICO NÓRDICO ──────── */
+/* ── FORM ELEMENTS SUAVES ────────────────────────── */
 .gradio-container label span {
+    font-family: 'Montserrat', sans-serif !important;
     font-size: 0.71rem !important;
     font-weight: 600 !important;
     color: #8BA2BF !important;
     text-transform: uppercase !important;
     letter-spacing: 0.03em !important;
-    margin-bottom: 2px !important;
+    margin-bottom: 3px !important;
 }
 
 .gradio-container input[type="text"],
@@ -539,6 +401,7 @@ body, html {
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
     border-radius: 10px !important;
     color: var(--frost-white) !important;
+    font-family: 'Montserrat', sans-serif !important;
     font-size: 0.82rem !important;
     transition: all 0.2s ease !important;
 }
@@ -551,7 +414,7 @@ body, html {
     outline: none !important;
 }
 
-.panel-card label:has(input[type="checkbox"]) {
+.module-card label:has(input[type="checkbox"]) {
     display: inline-flex !important;
     align-items: center !important;
     gap: 7px !important;
@@ -563,33 +426,24 @@ body, html {
     margin-top: 1px !important;
 }
 
-.panel-card label:has(input[type="checkbox"]):hover {
+.module-card label:has(input[type="checkbox"]):hover {
     border-color: rgba(0, 255, 135, 0.3) !important;
     background: rgba(0, 255, 135, 0.03) !important;
 }
 
-.compact-row {
-    margin-bottom: 5px !important;
-    gap: 8px !important;
-}
-
-/* ── FILE UPLOAD COMPACTO CON BORDE DIFUMINADO ───── */
-.file-input-compact {
-    margin-bottom: 2px !important;
-}
-
-.file-input-compact .file-upload,
-.file-input-compact [data-testid="file-upload"] {
+/* ── MODULO 1: ARRASTRAR ARCHIVO ──────────────────── */
+.file-upload-zone .file-upload,
+.file-upload-zone [data-testid="file-upload"] {
     background: rgba(6, 14, 29, 0.6) !important;
     border: 1.5px dashed rgba(0, 212, 255, 0.26) !important;
-    border-radius: 14px !important;
+    border-radius: 12px !important;
     min-height: 80px !important;
     padding: 6px !important;
     transition: all 0.25s ease !important;
 }
 
-.file-input-compact .file-upload:hover,
-.file-input-compact [data-testid="file-upload"]:hover {
+.file-upload-zone .file-upload:hover,
+.file-upload-zone [data-testid="file-upload"]:hover {
     border-color: var(--aurora-green) !important;
     background: rgba(0, 255, 135, 0.04) !important;
     box-shadow: 0 0 16px rgba(0, 255, 135, 0.16) !important;
@@ -598,60 +452,26 @@ body, html {
 .file-hint {
     font-size: 0.69rem !important;
     color: #627A97 !important;
-    margin-top: 1px !important;
-    margin-bottom: 5px !important;
-}
-
-.credentials-subpanel {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
     margin-top: 2px !important;
 }
 
-/* ── PANEL DE RESULTADOS Y TEXTBOX A LA MISMA ALTURA ── */
-.result-panel {
+/* ── MODULO 4: RESULTADO DE LA TRANSCRIPCIÓN (ALTURA SIMÉTRICA) ── */
+.result-card {
     display: flex !important;
     flex-direction: column !important;
-    height: 100% !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
-}
-
-.output-textbox {
-    flex: 1 1 0% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    min-height: 0 !important;
-    height: 100% !important;
-    margin-bottom: 6px !important;
-    overflow: hidden !important;
-}
-
-.output-textbox > label,
-.output-textbox .wrap,
-.output-textbox > div {
-    flex: 1 1 0% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    min-height: 0 !important;
-    height: 100% !important;
-    overflow: hidden !important;
 }
 
 .output-textbox textarea {
-    flex: 1 1 0% !important;
-    height: 100% !important;
-    max-height: 100% !important;
-    min-height: 0 !important;
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.82rem !important;
-    line-height: 1.6 !important;
+    height: 445px !important;
+    max-height: 445px !important;
+    min-height: 445px !important;
     background-color: #040813 !important;
     border: 1px solid rgba(0, 212, 255, 0.12) !important;
-    border-radius: 14px !important;
+    border-radius: 12px !important;
     color: var(--frost-white) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.82rem !important;
+    line-height: 1.65 !important;
     padding: 12px 14px !important;
     resize: none !important;
     overflow-y: auto !important;
@@ -680,35 +500,28 @@ body, html {
     box-shadow: 0 0 8px rgba(0, 255, 135, 0.5);
 }
 
-.panel-spacer {
-    flex: 1 1 0% !important;
-    min-height: 4px !important;
-}
-
-.action-buttons-row {
-    flex-shrink: 0 !important;
-    margin-top: auto !important;
-    padding-top: 8px !important;
-    border-top: 1px solid rgba(0, 212, 255, 0.08) !important;
+/* ── BOTONES DE ACCIÓN ───────────────────────────── */
+.actions-row {
+    margin-top: 4px !important;
     gap: 8px !important;
 }
 
-/* ── BOTONES AURORA BOREAL (ALTO IMPACTO Y CONTRASTE) ── */
 .btn-primary {
-    background: var(--primary-gradient) !important;
+    background: linear-gradient(135deg, #00FF87 0%, #00D4FF 100%) !important;
     color: #050B1A !important;
+    font-family: 'Montserrat', sans-serif !important;
     font-weight: 700 !important;
     font-size: 0.86rem !important;
     border: none !important;
-    border-radius: 11px !important;
-    padding: 8px 16px !important;
+    border-radius: 10px !important;
+    padding: 9px 16px !important;
     box-shadow: 0 4px 18px rgba(0, 255, 135, 0.32) !important;
     transition: all 0.25s ease !important;
     cursor: pointer !important;
 }
 
 .btn-primary:hover {
-    background: var(--primary-hover) !important;
+    background: linear-gradient(135deg, #00D4FF 0%, #7B2FBE 100%) !important;
     color: #FAFBFC !important;
     box-shadow: 0 6px 24px rgba(0, 212, 255, 0.48), 0 0 16px rgba(123, 47, 190, 0.3) !important;
     transform: translateY(-1px) !important;
@@ -717,11 +530,12 @@ body, html {
 .btn-secondary {
     background: rgba(232, 244, 248, 0.04) !important;
     border: 1px solid rgba(0, 212, 255, 0.16) !important;
-    color: var(--text-primary) !important;
+    color: var(--frost-white) !important;
+    font-family: 'Montserrat', sans-serif !important;
     font-weight: 600 !important;
     font-size: 0.82rem !important;
-    border-radius: 11px !important;
-    padding: 8px 14px !important;
+    border-radius: 10px !important;
+    padding: 9px 14px !important;
     transition: all 0.25s ease !important;
     cursor: pointer !important;
 }
@@ -733,7 +547,7 @@ body, html {
     box-shadow: 0 0 12px rgba(0, 255, 135, 0.15) !important;
 }
 
-/* ── BADGES & NOTICES EN TONOS BOREALES ───────────── */
+/* ── STATUS BADGES & AVISOS ──────────────────────── */
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -773,7 +587,7 @@ body, html {
     background: rgba(0, 212, 255, 0.08);
     border: 1px solid rgba(0, 212, 255, 0.22);
     color: #7DD3FC;
-    margin-top: 3px;
+    margin-top: 4px;
 }
 
 .info-free {
@@ -783,7 +597,7 @@ body, html {
     box-shadow: 0 0 12px rgba(0, 255, 135, 0.12) !important;
 }
 
-/* ── MODAL DE ADMINISTRADOR ───────────────────────── */
+/* ── MODAL ADMIN ─────────────────────────────────── */
 .modal-overlay {
     position: fixed !important;
     top: 0 !important;
@@ -834,7 +648,7 @@ body, html {
     justify-content: center !important;
     border-radius: 8px !important;
     font-size: 0.85rem !important;
-    color: var(--text-secondary) !important;
+    color: #8BA2BF !important;
     background: rgba(232, 244, 248, 0.05) !important;
     border: 1px solid rgba(0, 212, 255, 0.15) !important;
     cursor: pointer !important;
@@ -848,17 +662,17 @@ body, html {
 
 .modal-subtext {
     font-size: 0.75rem !important;
-    color: var(--text-secondary) !important;
+    color: #8BA2BF !important;
     margin: 0 0 12px 0 !important;
 }
 
 .app-footer {
-    flex: 0 0 auto !important;
     text-align: center !important;
     font-size: 0.70rem !important;
     color: #627A97 !important;
-    padding: 4px 0 2px 0 !important;
+    padding: 12px 0 4px 0 !important;
     border-top: 1px solid rgba(0, 212, 255, 0.06) !important;
+    margin-top: 14px !important;
 }
 """
 
@@ -877,7 +691,6 @@ custom_theme = gr.themes.Base(
     border_color_primary="rgba(0, 212, 255, 0.14)",
 )
 
-# Compatibilidad transparente para Gradio < 6.0 y Gradio >= 6.0
 blocks_kwargs = {"title": "WhisperX Transcriptor"}
 launch_kwargs = {}
 
@@ -894,13 +707,11 @@ except Exception:
     blocks_kwargs["css"] = custom_css
 
 with gr.Blocks(**blocks_kwargs) as demo:
-    # Inyección de estilos garantizada para cualquier renderizador o iframe
     gr.HTML(f"<style>{custom_css}</style>")
 
-    # Estado de sesión de administrador (False = Invitado, True = Administrador)
     admin_state = gr.State(value=False)
 
-    # ── 1. BARRA SUPERIOR (HEADER Y ACCESO COMPACTO) ────────────
+    # ── 1. BARRA SUPERIOR CON LOGIN ADMIN COMPACTO A LA DERECHA ─
     with gr.Row(elem_classes=["app-navbar"]):
         gr.HTML(
             """
@@ -961,31 +772,29 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 btn_cancel_login = gr.Button("Cancelar", variant="secondary", scale=1)
                 btn_submit_login = gr.Button("Ingresar", variant="primary", scale=2)
 
-    # ── 3. CUERPO PRINCIPAL (2 COLUMNAS EQUILIBRADAS - UN SOLO CUADRO POR CADA LADO) ──
-    with gr.Row(equal_height=True, elem_classes=["main-dashboard-row"]):
-        # Columna Izquierda: Entrada y Configuración (Un solo cuadro unificado)
-        with gr.Column(scale=5, elem_classes=["dashboard-col"]):
-            with gr.Group(elem_classes=["panel-card", "config-panel"]):
+    # ── 3. CUERPO PRINCIPAL (LANDING PAGE ÚNICA DE 2 COLUMNAS) ───
+    with gr.Row():
+        # Columna Izquierda: Módulos de Entrada y Configuración
+        with gr.Column(scale=5):
+            # Módulo 1: Archivo Multimedia (Drag & Drop)
+            with gr.Group(elem_classes=["module-card"]):
                 gr.HTML(
                     """
-                    <div class="panel-header">
-                        <div class="panel-title">
-                            <span class="panel-title-icon">⚡</span>
-                            <span>Configuración de Transcripción</span>
+                    <div class="module-header">
+                        <div class="module-title">
+                            <span class="module-title-icon">📁</span>
+                            <span>Archivo Multimedia</span>
                         </div>
                     </div>
                     """
                 )
-
-                # 1. Archivo Multimedia
-                gr.HTML('<div class="section-label"><span>📁</span> Archivo de Audio o Video</div>')
                 media_input = gr.File(
                     label="Arrastra o selecciona tu archivo multimedia",
                     show_label=False,
                     file_types=["audio", "video"],
                     file_count="single",
                     height=85,
-                    elem_classes=["file-input-compact"],
+                    elem_classes=["file-upload-zone"],
                 )
                 gr.HTML(
                     """
@@ -995,11 +804,19 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     """
                 )
 
-                # 2. Motor y Parámetros
+            # Módulo 2: Motor y Opciones
+            with gr.Group(elem_classes=["module-card"]):
                 gr.HTML(
-                    '<div class="section-label" style="margin-top: 6px;"><span>⚙️</span> Motor y Opciones</div>'
+                    """
+                    <div class="module-header">
+                        <div class="module-title">
+                            <span class="module-title-icon">⚙️</span>
+                            <span>Motor y Opciones</span>
+                        </div>
+                    </div>
+                    """
                 )
-                with gr.Row(elem_classes=["compact-row"]):
+                with gr.Row():
                     provider_dropdown = gr.Dropdown(
                         choices=[
                             ProviderType.WHISPERX.value,
@@ -1017,7 +834,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         scale=1,
                     )
 
-                with gr.Row(elem_classes=["compact-row"]):
+                with gr.Row():
                     diarize_checkbox = gr.Checkbox(
                         value=False,
                         label="Identificar quién habla (Diarización)",
@@ -1043,75 +860,74 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     """
                 )
 
-                # 3. Credenciales de API (Modo Invitado, integrada sin cuadro anidado)
-                with gr.Group(
-                    visible=True, elem_classes=["credentials-subpanel"]
-                ) as guest_keys_panel:
-                    gr.HTML(
-                        '<div class="section-label" style="margin-top: 6px;"><span>🔑</span> Credenciales de API</div>'
-                    )
-
-                    # Aviso cuando se usa WhisperX sin diarización
-                    whisperx_notice = gr.HTML(
-                        """
-                        <div class="info-notice info-free">
-                            <span>✨</span>
-                            <span>WhisperX en GPU es 100% gratuito y no requiere ninguna clave de API externa.</span>
+            # Módulo 3: Credenciales de API (Modo Invitado / Admin)
+            with gr.Group(visible=True, elem_classes=["module-card"]) as guest_keys_panel:
+                gr.HTML(
+                    """
+                    <div class="module-header">
+                        <div class="module-title">
+                            <span class="module-title-icon">🔑</span>
+                            <span>Credenciales de API</span>
                         </div>
-                        """,
-                        visible=True,
-                    )
+                    </div>
+                    """
+                )
 
-                    # Input para HF Token (WhisperX + Diarización)
-                    hf_token_box = gr.Textbox(
-                        label="Token de Hugging Face (HF_TOKEN)",
-                        placeholder="hf_...",
-                        type="password",
-                        info="Requerido al activar Diarización con WhisperX. Rol 'Read' con términos de pyannote aceptados.",
-                        visible=False,
-                    )
+                whisperx_notice = gr.HTML(
+                    """
+                    <div class="info-notice info-free">
+                        <span>✨</span>
+                        <span>WhisperX en GPU es 100% gratuito y no requiere ninguna clave de API externa.</span>
+                    </div>
+                    """,
+                    visible=True,
+                )
 
-                    # Input para Deepgram API Key
-                    deepgram_key_box = gr.Textbox(
-                        label="Deepgram API Key",
-                        placeholder="Pega tu clave de API de Deepgram...",
-                        type="password",
-                        info="Obtén tu clave con créditos iniciales gratuitos en console.deepgram.com",
-                        visible=False,
-                    )
+                hf_token_box = gr.Textbox(
+                    label="Token de Hugging Face (HF_TOKEN)",
+                    placeholder="hf_...",
+                    type="password",
+                    info="Requerido al activar Diarización con WhisperX. Rol 'Read' con términos de pyannote aceptados.",
+                    visible=False,
+                )
 
-                    # Input para AssemblyAI API Key
-                    assemblyai_key_box = gr.Textbox(
-                        label="AssemblyAI API Key",
-                        placeholder="Pega tu clave de API de AssemblyAI...",
-                        type="password",
-                        info="Obtén tu clave gratuita en assemblyai.com",
-                        visible=False,
-                    )
+                deepgram_key_box = gr.Textbox(
+                    label="Deepgram API Key",
+                    placeholder="Pega tu clave de API de Deepgram...",
+                    type="password",
+                    info="Obtén tu clave con créditos iniciales gratuitos en console.deepgram.com",
+                    visible=False,
+                )
 
-                # Espaciador para fijar botones al fondo
-                gr.HTML('<div class="panel-spacer"></div>')
+                assemblyai_key_box = gr.Textbox(
+                    label="AssemblyAI API Key",
+                    placeholder="Pega tu clave de API de AssemblyAI...",
+                    type="password",
+                    info="Obtén tu clave gratuita en assemblyai.com",
+                    visible=False,
+                )
 
-                # Botones de Acción
-                with gr.Row(elem_classes=["action-buttons-row"]):
-                    btn_clear = gr.Button(
-                        "🗑️ Limpiar", variant="secondary", elem_classes=["btn-secondary"], scale=1
-                    )
-                    btn_transcribe = gr.Button(
-                        "⚡ Iniciar Transcripción",
-                        variant="primary",
-                        elem_classes=["btn-primary"],
-                        scale=2,
-                    )
+            # Botones de Acción (Configuración)
+            with gr.Row(elem_classes=["actions-row"]):
+                btn_clear = gr.Button(
+                    "🗑️ Limpiar", variant="secondary", elem_classes=["btn-secondary"], scale=1
+                )
+                btn_transcribe = gr.Button(
+                    "⚡ Iniciar Transcripción",
+                    variant="primary",
+                    elem_classes=["btn-primary"],
+                    scale=2,
+                )
 
-        # Columna Derecha: Salida de la Transcripción (Un solo cuadro a la misma altura simétrica)
-        with gr.Column(scale=6, elem_classes=["dashboard-col"]):
-            with gr.Group(elem_classes=["panel-card", "result-panel"]):
-                with gr.Row(elem_classes=["panel-header"]):
+        # Columna Derecha: Módulo del Resultado de la Transcripción
+        with gr.Column(scale=6):
+            # Módulo 4: Resultado de la Transcripción
+            with gr.Group(elem_classes=["module-card", "result-card"]):
+                with gr.Row(elem_classes=["module-header"]):
                     gr.HTML(
                         """
-                        <div class="panel-title">
-                            <span class="panel-title-icon">📝</span>
+                        <div class="module-title">
+                            <span class="module-title-icon">📝</span>
                             <span>Resultado de la Transcripción</span>
                         </div>
                         """
@@ -1123,11 +939,10 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 output_textbox = gr.Textbox(
                     show_label=False,
                     placeholder="El texto transcrito con locutores y marcas de tiempo aparecerá aquí...",
-                    lines=12,
                     elem_classes=["output-textbox"],
                 )
 
-                with gr.Row(elem_classes=["action-buttons-row"]):
+                with gr.Row(elem_classes=["actions-row"]):
                     btn_download = gr.DownloadButton(
                         label="📥 Descargar Documento (.txt)",
                         value=None,
@@ -1155,7 +970,6 @@ with gr.Blocks(**blocks_kwargs) as demo:
     def update_guest_api_panel(selected_provider: str, is_diarize: bool, is_admin: bool):
         """Controla la visibilidad del panel de claves de acuerdo a si es invitado o administrador."""
         if is_admin:
-            # En modo administrador se oculta COMPLETAMENTE el panel de credenciales
             return (
                 gr.Group(visible=False),
                 gr.HTML(visible=False),
@@ -1164,7 +978,6 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 gr.Textbox(visible=False),
             )
 
-        # Modo invitado: mostrar el panel y adaptar campos según el proveedor
         is_wx = selected_provider == ProviderType.WHISPERX.value
         is_dg = selected_provider == ProviderType.DEEPGRAM.value
         is_aai = selected_provider == ProviderType.ASSEMBLYAI.value
@@ -1258,13 +1071,12 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
     def process_admin_login(pin: str, current_provider: str, is_diarize: bool):
         if verify_admin_pin(pin):
-            # Login exitoso: se activa estado admin, se cierra el modal y se oculta el panel de claves
             return (
                 True,  # admin_state
                 gr.Group(visible=False),  # modal_login
                 gr.Button(visible=False),  # btn_open_login
                 gr.Button(visible=True),  # btn_logout
-                gr.Group(visible=False),  # guest_keys_panel (oculto para administrador)
+                gr.Group(visible=False),  # guest_keys_panel
                 gr.HTML(visible=False),
                 gr.Textbox(visible=False),
                 gr.Textbox(visible=False),
@@ -1359,7 +1171,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     True,  # admin_state
                     gr.Button(visible=False),
                     gr.Button(visible=True),
-                    gr.Group(visible=False),  # sin panel para admin
+                    gr.Group(visible=False),
                     gr.HTML(visible=False),
                     gr.Textbox(visible=False),
                     gr.Textbox(visible=False),
