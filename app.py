@@ -745,6 +745,207 @@ body, gradio-app {
     transform: translateY(-1px);
 }
 
+/* Modal Overlay para Login de Administrador */
+.admin-modal-overlay:not(.hide):not([style*="display: none"]) {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(2, 6, 23, 0.82) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    z-index: 99999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1.5rem !important;
+}
+
+.admin-modal-overlay.hide,
+.admin-modal-overlay[style*="display: none"] {
+    display: none !important;
+}
+
+.admin-modal-card {
+    background: rgba(15, 23, 42, 0.96) !important;
+    border: 1px solid rgba(0, 255, 135, 0.35) !important;
+    border-radius: 16px !important;
+    max-width: 440px !important;
+    width: 100% !important;
+    padding: 24px !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(0, 255, 135, 0.15) !important;
+    margin: auto !important;
+}
+
+.modal-header-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 14px !important;
+}
+
+.modal-title-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-title-icon {
+    font-size: 1.45rem;
+}
+
+.modal-title-text {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #F8FAFC;
+    margin: 0;
+}
+
+.modal-title-desc {
+    font-size: 0.78rem;
+    color: #94A3B8;
+    margin: 2px 0 0 0;
+}
+
+.modal-close-btn {
+    max-width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    color: #94A3B8 !important;
+    cursor: pointer !important;
+}
+
+.modal-close-btn:hover {
+    color: #FFFFFF !important;
+    background: rgba(244, 63, 94, 0.25) !important;
+    border-color: #F43F5E !important;
+}
+
+.modal-pin-input input {
+    font-family: 'JetBrains Mono', monospace !important;
+    letter-spacing: 0.15em !important;
+    font-size: 1.1rem !important;
+    text-align: center !important;
+    margin-top: 10px !important;
+    margin-bottom: 12px !important;
+}
+
+.modal-submit-btn {
+    width: 100% !important;
+    margin-top: 4px !important;
+}
+
+/* Pill de Sesión Activa de Propietario */
+.admin-active-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 8px 20px;
+    margin: 0 auto 1.25rem auto;
+    max-width: 640px;
+    background: rgba(0, 255, 135, 0.08);
+    border: 1px solid rgba(0, 255, 135, 0.35);
+    border-radius: 9999px;
+    color: var(--aurora-green);
+    font-size: 0.84rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 14px rgba(0, 255, 135, 0.15);
+    animation: fadeInPill 0.35s ease-out;
+}
+
+.admin-active-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--aurora-green);
+    box-shadow: 0 0 10px var(--aurora-green);
+}
+
+.admin-active-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(0, 255, 135, 0.16);
+    border: 1px solid rgba(0, 255, 135, 0.3);
+    color: #FFFFFF;
+}
+
+@keyframes fadeInPill {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Botones Interactivos de la Barra de Estado */
+.statusbar-left-col {
+    display: flex !important;
+    align-items: center !important;
+}
+
+.statusbar-right-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+}
+
+.statusbar-btn {
+    padding: 5px 13px !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    border: 1px solid transparent !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    min-width: unset !important;
+    height: auto !important;
+    background: transparent !important;
+}
+
+.statusbar-github-btn {
+    background: rgba(56, 189, 248, 0.1) !important;
+    border-color: rgba(56, 189, 248, 0.25) !important;
+    color: var(--sky-cyan) !important;
+}
+
+.statusbar-github-btn:hover {
+    background: rgba(56, 189, 248, 0.22) !important;
+    border-color: var(--sky-cyan) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px) !important;
+}
+
+.statusbar-author-btn {
+    background: rgba(0, 212, 255, 0.1) !important;
+    border-color: rgba(0, 212, 255, 0.28) !important;
+    color: var(--ice-cyan) !important;
+}
+
+.statusbar-author-btn:hover {
+    background: rgba(0, 255, 135, 0.18) !important;
+    border-color: var(--aurora-green) !important;
+    color: var(--aurora-green) !important;
+    box-shadow: 0 0 12px rgba(0, 255, 135, 0.35) !important;
+    transform: translateY(-1px) !important;
+}
+
+.statusbar-version-btn {
+    font-family: 'JetBrains Mono', monospace !important;
+    background: rgba(0, 255, 135, 0.1) !important;
+    border-color: rgba(0, 255, 135, 0.28) !important;
+    color: var(--aurora-green) !important;
+    cursor: default !important;
+}
+
 /* Adaptabilidad Móvil */
 @media (max-width: 768px) {
     .gradio-container {
@@ -761,13 +962,14 @@ body, gradio-app {
         flex: 1 1 100% !important;
     }
     .statusbar {
-        flex-direction: column;
-        gap: 10px;
-        padding: 12px 14px;
+        flex-direction: column !important;
+        gap: 12px !important;
+        padding: 12px 14px !important;
     }
-    .statusbar-left, .statusbar-right {
-        justify-content: center;
-        flex-wrap: wrap;
+    .statusbar-left-col, .statusbar-right-row {
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
     }
 }
 """
@@ -875,24 +1077,42 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
     admin_session_state = gr.State(value=False)
 
-    with gr.Accordion("🔐 Acceso Propietario / Modo Administrador", open=False) as admin_acc:
-        gr.Markdown(
-            "<span style='font-size: 12.5px; color: var(--muted-slate);'>"
-            "Permite al propietario del Space habilitar automáticamente sus claves maestras de Deepgram y AssemblyAI sin escribirlas a mano."
-            "</span>"
-        )
-        with gr.Row():
+    # Banner flotante minimalista de Estado Propietario (visible únicamente cuando se autentica)
+    admin_status_banner = gr.HTML("", visible=False)
+
+    # Ventana Modal emergente para Login de Administrador (invisible por defecto)
+    with gr.Group(visible=False, elem_classes=["admin-modal-overlay"]) as admin_modal:
+        with gr.Group(elem_classes=["admin-modal-card"]):
+            with gr.Row(elem_classes=["modal-header-row"]):
+                gr.HTML(
+                    """
+                    <div class="modal-title-box">
+                        <span class="modal-title-icon">🔐</span>
+                        <div>
+                            <h4 class="modal-title-text">Acceso Propietario</h4>
+                            <p class="modal-title-desc">Desbloquea credenciales maestras y simplifica la interfaz</p>
+                        </div>
+                    </div>
+                    """
+                )
+                btn_close_modal = gr.Button(
+                    "✕", elem_classes=["modal-close-btn"], variant="secondary"
+                )
+
             admin_pin_input = gr.Textbox(
                 label="PIN Maestro",
-                placeholder="Ingresa tu PIN de Administrador...",
+                placeholder="Ingresa tu PIN de 4 dígitos...",
                 type="password",
                 show_label=False,
-                scale=3,
+                elem_classes=["modal-pin-input"],
             )
+
             btn_unlock_admin = gr.Button(
-                "Desbloquear Credenciales Maestras", variant="secondary", scale=1
+                "Desbloquear Modo Propietario",
+                variant="primary",
+                elem_classes=["modal-submit-btn"],
             )
-        admin_status_banner = gr.Markdown("", visible=False)
+            admin_modal_msg = gr.Markdown("", visible=False)
 
     with gr.Row(equal_height=False):
         # Columna Izquierda: Entrada y Controles
@@ -1042,13 +1262,18 @@ with gr.Blocks(**blocks_kwargs) as demo:
             )
 
     # Conexión de eventos reactivos
-    def on_provider_change(selected_provider: str):
+    def on_provider_change(selected_provider: str, is_admin: bool):
         choices = PROVIDER_MODEL_CHOICES.get(selected_provider, [])
         default_val = choices[0][1] if choices else ""
 
         is_wx = selected_provider == ProviderType.WHISPERX.value
         is_dg = selected_provider == ProviderType.DEEPGRAM.value
         is_aai = selected_provider == ProviderType.ASSEMBLYAI.value
+
+        # Si el usuario es administrador, OCULTAR TODOS los acordeones de claves para máxima comodidad
+        show_hf = is_wx and not is_admin
+        show_dg = is_dg and not is_admin
+        show_aai = is_aai and not is_admin
 
         info_texts = {
             ProviderType.WHISPERX.value: (
@@ -1069,45 +1294,87 @@ with gr.Blocks(**blocks_kwargs) as demo:
             gr.Dropdown(
                 choices=choices, value=default_val, info=info_texts.get(selected_provider, "")
             ),
-            gr.Accordion(visible=is_wx),
-            gr.Accordion(visible=is_dg),
-            gr.Accordion(visible=is_aai),
+            gr.Accordion(visible=show_hf),
+            gr.Accordion(visible=show_dg),
+            gr.Accordion(visible=show_aai),
         )
 
     provider_selector.change(
         fn=on_provider_change,
-        inputs=[provider_selector],
+        inputs=[provider_selector, admin_session_state],
         outputs=[model_selector, hf_acc, deepgram_acc, assemblyai_acc],
     )
 
-    def handle_admin_unlock(entered_pin: str):
+    def handle_admin_unlock(entered_pin: str, current_provider: str):
         if verify_admin_pin(entered_pin):
+            success_pill = (
+                '<div class="admin-active-pill">'
+                '<span class="admin-active-dot"></span>'
+                "<span>✓ Modo Propietario Activo · Credenciales maestras vinculadas</span>"
+                '<span class="admin-active-tag">Modo Optimizado</span>'
+                "</div>"
+            )
             return (
                 True,
-                gr.Markdown(
-                    '<div style="background: rgba(0,255,135,0.12); border: 1px solid rgba(0,255,135,0.4); padding: 8px 14px; border-radius: 6px; color: #00FF87; font-size: 13px; font-weight: 500; margin-top: 6px;">'
-                    "✓ Modo Administrador activo: Credenciales maestras del servidor autorizadas para esta sesión."
-                    "</div>",
-                    visible=True,
-                ),
+                gr.Group(visible=False),  # Cierra la ventana emergente
+                gr.HTML(success_pill, visible=True),
+                gr.Accordion(visible=False),  # Oculta cuadro de HF Token
+                gr.Accordion(visible=False),  # Oculta cuadro de Deepgram Key
+                gr.Accordion(visible=False),  # Oculta cuadro de AssemblyAI Key
+                gr.Markdown("", visible=False),
             )
+        error_box = (
+            '<div style="background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.4); padding: 8px 12px; border-radius: 8px; color: #FB7185; font-size: 13px; font-weight: 500; margin-top: 8px;">'
+            "✗ PIN maestro incorrecto o no configurado en ADMIN_PIN."
+            "</div>"
+        )
+        is_wx = current_provider == ProviderType.WHISPERX.value
+        is_dg = current_provider == ProviderType.DEEPGRAM.value
+        is_aai = current_provider == ProviderType.ASSEMBLYAI.value
         return (
             False,
-            gr.Markdown(
-                '<div style="background: rgba(255,110,199,0.12); border: 1px solid rgba(255,110,199,0.4); padding: 8px 14px; border-radius: 6px; color: #FF6EC7; font-size: 13px; font-weight: 500; margin-top: 6px;">'
-                "✗ PIN maestro incorrecto o no configurado en ADMIN_PIN."
-                "</div>",
-                visible=True,
-            ),
+            gr.Group(visible=True),
+            gr.HTML("", visible=False),
+            gr.Accordion(visible=is_wx),
+            gr.Accordion(visible=is_dg),
+            gr.Accordion(visible=is_aai),
+            gr.Markdown(error_box, visible=True),
         )
 
     btn_unlock_admin.click(
         fn=handle_admin_unlock,
-        inputs=[admin_pin_input],
-        outputs=[admin_session_state, admin_status_banner],
+        inputs=[admin_pin_input, provider_selector],
+        outputs=[
+            admin_session_state,
+            admin_modal,
+            admin_status_banner,
+            hf_acc,
+            deepgram_acc,
+            assemblyai_acc,
+            admin_modal_msg,
+        ],
+    )
+    admin_pin_input.submit(
+        fn=handle_admin_unlock,
+        inputs=[admin_pin_input, provider_selector],
+        outputs=[
+            admin_session_state,
+            admin_modal,
+            admin_status_banner,
+            hf_acc,
+            deepgram_acc,
+            assemblyai_acc,
+            admin_modal_msg,
+        ],
     )
 
-    def handle_url_auth(request: gr.Request):
+    btn_close_modal.click(
+        fn=lambda: gr.Group(visible=False),
+        inputs=None,
+        outputs=[admin_modal],
+    )
+
+    def handle_url_auth(request: gr.Request, current_provider: str):
         if request:
             params = getattr(request, "query_params", {})
             pin_val = None
@@ -1117,21 +1384,41 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 pin_val = params.get("pin")
 
             if pin_val and verify_admin_pin(pin_val):
+                success_pill = (
+                    '<div class="admin-active-pill">'
+                    '<span class="admin-active-dot"></span>'
+                    "<span>✓ Modo Propietario Autenticado vía URL · Credenciales maestras vinculadas</span>"
+                    '<span class="admin-active-tag">Modo Optimizado</span>'
+                    "</div>"
+                )
                 return (
                     True,
-                    gr.Markdown(
-                        '<div style="background: rgba(0,255,135,0.12); border: 1px solid rgba(0,255,135,0.4); padding: 8px 14px; border-radius: 6px; color: #00FF87; font-size: 13px; font-weight: 500; margin-top: 6px;">'
-                        "✓ Modo Administrador autenticado automáticamente vía URL. Credenciales maestras habilitadas."
-                        "</div>",
-                        visible=True,
-                    ),
+                    gr.HTML(success_pill, visible=True),
+                    gr.Accordion(visible=False),
+                    gr.Accordion(visible=False),
+                    gr.Accordion(visible=False),
                 )
-        return False, gr.Markdown("", visible=False)
+        is_wx = current_provider == ProviderType.WHISPERX.value
+        is_dg = current_provider == ProviderType.DEEPGRAM.value
+        is_aai = current_provider == ProviderType.ASSEMBLYAI.value
+        return (
+            False,
+            gr.HTML("", visible=False),
+            gr.Accordion(visible=is_wx),
+            gr.Accordion(visible=is_dg),
+            gr.Accordion(visible=is_aai),
+        )
 
     demo.load(
         fn=handle_url_auth,
-        inputs=None,
-        outputs=[admin_session_state, admin_status_banner],
+        inputs=[provider_selector],
+        outputs=[
+            admin_session_state,
+            admin_status_banner,
+            hf_acc,
+            deepgram_acc,
+            assemblyai_acc,
+        ],
     )
 
     btn_clear.add([input_media, output_text])
@@ -1158,35 +1445,36 @@ with gr.Blocks(**blocks_kwargs) as demo:
         outputs=[output_text, download_file],
     )
 
-    gr.HTML(
-        """
-        <footer class="statusbar">
-            <div class="statusbar-left">
+    # Barra de Estado Inferior Interactiva
+    with gr.Row(elem_classes=["statusbar"]):
+        with gr.Column(scale=2, min_width=320, elem_classes=["statusbar-left-col"]):
+            gr.HTML(
+                """
                 <span class="statusbar-stats">
                     <span class="statusbar-stats-dot"></span>
                     WhisperX ZeroGPU · Deepgram Nova-2 · AssemblyAI Universal-1
                 </span>
-            </div>
-            <div class="statusbar-right">
-                <a href="https://github.com/Klopezxd/whisperx-transcriptor" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
-                    <span class="author-badge">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="4 17 10 11 4 5"></polyline>
-                            <line x1="12" y1="19" x2="20" y2="19"></line>
-                        </svg>
-                        Autor: Klever López
-                    </span>
-                </a>
-                <span class="antigravity-badge" id="antigravity-badge" title="Made by Antigravity">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
-                    </svg>
-                    Made by Antigravity
-                </span>
-                <span class="version-badge" id="version-badge" title="v2.1.0">v2.1.0</span>
-            </div>
-        </footer>
-        """
+                """
+            )
+        with gr.Row(scale=3, elem_classes=["statusbar-right-row"]):
+            btn_github = gr.Button(
+                "Repositorio GitHub",
+                elem_classes=["statusbar-btn", "statusbar-github-btn"],
+                link="https://github.com/Klopezxd/whisperx-transcriptor",
+            )
+            btn_author = gr.Button(
+                "Autor: Klever López 🔐",
+                elem_classes=["statusbar-btn", "statusbar-author-btn"],
+            )
+            btn_version = gr.Button(
+                "v2.2.0 Studio",
+                elem_classes=["statusbar-btn", "statusbar-version-btn"],
+            )
+
+    btn_author.click(
+        fn=lambda: (gr.Group(visible=True), gr.Markdown("", visible=False)),
+        inputs=None,
+        outputs=[admin_modal, admin_modal_msg],
     )
 
 if __name__ == "__main__":
