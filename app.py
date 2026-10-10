@@ -212,6 +212,14 @@ custom_css = """
     --frost-white: #E8F4F8;
     --snow: #FAFBFC;
     --arctic-input: #060E1D;
+
+    --block-border-width: 0px !important;
+    --block-background-fill: transparent !important;
+    --block-shadow: none !important;
+    --panel-border-width: 0px !important;
+    --form-gap-width: 0px !important;
+    --checkbox-label-border-width: 0px !important;
+    --checkbox-label-background-fill: transparent !important;
 }
 
 *, *::before, *::after {
@@ -348,16 +356,35 @@ body, html {
     box-shadow: 0 6px 26px rgba(5, 11, 26, 0.7), 0 0 16px rgba(0, 255, 135, 0.12) !important;
 }
 
-/* ── CERO CUADROS ANIDADOS (ELIMINA BORDES INTERNOS DE GRADIO) ── */
+/* ── CERO CUADROS ANIDADOS (ELIMINA BORDES Y FONDOS INTERNOS DE GRADIO) ── */
 .module-card .block,
 .module-card .gr-block,
 .module-card .form,
-.module-card fieldset {
+.module-card fieldset,
+.module-card .gradio-group,
+.module-card .group,
+.module-card div[class*="block"],
+.module-card div[class*="form"],
+.module-card div[class*="group"],
+.module-card div[data-testid*="block"],
+.module-card div[data-testid*="group"],
+.module-card div[data-testid*="form"],
+.module-card .wrap,
+.module-card .container {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
+    outline: none !important;
+}
+
+.module-card > div,
+.module-card .gradio-row,
+.module-card .gradio-form {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }
 
 .module-header {
@@ -418,22 +445,29 @@ body, html {
     display: inline-flex !important;
     align-items: center !important;
     gap: 7px !important;
-    padding: 6px 10px !important;
-    background: rgba(232, 244, 248, 0.03) !important;
-    border: 1px solid rgba(0, 212, 255, 0.1) !important;
-    border-radius: 10px !important;
+    padding: 4px 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
     cursor: pointer !important;
     margin-top: 1px !important;
 }
 
 .module-card label:has(input[type="checkbox"]):hover {
-    border-color: rgba(0, 255, 135, 0.3) !important;
-    background: rgba(0, 255, 135, 0.03) !important;
+    color: var(--aurora-green) !important;
 }
 
 /* ── MODULO 1: ARRASTRAR ARCHIVO ──────────────────── */
+.file-upload-zone {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
 .file-upload-zone .file-upload,
-.file-upload-zone [data-testid="file-upload"] {
+.file-upload-zone [data-testid="file-upload"],
+.file-upload-zone .upload-container {
     background: rgba(6, 14, 29, 0.6) !important;
     border: 1.5px dashed rgba(0, 212, 255, 0.26) !important;
     border-radius: 12px !important;
@@ -443,7 +477,8 @@ body, html {
 }
 
 .file-upload-zone .file-upload:hover,
-.file-upload-zone [data-testid="file-upload"]:hover {
+.file-upload-zone [data-testid="file-upload"]:hover,
+.file-upload-zone .upload-container:hover {
     border-color: var(--aurora-green) !important;
     background: rgba(0, 255, 135, 0.04) !important;
     box-shadow: 0 0 16px rgba(0, 255, 135, 0.16) !important;
@@ -461,10 +496,17 @@ body, html {
     flex-direction: column !important;
 }
 
+.output-textbox {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
 .output-textbox textarea {
-    height: 445px !important;
-    max-height: 445px !important;
-    min-height: 445px !important;
+    height: 495px !important;
+    max-height: 495px !important;
+    min-height: 495px !important;
     background-color: #040813 !important;
     border: 1px solid rgba(0, 212, 255, 0.12) !important;
     border-radius: 12px !important;
@@ -689,6 +731,22 @@ custom_theme = gr.themes.Base(
     background_fill_primary="#0A1628",
     background_fill_secondary="#060E1D",
     border_color_primary="rgba(0, 212, 255, 0.14)",
+    border_color_primary_dark="rgba(0, 212, 255, 0.14)",
+    block_border_width="0px",
+    block_border_width_dark="0px",
+    block_background_fill="transparent",
+    block_background_fill_dark="transparent",
+    block_shadow="none",
+    block_shadow_dark="none",
+    panel_border_width="0px",
+    panel_border_width_dark="0px",
+    panel_background_fill="transparent",
+    panel_background_fill_dark="transparent",
+    form_gap_width="0px",
+    checkbox_label_background_fill="transparent",
+    checkbox_label_background_fill_dark="transparent",
+    checkbox_label_border_width="0px",
+    checkbox_label_border_width_dark="0px",
 )
 
 blocks_kwargs = {"title": "WhisperX Transcriptor"}
@@ -747,8 +805,8 @@ with gr.Blocks(**blocks_kwargs) as demo:
             )
 
     # ── 2. MODAL DE LOGIN DE ADMINISTRADOR ──────────────────────
-    with gr.Group(visible=False, elem_classes=["modal-overlay"]) as modal_login:
-        with gr.Group(elem_classes=["modal-dialog"]):
+    with gr.Column(visible=False, elem_classes=["modal-overlay"]) as modal_login:
+        with gr.Column(elem_classes=["modal-dialog"]):
             with gr.Row(elem_classes=["modal-title-row"]):
                 gr.HTML('<h3 class="modal-title">Acceso de Administrador</h3>')
                 btn_close_login = gr.Button(
@@ -777,7 +835,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
         # Columna Izquierda: Módulos de Entrada y Configuración
         with gr.Column(scale=5):
             # Módulo 1: Archivo Multimedia (Drag & Drop)
-            with gr.Group(elem_classes=["module-card"]):
+            with gr.Column(min_width=0, elem_classes=["module-card"]):
                 gr.HTML(
                     """
                     <div class="module-header">
@@ -794,6 +852,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     file_types=["audio", "video"],
                     file_count="single",
                     height=85,
+                    container=False,
                     elem_classes=["file-upload-zone"],
                 )
                 gr.HTML(
@@ -805,7 +864,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 )
 
             # Módulo 2: Motor y Opciones
-            with gr.Group(elem_classes=["module-card"]):
+            with gr.Column(min_width=0, elem_classes=["module-card"]):
                 gr.HTML(
                     """
                     <div class="module-header">
@@ -861,7 +920,9 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 )
 
             # Módulo 3: Credenciales de API (Modo Invitado / Admin)
-            with gr.Group(visible=True, elem_classes=["module-card"]) as guest_keys_panel:
+            with gr.Column(
+                visible=True, min_width=0, elem_classes=["module-card"]
+            ) as guest_keys_panel:
                 gr.HTML(
                     """
                     <div class="module-header">
@@ -922,7 +983,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
         # Columna Derecha: Módulo del Resultado de la Transcripción
         with gr.Column(scale=6):
             # Módulo 4: Resultado de la Transcripción
-            with gr.Group(elem_classes=["module-card", "result-card"]):
+            with gr.Column(min_width=0, elem_classes=["module-card", "result-card"]):
                 with gr.Row(elem_classes=["module-header"]):
                     gr.HTML(
                         """
@@ -939,6 +1000,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 output_textbox = gr.Textbox(
                     show_label=False,
                     placeholder="El texto transcrito con locutores y marcas de tiempo aparecerá aquí...",
+                    container=False,
                     elem_classes=["output-textbox"],
                 )
 
@@ -971,7 +1033,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
         """Controla la visibilidad del panel de claves de acuerdo a si es invitado o administrador."""
         if is_admin:
             return (
-                gr.Group(visible=False),
+                gr.Column(visible=False),
                 gr.HTML(visible=False),
                 gr.Textbox(visible=False),
                 gr.Textbox(visible=False),
@@ -988,7 +1050,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
         show_aai = is_aai
 
         return (
-            gr.Group(visible=True),
+            gr.Column(visible=True),
             gr.HTML(visible=show_notice),
             gr.Textbox(visible=show_hf),
             gr.Textbox(visible=show_dg),
@@ -1051,10 +1113,10 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
     # --- Flujo de Autenticación de Administrador ---
     def open_login_dialog():
-        return gr.Group(visible=True), "", gr.HTML(visible=False)
+        return gr.Column(visible=True), "", gr.HTML(visible=False)
 
     def close_login_dialog():
-        return gr.Group(visible=False), "", gr.HTML(visible=False)
+        return gr.Column(visible=False), "", gr.HTML(visible=False)
 
     btn_open_login.click(
         fn=open_login_dialog,
@@ -1073,10 +1135,10 @@ with gr.Blocks(**blocks_kwargs) as demo:
         if verify_admin_pin(pin):
             return (
                 True,  # admin_state
-                gr.Group(visible=False),  # modal_login
+                gr.Column(visible=False),  # modal_login
                 gr.Button(visible=False),  # btn_open_login
                 gr.Button(visible=True),  # btn_logout
-                gr.Group(visible=False),  # guest_keys_panel
+                gr.Column(visible=False),  # guest_keys_panel
                 gr.HTML(visible=False),
                 gr.Textbox(visible=False),
                 gr.Textbox(visible=False),
@@ -1089,7 +1151,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             panel_vis = update_guest_api_panel(current_provider, is_diarize, False)
             return (
                 False,  # admin_state
-                gr.Group(visible=True),  # modal_login sigue abierto
+                gr.Column(visible=True),  # modal_login sigue abierto
                 gr.Button(visible=True),  # btn_open_login
                 gr.Button(visible=False),  # btn_logout
                 *panel_vis,
@@ -1171,7 +1233,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     True,  # admin_state
                     gr.Button(visible=False),
                     gr.Button(visible=True),
-                    gr.Group(visible=False),
+                    gr.Column(visible=False),
                     gr.HTML(visible=False),
                     gr.Textbox(visible=False),
                     gr.Textbox(visible=False),
