@@ -225,14 +225,14 @@ body, gradio-app {
 }
 
 .gradio-container {
-    max-width: 1400px !important;
-    width: 96% !important;
+    max-width: 1340px !important;
+    width: 95% !important;
     margin: 0 auto !important;
-    padding-top: 1.25rem !important;
-    padding-bottom: 2.5rem !important;
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.5rem !important;
 }
 
-/* Tarjetas y Paneles Frosted Glass */
+/* Tarjetas y Paneles Frosted Glass Compactos */
 .gradio-container .block,
 .gradio-container .panel,
 .gradio-container .form {
@@ -240,202 +240,77 @@ body, gradio-app {
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
     border: 1px solid var(--glass-border) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+    padding: 8px 12px !important;
+    margin-bottom: 6px !important;
 }
 
-/* Cabecera Estilo Nórdico */
+/* Cabecera Compacta */
 #app-header {
     text-align: center;
-    padding: 1.75rem 1rem 1.25rem 1rem;
+    padding: 0.4rem 1rem 0.2rem 1rem;
     position: relative;
-    margin-bottom: 0.75rem;
-}
-
-.aurora-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    padding: 0.4rem 1.05rem;
-    border-radius: 9999px;
-    background: rgba(0, 255, 135, 0.09);
-    border: 1px solid rgba(0, 255, 135, 0.32);
-    color: var(--aurora-green);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-bottom: 0.85rem;
-    box-shadow: 0 2px 12px rgba(0, 255, 135, 0.15);
-}
-
-.aurora-badge-dot {
-    width: 7.5px;
-    height: 7.5px;
-    border-radius: 50%;
-    background-color: var(--aurora-green);
-    box-shadow: 0 0 10px var(--aurora-green);
-    animation: aurora-pulse 2.2s infinite ease-in-out;
-}
-
-@keyframes aurora-pulse {
-    0%, 100% { opacity: 0.5; transform: scale(0.9); }
-    50% { opacity: 1; transform: scale(1.25); }
+    margin-bottom: 0.35rem;
 }
 
 .aurora-title {
-    font-size: 2.6rem;
+    font-size: 1.65rem;
     font-weight: 800;
-    letter-spacing: -0.035em;
-    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.03em;
+    margin: 0 0 0.2rem 0;
     background: linear-gradient(135deg, #FFFFFF 20%, var(--aurora-green) 70%, var(--ice-cyan) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.85rem;
+    gap: 0.65rem;
 }
 
 .header-mic-svg {
     stroke: var(--aurora-green);
-    filter: drop-shadow(0 0 14px rgba(0, 255, 135, 0.55));
+    filter: drop-shadow(0 0 10px rgba(0, 255, 135, 0.5));
 }
 
 .aurora-subtitle {
     color: var(--muted-slate);
-    font-size: 1.02rem;
-    max-width: 720px;
-    margin: 0 auto 0.9rem auto;
-    line-height: 1.55;
+    font-size: 0.88rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.4;
     font-weight: 400;
 }
 
-.header-engine-chips {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 0.5rem;
-}
-
-.engine-chip {
-    font-size: 0.74rem;
-    font-weight: 600;
-    padding: 3.5px 11px;
-    border-radius: 9999px;
-    letter-spacing: 0.02em;
-}
-
-.engine-chip-wx {
-    background: rgba(0, 255, 135, 0.1);
-    color: var(--aurora-green);
-    border: 1px solid rgba(0, 255, 135, 0.28);
-}
-
-.engine-chip-dg {
-    background: rgba(0, 212, 255, 0.1);
-    color: var(--ice-cyan);
-    border: 1px solid rgba(0, 212, 255, 0.28);
-}
-
-.engine-chip-aai {
-    background: rgba(168, 85, 247, 0.12);
-    color: #D8B4FE;
-    border: 1px solid rgba(168, 85, 247, 0.32);
-}
-
-/* Panel Header Card Ribbons */
-.panel-header {
+/* Títulos de Sección Compactos */
+.compact-panel-title {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 11px 16px;
-    margin-bottom: 14px;
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(56, 189, 248, 0.2);
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
-}
-
-.panel-header-icon {
-    font-size: 1.35rem;
-    line-height: 1;
-}
-
-.panel-header-title {
-    font-size: 0.96rem;
+    gap: 7px;
+    font-size: 0.92rem;
     font-weight: 700;
-    color: #FFFFFF;
-    margin: 0;
-    letter-spacing: -0.01em;
+    color: #F8FAFC;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.16);
 }
 
-.panel-header-desc {
-    font-size: 0.77rem;
-    color: var(--muted-slate);
-    margin: 2px 0 0 0;
-}
-
-/* Segmented Engine Selector Radio */
-.engine-tabs-selector fieldset {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 8px !important;
-    border: none !important;
-    padding: 0 !important;
-    background: transparent !important;
-    flex-wrap: wrap !important;
-}
-
-.engine-tabs-selector label {
-    flex: 1 1 160px !important;
-    background: rgba(15, 23, 42, 0.8) !important;
-    border: 1px solid rgba(56, 189, 248, 0.22) !important;
-    border-radius: 10px !important;
-    padding: 11px 12px !important;
-    cursor: pointer !important;
-    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    color: #E2E8F0 !important;
-    font-size: 0.88rem !important;
-    font-weight: 600 !important;
-}
-
-.engine-tabs-selector label:hover {
-    border-color: var(--ice-cyan) !important;
-    background: rgba(0, 212, 255, 0.12) !important;
-    color: #FFFFFF !important;
-    transform: translateY(-1px) !important;
-}
-
-.engine-tabs-selector label.selected,
-.engine-tabs-selector label:has(input:checked) {
-    border-color: var(--aurora-green) !important;
-    background: rgba(0, 255, 135, 0.14) !important;
-    box-shadow: 0 0 16px rgba(0, 255, 135, 0.25) !important;
-    color: var(--aurora-green) !important;
-}
-
-/* Zona de Carga de Archivos */
+/* Zona de Carga de Archivos Compacta */
 .gradio-container .file-upload,
 .gradio-container [data-testid="file-upload"] {
     border: 1.5px dashed rgba(56, 189, 248, 0.35) !important;
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     background: rgba(8, 14, 26, 0.7) !important;
     transition: all 0.25s ease !important;
-    padding: 1.25rem !important;
+    padding: 0.5rem !important;
+    min-height: 85px !important;
 }
 
 .gradio-container .file-upload:hover,
 .gradio-container [data-testid="file-upload"]:hover {
     border-color: var(--aurora-green) !important;
     background: rgba(0, 255, 135, 0.05) !important;
-    box-shadow: 0 0 20px rgba(0, 255, 135, 0.18) !important;
+    box-shadow: 0 0 16px rgba(0, 255, 135, 0.16) !important;
 }
 
 .format-badges-row {
@@ -1051,12 +926,8 @@ with gr.Blocks(**blocks_kwargs) as demo:
     gr.HTML(
         """
         <div id="app-header">
-            <div class="aurora-badge">
-                <span class="aurora-badge-dot"></span>
-                <span>WhisperX Studio · ZeroGPU & Cloud Hybrid Engine</span>
-            </div>
             <h1 class="aurora-title">
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00FF87" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="header-mic-svg">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00FF87" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="header-mic-svg">
                     <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
                     <line x1="12" x2="12" y1="19" y2="22"/>
@@ -1064,13 +935,8 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 <span>WhisperX Transcriptor</span>
             </h1>
             <p class="aurora-subtitle">
-                Transcripción fonética neuronal de alta velocidad, alineación acústica palabra por palabra y diarización de interlocutores
+                Transcripción fonética neuronal, marcas de tiempo precisas y diarización de locutores
             </p>
-            <div class="header-engine-chips">
-                <span class="engine-chip engine-chip-wx">⚡ WhisperX (ZeroGPU / Local CUDA)</span>
-                <span class="engine-chip engine-chip-dg">⚡ Deepgram (Nova-2 / Nova-3)</span>
-                <span class="engine-chip engine-chip-aai">⚡ AssemblyAI (Universal-1 / Conformer)</span>
-            </div>
         </div>
         """
     )
@@ -1119,54 +985,54 @@ with gr.Blocks(**blocks_kwargs) as demo:
         with gr.Column(scale=1):
             gr.HTML(
                 """
-                <div class="panel-header">
-                    <span class="panel-header-icon">🎙️</span>
-                    <div>
-                        <h3 class="panel-header-title">Ingesta y Configuración del Motor</h3>
-                        <p class="panel-header-desc">Selecciona el motor acústico y carga tu archivo multimedia</p>
-                    </div>
+                <div class="compact-panel-title">
+                    <span>🎙️</span>
+                    <span>Configuración del Motor</span>
                 </div>
                 """
             )
 
-            provider_selector = gr.Radio(
-                choices=[
-                    ProviderType.WHISPERX.value,
-                    ProviderType.DEEPGRAM.value,
-                    ProviderType.ASSEMBLYAI.value,
-                ],
-                value=ProviderType.WHISPERX.value,
-                label="Motor de Transcripción",
-                info="Elige entre aceleración ZeroGPU (Hugging Face) o procesamiento ultrarrápido en la nube.",
-                elem_classes=["engine-tabs-selector"],
-            )
+            with gr.Row():
+                provider_selector = gr.Dropdown(
+                    choices=[
+                        ProviderType.WHISPERX.value,
+                        ProviderType.DEEPGRAM.value,
+                        ProviderType.ASSEMBLYAI.value,
+                    ],
+                    value=ProviderType.WHISPERX.value,
+                    label="Motor",
+                    scale=1,
+                )
+                model_selector = gr.Dropdown(
+                    choices=PROVIDER_MODEL_CHOICES[ProviderType.WHISPERX.value],
+                    value=ModelName.LARGE_V3_TURBO.value,
+                    label="Modelo",
+                    scale=1,
+                )
 
             input_media = gr.File(
-                label="Archivo Multimedia",
+                label="Archivo de Audio o Video",
                 file_types=["audio", "video"],
                 file_count="single",
+                height=95,
             )
 
-            gr.HTML(
-                """
-                <div class="format-badges-row">
-                    <span class="format-chip">MP4</span>
-                    <span class="format-chip">MP3</span>
-                    <span class="format-chip">WAV</span>
-                    <span class="format-chip">M4A</span>
-                    <span class="format-chip">FLAC</span>
-                    <span class="format-chip">OGG</span>
-                    <span class="format-chip">WEBM</span>
-                    <span class="format-chip-note">Hasta 4GB · Inferencia Acelerada</span>
-                </div>
-                """
-            )
-
-            diarization_checkbox = gr.Checkbox(
-                value=False,
-                label="Identificar quién habla (Diarización)",
-                info="Separa y etiqueta las intervenciones de cada locutor automáticamente.",
-            )
+            with gr.Row():
+                diarization_checkbox = gr.Checkbox(
+                    value=False,
+                    label="Identificar quién habla (Diarización)",
+                    scale=1,
+                )
+                timestamp_selector = gr.Dropdown(
+                    choices=[
+                        "Simple ([HH:MM:SS])",
+                        "Rango ([Inicio - Fin])",
+                        "Texto continuo (Sin marcas)",
+                    ],
+                    value="Simple ([HH:MM:SS])",
+                    label="Marcas de tiempo",
+                    scale=1,
+                )
 
             # Acordeón Credenciales Hugging Face (para WhisperX)
             with gr.Accordion(
@@ -1201,47 +1067,27 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     info="Permite usar Universal-1 (máxima precisión) y Nano (ahorro). Obtén tu clave en assemblyai.com.",
                 )
 
-            with gr.Accordion("Opciones avanzadas", open=False):
-                model_selector = gr.Dropdown(
-                    choices=PROVIDER_MODEL_CHOICES[ProviderType.WHISPERX.value],
-                    value=ModelName.LARGE_V3_TURBO.value,
-                    label="Modelo de Voz",
-                    info="Gratuito en ZeroGPU · large-v3-turbo es la opción recomendada (más rápida y misma precisión que large-v3).",
-                )
-
-                timestamp_selector = gr.Radio(
-                    choices=[
-                        "Simple ([HH:MM:SS])",
-                        "Rango ([Inicio - Fin])",
-                        "Texto continuo (Sin marcas)",
-                    ],
-                    value="Simple ([HH:MM:SS])",
-                    label="Marcas de tiempo",
-                )
-
             with gr.Row():
                 btn_clear = gr.ClearButton(
                     value="Limpiar",
                     variant="secondary",
                     elem_classes=["btn-secondary"],
+                    scale=1,
                 )
                 btn_transcribe = gr.Button(
                     "⚡ Iniciar Transcripción",
                     variant="primary",
-                    size="lg",
                     elem_classes=["btn-primary"],
+                    scale=2,
                 )
 
         # Columna Derecha: Salida y Descarga
         with gr.Column(scale=1):
             gr.HTML(
                 """
-                <div class="panel-header">
-                    <span class="panel-header-icon">📄</span>
-                    <div>
-                        <h3 class="panel-header-title">Consola de Transcripción y Salida</h3>
-                        <p class="panel-header-desc">Previsualización de texto normalizado y descarga de artefactos</p>
-                    </div>
+                <div class="compact-panel-title">
+                    <span>📄</span>
+                    <span>Transcripción y Salida</span>
                 </div>
                 """
             )
@@ -1249,14 +1095,15 @@ with gr.Blocks(**blocks_kwargs) as demo:
             output_text = gr.Textbox(
                 label="Resultado de la Transcripción",
                 placeholder="El texto transcrito con marcas temporales y locutores aparecerá aquí una vez finalizado el procesamiento...",
-                lines=15,
+                lines=12,
+                max_lines=16,
                 elem_classes=["output-transcript"],
             )
             download_file = gr.DownloadButton(
                 label="Descargar Documento (.txt)",
                 value=None,
                 interactive=False,
-                size="lg",
+                size="md",
                 variant="secondary",
                 elem_classes=["btn-download"],
             )
