@@ -1,10 +1,10 @@
 @echo off
-title WhisperX Transcriptor
+title Transcriptor Suite
 chcp 65001 >nul
 color 0B
 
 echo ========================================================
-echo   Iniciando WhisperX Transcriptor (Entorno Conda)
+echo   Iniciando Transcriptor Suite (Entorno Conda)
 echo ========================================================
 echo.
 

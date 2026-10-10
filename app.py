@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WhisperX Transcriptor - Interfaz Gráfica Aurora Boreal Nórdica (Gradio).
+Transcriptor Suite - Interfaz Gráfica Aurora Boreal Nórdica (Gradio).
 Desarrollada desde cero con arquitectura modular, diseño responsivo,
 patrón Aurora Boreal Nórdica y gestión limpia de credenciales.
 """
@@ -749,7 +749,7 @@ custom_theme = gr.themes.Base(
     checkbox_label_border_width_dark="0px",
 )
 
-blocks_kwargs = {"title": "WhisperX Transcriptor"}
+blocks_kwargs = {"title": "Transcriptor Suite"}
 launch_kwargs = {}
 
 try:
@@ -782,7 +782,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     </svg>
                 </div>
                 <div class="brand-titles">
-                    <h1>WhisperX Transcriptor</h1>
+                    <h1>Transcriptor Suite</h1>
                     <p>Suite Neuronal de Reconocimiento de Voz · WhisperX, Deepgram & AssemblyAI</p>
                 </div>
             </div>
@@ -1022,7 +1022,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
     gr.HTML(
         """
         <footer class="app-footer">
-            WhisperX Transcriptor · Modelos neuronales ASR con alineación fonética fonema a fonema y diarización de hablantes.
+            Transcriptor Suite · Modelos neuronales ASR con alineación fonética fonema a fonema y diarización de hablantes.
         </footer>
         """
     )

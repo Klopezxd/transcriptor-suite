@@ -19,7 +19,7 @@ jobs:
         run: |
           cat << 'EOF' > hf_header.txt
           ---
-          title: WhisperX Transcriptor
+          title: Transcriptor Suite
           emoji: 🎙
           colorFrom: blue
           colorTo: gray
