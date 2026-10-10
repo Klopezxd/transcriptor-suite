@@ -210,11 +210,10 @@ custom_css = """
     --dark-text: #030712;
 }
 
-/* Atmósfera de Noche Ártica con Ondas de Aurora Boreal y Bloqueo de Scroll */
+/* Atmósfera de Noche Ártica con Ondas de Aurora Boreal y Control de Viewport */
 html, body {
     height: 100% !important;
     max-height: 100vh !important;
-    overflow-y: hidden !important;
     overflow-x: hidden !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -241,21 +240,80 @@ html, body {
     flex-direction: column !important;
     justify-content: space-between !important;
     box-sizing: border-box !important;
-    overflow: hidden !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
 }
 
-/* Tarjetas y Paneles Frosted Glass Compactos */
-.gradio-container .block,
-.gradio-container .panel,
-.gradio-container .form {
+/* Paneles Unificados Cohesivos (Un solo cuadro por columna) */
+.unified-card {
     background: var(--surface-slate) !important;
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
     border: 1px solid var(--glass-border) !important;
-    border-radius: 9px !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
-    padding: 7px 11px !important;
-    margin-bottom: 5px !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45) !important;
+    padding: 8px 12px !important;
+    margin-bottom: 3px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 5px !important;
+    overflow: visible !important;
+}
+
+/* Eliminar cajas o marcos duplicados dentro de las tarjetas unificadas */
+.unified-card .block,
+.unified-card .panel,
+.unified-card .form {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+}
+
+/* Soporte total para despliegue de menús (Dropdowns) */
+.gradio-container .gr-dropdown,
+.gradio-container [data-testid="dropdown"],
+.gradio-container .dropdown,
+.gradio-container .wrap,
+.unified-card .row,
+.unified-card .column {
+    overflow: visible !important;
+}
+
+.gradio-container ul.options,
+.gradio-container .options,
+.gradio-container .dropdown-options,
+ul.options,
+.options {
+    z-index: 9999999 !important;
+    position: absolute !important;
+    background: #080E1A !important;
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.95) !important;
+    max-height: 220px !important;
+    overflow-y: auto !important;
+}
+
+.gradio-container ul.options li,
+.gradio-container .options li,
+.gradio-container .dropdown-options li {
+    padding: 7px 12px !important;
+    font-size: 0.84rem !important;
+    color: #F8FAFC !important;
+    cursor: pointer !important;
+    background: transparent !important;
+}
+
+.gradio-container ul.options li:hover,
+.gradio-container .options li:hover,
+.gradio-container .dropdown-options li:hover,
+.gradio-container ul.options li.selected,
+.gradio-container .options li.selected {
+    background: rgba(0, 255, 135, 0.16) !important;
+    color: var(--aurora-green) !important;
 }
 
 /* Barra Superior de Cabecera (Sleek Studio Topbar) */
@@ -526,76 +584,85 @@ html, body {
     color: var(--aurora-green);
 }
 
-/* --- Barra de Estado Inferior Estilo Nórdico (Inspirada en Preview Suite) --- */
+/* --- Barra de Estado Inferior Estilo Preview Suite --- */
 .statusbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 12px;
-    background: rgba(3, 7, 18, 0.92);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(56, 189, 248, 0.2);
-    border-radius: 8px;
-    font-size: 11px;
-    color: var(--muted-slate);
-    margin-top: 4px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 4px 14px !important;
+    background: rgba(3, 7, 18, 0.92) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border: 1px solid rgba(56, 189, 248, 0.2) !important;
+    border-radius: 9px !important;
+    font-size: 11.5px !important;
+    color: var(--muted-slate) !important;
+    margin-top: 4px !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5) !important;
+    overflow: visible !important;
 }
 
 .statusbar-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.statusbar-stats {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: #CBD5E1;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.statusbar-stats-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--aurora-green);
-    box-shadow: 0 0 10px var(--aurora-green);
-    display: inline-block;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
 }
 
 .statusbar-right {
-    display: flex;
-    gap: 9px;
-    align-items: center;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
 }
 
-.author-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(0, 212, 255, 0.1);
-    padding: 3.5px 11px;
-    border-radius: 6px;
-    color: var(--ice-cyan);
-    font-weight: 600;
-    font-size: 11.5px;
-    border: 1px solid rgba(0, 212, 255, 0.28);
-    white-space: nowrap;
-    transition: all 0.2s ease;
+.statusbar-badges {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
 }
 
-.author-badge:hover {
-    background: rgba(0, 212, 255, 0.2);
-    border-color: var(--ice-cyan);
-    transform: translateY(-1px);
+.author-badge, button.author-badge, .github-badge, button.github-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background: rgba(0, 212, 255, 0.1) !important;
+    padding: 3.5px 11px !important;
+    border-radius: 6px !important;
+    color: var(--ice-cyan) !important;
+    font-weight: 600 !important;
+    font-size: 11.5px !important;
+    border: 1px solid rgba(0, 212, 255, 0.28) !important;
+    white-space: nowrap !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    min-width: unset !important;
+    height: auto !important;
+    line-height: normal !important;
+    box-shadow: none !important;
 }
 
-.author-badge svg {
-    color: var(--ice-cyan);
+.author-badge:hover, button.author-badge:hover {
+    background: rgba(0, 212, 255, 0.22) !important;
+    border-color: var(--ice-cyan) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.35) !important;
+}
+
+.github-badge, button.github-badge {
+    background: rgba(56, 189, 248, 0.1) !important;
+    border-color: rgba(56, 189, 248, 0.28) !important;
+    color: var(--sky-cyan) !important;
+}
+
+.github-badge:hover, button.github-badge:hover {
+    background: rgba(56, 189, 248, 0.22) !important;
+    border-color: var(--sky-cyan) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px) !important;
+}
+
+.author-badge svg, .github-badge svg {
+    color: inherit;
     width: 13px;
     height: 13px;
 }
@@ -652,25 +719,37 @@ html, body {
 }
 
 /* Modal Overlay para Login de Administrador */
-.admin-modal-overlay:not(.hide):not([style*="display: none"]) {
+.admin-modal-overlay {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+.admin-modal-overlay:not(.hidden):not(.hide):not([style*="display: none"]):not([style*="display:none"]):not(:empty) {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    background: rgba(2, 6, 23, 0.82) !important;
+    background: rgba(2, 6, 23, 0.85) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
-    z-index: 99999 !important;
+    z-index: 1000000 !important;
     display: flex !important;
+    visibility: visible !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 1.5rem !important;
+    pointer-events: auto !important;
 }
 
 .admin-modal-overlay.hide,
-.admin-modal-overlay[style*="display: none"] {
+.admin-modal-overlay.hidden,
+.admin-modal-overlay[style*="display: none"],
+.admin-modal-overlay[style*="display:none"] {
     display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 .admin-modal-card {
@@ -982,167 +1061,135 @@ with gr.Blocks(**blocks_kwargs) as demo:
     # Banner flotante minimalista de Estado Propietario (visible únicamente cuando se autentica)
     admin_status_banner = gr.HTML("", visible=False)
 
-    # Ventana Modal emergente para Login de Administrador (invisible por defecto)
-    with gr.Group(visible=False, elem_classes=["admin-modal-overlay"]) as admin_modal:
-        with gr.Group(elem_classes=["admin-modal-card"]):
-            with gr.Row(elem_classes=["modal-header-row"]):
+    with gr.Row(equal_height=False):
+        # Columna Izquierda: Entrada y Controles (Un solo cuadro unificado)
+        with gr.Column(scale=1):
+            with gr.Group(elem_classes=["unified-card"]):
                 gr.HTML(
                     """
-                    <div class="modal-title-box">
-                        <span class="modal-title-icon">🔐</span>
-                        <div>
-                            <h4 class="modal-title-text">Acceso Propietario</h4>
-                            <p class="modal-title-desc">Desbloquea credenciales maestras y simplifica la interfaz</p>
-                        </div>
+                    <div class="compact-panel-title">
+                        <span>🎙️</span>
+                        <span>Configuración del Motor</span>
                     </div>
                     """
                 )
-                btn_close_modal = gr.Button(
-                    "✕", elem_classes=["modal-close-btn"], variant="secondary"
+
+                with gr.Row():
+                    provider_selector = gr.Dropdown(
+                        choices=[
+                            ProviderType.WHISPERX.value,
+                            ProviderType.DEEPGRAM.value,
+                            ProviderType.ASSEMBLYAI.value,
+                        ],
+                        value=ProviderType.WHISPERX.value,
+                        label="Motor",
+                        scale=1,
+                    )
+                    model_selector = gr.Dropdown(
+                        choices=PROVIDER_MODEL_CHOICES[ProviderType.WHISPERX.value],
+                        value=ModelName.LARGE_V3_TURBO.value,
+                        label="Modelo",
+                        scale=1,
+                    )
+
+                input_media = gr.File(
+                    label="Archivo de Audio o Video",
+                    file_types=["audio", "video"],
+                    file_count="single",
+                    height=75,
                 )
 
-            admin_pin_input = gr.Textbox(
-                label="PIN Maestro",
-                placeholder="Ingresa tu PIN de 4 dígitos...",
-                type="password",
-                show_label=False,
-                elem_classes=["modal-pin-input"],
-            )
+                with gr.Row():
+                    diarization_checkbox = gr.Checkbox(
+                        value=False,
+                        label="Identificar quién habla (Diarización)",
+                        scale=1,
+                    )
+                    timestamp_selector = gr.Dropdown(
+                        choices=[
+                            "Simple ([HH:MM:SS])",
+                            "Rango ([Inicio - Fin])",
+                            "Texto continuo (Sin marcas)",
+                        ],
+                        value="Simple ([HH:MM:SS])",
+                        label="Marcas de tiempo",
+                        scale=1,
+                    )
 
-            btn_unlock_admin = gr.Button(
-                "Desbloquear Modo Propietario",
-                variant="primary",
-                elem_classes=["modal-submit-btn"],
-            )
-            admin_modal_msg = gr.Markdown("", visible=False)
+                # Acordeón Credenciales Hugging Face (para WhisperX con Diarización)
+                with gr.Accordion(
+                    "Credenciales de Hugging Face (Pyannote Diarización)", open=False, visible=False
+                ) as hf_acc:
+                    hf_token_input = gr.Textbox(
+                        label="Token de Hugging Face (HF_TOKEN)",
+                        placeholder="hf_... (opcional si ya está configurado en Secrets)",
+                        type="password",
+                        info="Requerido si activas la diarización con WhisperX. Rol 'Read' con términos de Pyannote 3.1 y Segmentation 3.0 aceptados.",
+                    )
 
-    with gr.Row(equal_height=False):
-        # Columna Izquierda: Entrada y Controles
+                # Acordeón Credenciales Deepgram
+                with gr.Accordion(
+                    "Credenciales de Deepgram Cloud API", open=True, visible=False
+                ) as deepgram_acc:
+                    deepgram_key_input = gr.Textbox(
+                        label="Deepgram API Key",
+                        placeholder="Pega tu clave personal de Deepgram aquí (o defínela como DEEPGRAM_API_KEY)",
+                        type="password",
+                        info="Permite usar Nova-2 / Nova-3 con diarización ultrarrápida. Obtén tu clave en console.deepgram.com.",
+                    )
+
+                # Acordeón Credenciales AssemblyAI
+                with gr.Accordion(
+                    "Credenciales de AssemblyAI Cloud API", open=True, visible=False
+                ) as assemblyai_acc:
+                    assemblyai_key_input = gr.Textbox(
+                        label="AssemblyAI API Key",
+                        placeholder="Pega tu clave personal de AssemblyAI aquí (o defínela como ASSEMBLYAI_API_KEY)",
+                        type="password",
+                        info="Permite usar Universal-1 (máxima precisión) y Nano (ahorro). Obtén tu clave en assemblyai.com.",
+                    )
+
+                with gr.Row():
+                    btn_clear = gr.ClearButton(
+                        value="Limpiar",
+                        variant="secondary",
+                        elem_classes=["btn-secondary"],
+                        scale=1,
+                    )
+                    btn_transcribe = gr.Button(
+                        "⚡ Iniciar Transcripción",
+                        variant="primary",
+                        elem_classes=["btn-primary"],
+                        scale=2,
+                    )
+
+        # Columna Derecha: Salida y Descarga (Un solo cuadro unificado)
         with gr.Column(scale=1):
-            gr.HTML(
-                """
-                <div class="compact-panel-title">
-                    <span>🎙️</span>
-                    <span>Configuración del Motor</span>
-                </div>
-                """
-            )
-
-            with gr.Row():
-                provider_selector = gr.Dropdown(
-                    choices=[
-                        ProviderType.WHISPERX.value,
-                        ProviderType.DEEPGRAM.value,
-                        ProviderType.ASSEMBLYAI.value,
-                    ],
-                    value=ProviderType.WHISPERX.value,
-                    label="Motor",
-                    scale=1,
-                )
-                model_selector = gr.Dropdown(
-                    choices=PROVIDER_MODEL_CHOICES[ProviderType.WHISPERX.value],
-                    value=ModelName.LARGE_V3_TURBO.value,
-                    label="Modelo",
-                    scale=1,
+            with gr.Group(elem_classes=["unified-card"]):
+                gr.HTML(
+                    """
+                    <div class="compact-panel-title">
+                        <span>📄</span>
+                        <span>Transcripción y Salida</span>
+                    </div>
+                    """
                 )
 
-            input_media = gr.File(
-                label="Archivo de Audio o Video",
-                file_types=["audio", "video"],
-                file_count="single",
-                height=75,
-            )
-
-            with gr.Row():
-                diarization_checkbox = gr.Checkbox(
-                    value=False,
-                    label="Identificar quién habla (Diarización)",
-                    scale=1,
+                output_text = gr.Textbox(
+                    show_label=False,
+                    placeholder="El texto transcrito con marcas temporales y locutores aparecerá aquí una vez finalizado el procesamiento...",
+                    lines=8,
+                    max_lines=10,
+                    elem_classes=["output-transcript"],
                 )
-                timestamp_selector = gr.Dropdown(
-                    choices=[
-                        "Simple ([HH:MM:SS])",
-                        "Rango ([Inicio - Fin])",
-                        "Texto continuo (Sin marcas)",
-                    ],
-                    value="Simple ([HH:MM:SS])",
-                    label="Marcas de tiempo",
-                    scale=1,
-                )
-
-            # Acordeón Credenciales Hugging Face (para WhisperX con Diarización)
-            with gr.Accordion(
-                "Credenciales de Hugging Face (Pyannote Diarización)", open=False, visible=False
-            ) as hf_acc:
-                hf_token_input = gr.Textbox(
-                    label="Token de Hugging Face (HF_TOKEN)",
-                    placeholder="hf_... (opcional si ya está configurado en Secrets)",
-                    type="password",
-                    info="Requerido si activas la diarización con WhisperX. Rol 'Read' con términos de Pyannote 3.1 y Segmentation 3.0 aceptados.",
-                )
-
-            # Acordeón Credenciales Deepgram
-            with gr.Accordion(
-                "Credenciales de Deepgram Cloud API", open=True, visible=False
-            ) as deepgram_acc:
-                deepgram_key_input = gr.Textbox(
-                    label="Deepgram API Key",
-                    placeholder="Pega tu clave personal de Deepgram aquí (o defínela como DEEPGRAM_API_KEY)",
-                    type="password",
-                    info="Permite usar Nova-2 / Nova-3 con diarización ultrarrápida. Obtén tu clave en console.deepgram.com.",
-                )
-
-            # Acordeón Credenciales AssemblyAI
-            with gr.Accordion(
-                "Credenciales de AssemblyAI Cloud API", open=True, visible=False
-            ) as assemblyai_acc:
-                assemblyai_key_input = gr.Textbox(
-                    label="AssemblyAI API Key",
-                    placeholder="Pega tu clave personal de AssemblyAI aquí (o defínela como ASSEMBLYAI_API_KEY)",
-                    type="password",
-                    info="Permite usar Universal-1 (máxima precisión) y Nano (ahorro). Obtén tu clave en assemblyai.com.",
-                )
-
-            with gr.Row():
-                btn_clear = gr.ClearButton(
-                    value="Limpiar",
+                download_file = gr.DownloadButton(
+                    label="Descargar Documento (.txt)",
+                    value=None,
+                    interactive=False,
+                    size="sm",
                     variant="secondary",
-                    elem_classes=["btn-secondary"],
-                    scale=1,
+                    elem_classes=["btn-download"],
                 )
-                btn_transcribe = gr.Button(
-                    "⚡ Iniciar Transcripción",
-                    variant="primary",
-                    elem_classes=["btn-primary"],
-                    scale=2,
-                )
-
-        # Columna Derecha: Salida y Descarga
-        with gr.Column(scale=1):
-            gr.HTML(
-                """
-                <div class="compact-panel-title">
-                    <span>📄</span>
-                    <span>Transcripción y Salida</span>
-                </div>
-                """
-            )
-
-            output_text = gr.Textbox(
-                label="Resultado de la Transcripción",
-                placeholder="El texto transcrito con marcas temporales y locutores aparecerá aquí una vez finalizado el procesamiento...",
-                lines=8,
-                max_lines=10,
-                elem_classes=["output-transcript"],
-            )
-            download_file = gr.DownloadButton(
-                label="Descargar Documento (.txt)",
-                value=None,
-                interactive=False,
-                size="sm",
-                variant="secondary",
-                elem_classes=["btn-download"],
-            )
 
     # Conexión de eventos reactivos
     def on_provider_change(selected_provider: str, is_admin: bool, is_diarize: bool):
@@ -1197,6 +1244,40 @@ with gr.Blocks(**blocks_kwargs) as demo:
         inputs=[diarization_checkbox, provider_selector, admin_session_state],
         outputs=[hf_acc],
     )
+
+    # Ventana Modal emergente para Login de Administrador (invisible por defecto)
+    with gr.Group(visible=False, elem_classes=["admin-modal-overlay"]) as admin_modal:
+        with gr.Group(elem_classes=["admin-modal-card"]):
+            with gr.Row(elem_classes=["modal-header-row"]):
+                gr.HTML(
+                    """
+                    <div class="modal-title-box">
+                        <span class="modal-title-icon">🔐</span>
+                        <div>
+                            <h4 class="modal-title-text">Acceso Propietario</h4>
+                            <p class="modal-title-desc">Desbloquea credenciales maestras y simplifica la interfaz</p>
+                        </div>
+                    </div>
+                    """
+                )
+                btn_close_modal = gr.Button(
+                    "✕", elem_classes=["modal-close-btn"], variant="secondary"
+                )
+
+            admin_pin_input = gr.Textbox(
+                label="PIN Maestro",
+                placeholder="Ingresa tu PIN de 4 dígitos...",
+                type="password",
+                show_label=False,
+                elem_classes=["modal-pin-input"],
+            )
+
+            btn_unlock_admin = gr.Button(
+                "Desbloquear Modo Propietario",
+                variant="primary",
+                elem_classes=["modal-submit-btn"],
+            )
+            admin_modal_msg = gr.Markdown("", visible=False)
 
     def handle_admin_unlock(entered_pin: str, current_provider: str, is_diarize: bool):
         if verify_admin_pin(entered_pin):
@@ -1338,30 +1419,33 @@ with gr.Blocks(**blocks_kwargs) as demo:
         outputs=[output_text, download_file],
     )
 
-    # Barra de Estado Inferior Interactiva
+    # Barra de Estado Inferior Interactiva (Estilo Preview Suite)
     with gr.Row(elem_classes=["statusbar"]):
-        with gr.Column(scale=2, min_width=320, elem_classes=["statusbar-left-col"]):
-            gr.HTML(
-                """
-                <span class="statusbar-stats">
-                    <span class="statusbar-stats-dot"></span>
-                    WhisperX ZeroGPU · Deepgram Nova-2 · AssemblyAI Universal-1
-                </span>
-                """
-            )
-        with gr.Row(scale=3, elem_classes=["statusbar-right-row"]):
+        with gr.Row(elem_classes=["statusbar-left"]):
             btn_github = gr.Button(
                 "Repositorio GitHub",
-                elem_classes=["statusbar-btn", "statusbar-github-btn"],
+                elem_classes=["github-badge"],
                 link="https://github.com/Klopezxd/whisperx-transcriptor",
+                size="sm",
             )
+        with gr.Row(elem_classes=["statusbar-right"]):
             btn_author = gr.Button(
                 "Autor: Klever López 🔐",
-                elem_classes=["statusbar-btn", "statusbar-author-btn"],
+                elem_classes=["author-badge"],
+                size="sm",
             )
-            btn_version = gr.Button(
-                "v2.2.0 Studio",
-                elem_classes=["statusbar-btn", "statusbar-version-btn"],
+            gr.HTML(
+                """
+                <div class="statusbar-badges">
+                    <span class="antigravity-badge" title="Made by Antigravity">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+                            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                        </svg>
+                        Made by Antigravity
+                    </span>
+                    <span class="version-badge" title="v2.2.0">v2.2.0</span>
+                </div>
+                """
             )
 
     btn_author.click(
