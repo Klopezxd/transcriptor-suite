@@ -13,6 +13,48 @@
 
 ---
 
+> [!IMPORTANT]
+> # 🔑 GUÍA MAESTRA DE API KEYS Y SECRETOS (¡CONFIGURACIÓN OBLIGATORIA!)
+> Este proyecto conecta **GitHub** con **Hugging Face Spaces**. Para que todo funcione al 100% (sincronización automática del repositorio y diarización de interlocutores), debes configurar los siguientes tokens:
+>
+> ### 1️⃣ TOKEN EN GITHUB: Para sincronizar el código con Hugging Face (`HF_TOKEN`)
+> * **Para qué sirve:** Permite que cada vez que hagas `git push` a GitHub, el workflow de GitHub Actions actualice automáticamente tu aplicación en Hugging Face Spaces ([Klopezxd/transcriptor-whisperx](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx)).
+> * **Cómo obtenerlo:**
+>   1. Entra a [Hugging Face Settings > Access Tokens](https://huggingface.co/settings/tokens).
+>   2. Crea un nuevo token con permisos de **ESCRITURA (`Write`)** *(si creas uno de lectura `Read`, GitHub no podrá subir los cambios al Space y fallará)*.
+> * **Dónde configurarlo en GitHub:**
+>   1. Ve a tu repositorio en GitHub: [whisperx-transcriptor](https://github.com/Klopezxd/whisperx-transcriptor).
+>   2. Entra a la pestaña **Settings** ➔ Menú lateral izquierdo: **Secrets and variables** ➔ **Actions**.
+>   3. Clic en el botón verde **New repository secret**.
+>   4. **Name:** `HF_TOKEN` | **Secret:** Tu token de Hugging Face (`hf_...`).
+>
+> ---
+>
+> ### 2️⃣ TOKEN EN HUGGING FACE SPACES: Para Diarización de Hablantes (`HF_TOKEN`)
+> * **Para qué sirve:** Permite que WhisperX descargue los modelos de Pyannote en el Space para separar e identificar quién habla.
+> * **PASO OBLIGATORIO PREVIO (Aceptar licencias):** Con tu cuenta de Hugging Face, debes entrar y hacer clic en **"Aceptar condiciones"** en **AMBOS** modelos:
+>   * 👉 [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)
+>   * 👉 [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0) *(¡si falta aceptar este segundo modelo, la diarización fallará con error 401/403!)*.
+> * **Dónde configurarlo en Hugging Face Spaces:**
+>   1. Ve a tu Space: [huggingface.co/spaces/Klopezxd/transcriptor-whisperx](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx).
+>   2. Entra a la pestaña **Settings** ➔ Baja hasta la sección **Variables and secrets**.
+>   3. En la subsección **Secrets**, haz clic en **New secret**.
+>   4. **Name:** `HF_TOKEN` | **Value:** Tu token de Hugging Face (`hf_...`).
+>   *(Nota: También puedes ingresar tu token directamente en el campo "Token de Hugging Face" dentro de la interfaz web si no deseas guardarlo en Secrets).*
+>
+> ---
+>
+> ### 3️⃣ SALDO GRATUITO DE $200 USD: Deepgram Cloud API (Opcional pero recomendado)
+> * **Para qué sirve:** Transcribir audios pesados (de 2 a 5+ horas) en menos de 20 segundos con diarización incluida, sin consumir cuota de ZeroGPU ni interferir con la cuota de Hermes Agent en Groq.
+> * **Requisitos:** Cero. No requiere tarjeta de crédito ni correo institucional. Válido para cualquier usuario nuevo.
+> * **Cómo obtenerlo:**
+>   1. Entra a [console.deepgram.com/signup](https://console.deepgram.com/signup) y regístrate con tu correo (o con Google/GitHub).
+>   2. Al ingresar al panel, verás tus **$200 USD de saldo de bienvenida** activos automáticamente (rinden para +600 horas de audio).
+>   3. En el menú lateral izquierdo, ve a **API Keys** ➔ **Create a New API Key** para generar tu clave.
+>
+> ---
+
+
 ## Características Principales
 
 * **Inferencia de Alto Rendimiento:** Basado en **WhisperX** (faster-whisper / CTranslate2), hasta $5\times$ más rápido que implementaciones tradicionales de Whisper.

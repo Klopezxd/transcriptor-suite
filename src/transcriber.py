@@ -126,15 +126,32 @@ class WhisperXPipeline:
             segments = aligned_result["segments"]
             if self.config.enable_diarization:
                 notify(0.75, "Identificando interlocutores (Diarización con Pyannote)...")
-                from whisperx.diarize import DiarizationPipeline, assign_word_speakers
+                try:
+                    from whisperx.diarize import DiarizationPipeline, assign_word_speakers
 
-                hf_token = resolve_hf_token(self.config.hf_token)
-                diarize_model = DiarizationPipeline(token=hf_token, device=device)
-                diarize_segments = diarize_model(audio)
-                diarized_result = assign_word_speakers(diarize_segments, aligned_result)
-                segments = diarized_result["segments"]
-                del diarize_model
-                clear_gpu_vram()
+                    hf_token = resolve_hf_token(self.config.hf_token)
+                    try:
+                        diarize_model = DiarizationPipeline(token=hf_token, device=device)
+                    except TypeError:
+                        diarize_model = DiarizationPipeline(use_auth_token=hf_token, device=device)
+
+                    diarize_segments = diarize_model(audio)
+                    diarized_result = assign_word_speakers(diarize_segments, aligned_result)
+                    segments = diarized_result["segments"]
+                    del diarize_model
+                    clear_gpu_vram()
+                except Exception as diarize_err:
+                    clear_gpu_vram()
+                    err_str = str(diarize_err)
+                    if any(term in err_str.lower() for term in ["401", "403", "gated", "restricted", "unauthorized"]):
+                        raise TranscriptionError(
+                            "Error de acceso a los modelos de Pyannote en Hugging Face.\n\n"
+                            "Verifica los siguientes requisitos:\n"
+                            "1. Aceptar condiciones en: https://huggingface.co/pyannote/speaker-diarization-3.1\n"
+                            "2. Aceptar condiciones en: https://huggingface.co/pyannote/segmentation-3.0\n"
+                            "3. Asegurarte de que tu token de Hugging Face tenga permisos de lectura (Read)."
+                        ) from diarize_err
+                    raise TranscriptionError(f"Error durante la diarización: {diarize_err}") from diarize_err
 
             # --- FASE 5: Generación y Escritura del Archivo Final ---
             notify(0.90, "Generando archivo de transcripción...")
@@ -179,3 +196,21 @@ class WhisperXPipeline:
             if isinstance(e, TranscriptionError):
                 raise
             raise TranscriptionError(f"Error durante el procesamiento: {str(e)}") from e
+
+
+def create_transcription_pipeline(config: TranscriptionConfig):
+    """
+    Fábrica unificada de pipelines.
+    Retorna la instancia correspondiente al proveedor configurado.
+    """
+    from src.config import ProviderType
+
+    if config.provider == ProviderType.DEEPGRAM.value:
+        from src.cloud_providers import DeepgramPipeline
+        return DeepgramPipeline(config)
+    elif config.provider == ProviderType.ASSEMBLYAI.value:
+        from src.cloud_providers import AssemblyAIPipeline
+        return AssemblyAIPipeline(config)
+    else:
+        return WhisperXPipeline(config)
+

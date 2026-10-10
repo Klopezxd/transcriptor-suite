@@ -142,5 +142,61 @@ def resolve_hf_token(explicit_token: str | None = None) -> str | None:
                             return token_val
         except Exception:
             pass
+    return None
+
+
+def resolve_deepgram_api_key(explicit_key: str | None = None) -> str | None:
+    """
+    Resuelve la API Key de Deepgram.
+    Prioridad: argumento explícito > variable de entorno DEEPGRAM_API_KEY > archivo .env.
+    """
+    if explicit_key and explicit_key.strip():
+        return explicit_key.strip()
+
+    env_key = os.getenv("DEEPGRAM_API_KEY")
+    if env_key and env_key.strip():
+        return env_key.strip()
+
+    env_file = Path(".env")
+    if env_file.exists():
+        try:
+            with open(env_file, encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("DEEPGRAM_API_KEY=") and not line.startswith("#"):
+                        val = line.split("=", 1)[1].strip().strip("\"'")
+                        if val:
+                            return val
+        except Exception:
+            pass
 
     return None
+
+
+def resolve_assemblyai_api_key(explicit_key: str | None = None) -> str | None:
+    """
+    Resuelve la API Key de AssemblyAI.
+    Prioridad: argumento explícito > variable de entorno ASSEMBLYAI_API_KEY > archivo .env.
+    """
+    if explicit_key and explicit_key.strip():
+        return explicit_key.strip()
+
+    env_key = os.getenv("ASSEMBLYAI_API_KEY")
+    if env_key and env_key.strip():
+        return env_key.strip()
+
+    env_file = Path(".env")
+    if env_file.exists():
+        try:
+            with open(env_file, encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("ASSEMBLYAI_API_KEY=") and not line.startswith("#"):
+                        val = line.split("=", 1)[1].strip().strip("\"'")
+                        if val:
+                            return val
+        except Exception:
+            pass
+
+    return None
+

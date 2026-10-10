@@ -5,3 +5,4 @@ gradio>=4.0.0
 spaces
 pyannote.audio
 python-dotenv
+requests
