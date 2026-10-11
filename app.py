@@ -258,13 +258,13 @@ main.contain {
     outline: none !important;
 }
 
-/* ── LAYOUT RESPONSIVO DE PANTALLA COMPLETA (100dvh SIN SCROLL EN LAPTOP 14"-16" Y MONITOR 24"-27") ── */
-@media (min-width: 900px) and (min-height: 540px) {
+/* ── LAYOUT RESPONSIVO DE PANTALLA COMPLETA (ADAPTACIÓN EN VIVO SIN RECARGAR ENTRE MONITOR 24"-27" Y LAPTOP 14"-16") ── */
+@media (min-width: 760px) and (min-height: 460px) {
     html,
     body,
     gradio-app {
-        height: 100dvh !important;
-        max-height: 100dvh !important;
+        height: var(--app-vh, 100dvh) !important;
+        max-height: var(--app-vh, 100dvh) !important;
         overflow: hidden !important;
     }
 
@@ -294,6 +294,7 @@ main.contain {
         flex-wrap: nowrap !important;
         align-items: stretch !important;
         gap: clamp(8px, 1.1vw, 18px) !important;
+        overflow: visible !important;
     }
 
     .left-column,
@@ -303,7 +304,7 @@ main.contain {
         justify-content: space-between !important;
         height: 100% !important;
         min-height: 0 !important;
-        gap: clamp(5px, 1vh, 14px) !important;
+        gap: clamp(4px, 0.9vh, 14px) !important;
         overflow: visible !important;
     }
 
@@ -315,6 +316,7 @@ main.contain {
         flex-direction: column !important;
         justify-content: space-between !important;
         overflow: hidden !important;
+        z-index: 5 !important;
     }
 
     .options-card,
@@ -330,7 +332,8 @@ main.contain {
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
-        gap: clamp(4px, 0.9vh, 12px) !important;
+        gap: clamp(4px, 0.85vh, 12px) !important;
+        z-index: 40 !important;
     }
 
     .keys-card,
@@ -347,6 +350,7 @@ main.contain {
         flex-direction: column !important;
         justify-content: space-between !important;
         gap: clamp(3px, 0.7vh, 10px) !important;
+        z-index: 10 !important;
     }
 }
 
@@ -422,13 +426,13 @@ main.contain {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: clamp(5px, 0.9vh, 12px) clamp(12px, 1.4vw, 22px) !important;
+    padding: clamp(4px, 0.85vh, 12px) clamp(12px, 1.4vw, 22px) !important;
     background: rgba(10, 22, 40, 0.82) !important;
     backdrop-filter: blur(18px) !important;
     -webkit-backdrop-filter: blur(18px) !important;
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
     border-radius: 13px !important;
-    margin-bottom: clamp(4px, 0.8vh, 10px) !important;
+    margin-bottom: clamp(3px, 0.75vh, 10px) !important;
     box-shadow: 0 4px 16px rgba(5, 11, 26, 0.5), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
 }
 
@@ -449,8 +453,8 @@ main.contain {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: clamp(26px, 3.6vh, 36px) !important;
-    height: clamp(26px, 3.6vh, 36px) !important;
+    width: clamp(25px, 3.5vh, 36px) !important;
+    height: clamp(25px, 3.5vh, 36px) !important;
     background: rgba(0, 255, 135, 0.1) !important;
     border: 1px solid rgba(0, 255, 135, 0.35) !important;
     border-radius: 8px !important;
@@ -460,7 +464,7 @@ main.contain {
 }
 
 .brand-titles h1 {
-    font-size: clamp(0.94rem, 1.65vh, 1.18rem) !important;
+    font-size: clamp(0.92rem, 1.6vh, 1.18rem) !important;
     font-weight: 800 !important;
     margin: 0 !important;
     line-height: 1.15 !important;
@@ -470,7 +474,7 @@ main.contain {
 }
 
 .brand-titles p {
-    font-size: clamp(0.66rem, 1.1vh, 0.80rem) !important;
+    font-size: clamp(0.65rem, 1.08vh, 0.80rem) !important;
     color: #8BA2BF !important;
     margin: 0 !important;
     line-height: 1.2 !important;
@@ -490,9 +494,9 @@ main.contain {
     width: auto !important;
     min-width: unset !important;
     max-width: 115px !important;
-    height: clamp(27px, 3.6vh, 36px) !important;
+    height: clamp(26px, 3.5vh, 36px) !important;
     padding: 3px 12px !important;
-    font-size: clamp(0.72rem, 1.15vh, 0.84rem) !important;
+    font-size: clamp(0.71rem, 1.12vh, 0.84rem) !important;
     font-weight: 600 !important;
     border-radius: 8px !important;
     background: rgba(232, 244, 248, 0.05) !important;
@@ -520,9 +524,9 @@ main.contain {
     background: #0A1628 !important;
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
     border-radius: 14px !important;
-    padding: clamp(7px, 1.25vh, 18px) clamp(12px, 1.4vw, 22px) !important;
+    padding: clamp(6px, 1.18vh, 18px) clamp(11px, 1.35vw, 22px) !important;
     margin-bottom: 0 !important;
-    gap: clamp(3px, 0.7vh, 10px) !important;
+    gap: clamp(3px, 0.65vh, 10px) !important;
     box-shadow: 0 4px 16px rgba(5, 11, 26, 0.6), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
     transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
     position: relative !important;
@@ -558,6 +562,7 @@ main.contain {
     margin: 0 !important;
     min-height: 0 !important;
     outline: none !important;
+    overflow: visible !important;
 }
 
 .module-card > div,
@@ -567,6 +572,28 @@ main.contain {
     background: transparent !important;
     box-shadow: none !important;
     overflow: visible !important;
+}
+
+/* Mantener la cuadrícula 2x2 de Motor y Opciones sin envolver al cambiar de monitor */
+.options-card .row,
+.options-card .form {
+    flex-wrap: nowrap !important;
+    overflow: visible !important;
+}
+
+.options-card .row > .block,
+.options-card .form > .block {
+    min-width: 0 !important;
+    flex: 1 1 0% !important;
+    overflow: visible !important;
+}
+
+.options-card .block:focus-within,
+.options-card .row:focus-within,
+.options-card .block:has(input[role="combobox"][aria-expanded="true"]),
+.options-card .row:has(input[role="combobox"][aria-expanded="true"]) {
+    position: relative !important;
+    z-index: 9999 !important;
 }
 
 .module-header,
@@ -579,8 +606,8 @@ main.contain {
     align-items: center !important;
     justify-content: space-between !important;
     width: 100% !important;
-    margin-bottom: clamp(2px, 0.5vh, 6px) !important;
-    padding-bottom: clamp(3px, 0.6vh, 7px) !important;
+    margin-bottom: clamp(2px, 0.45vh, 6px) !important;
+    padding-bottom: clamp(2px, 0.55vh, 7px) !important;
     border-bottom: 1px solid rgba(0, 212, 255, 0.1) !important;
 }
 
@@ -613,7 +640,7 @@ main.contain {
     display: flex !important;
     align-items: center !important;
     gap: 6px !important;
-    font-size: clamp(0.77rem, 1.3vh, 0.92rem) !important;
+    font-size: clamp(0.75rem, 1.25vh, 0.92rem) !important;
     font-weight: 700 !important;
     color: var(--frost-white) !important;
     letter-spacing: -0.01em !important;
@@ -621,66 +648,79 @@ main.contain {
 }
 
 .module-title-icon {
-    font-size: clamp(0.86rem, 1.4vh, 1.02rem) !important;
+    font-size: clamp(0.84rem, 1.35vh, 1.02rem) !important;
 }
 
 /* ── FORM ELEMENTS SUAVES Y RESPONSIVOS ──────────── */
 .gradio-container label span,
 .module-card span[data-testid="block-info"] {
     font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.64rem, 1.05vh, 0.76rem) !important;
+    font-size: clamp(0.62rem, 1.02vh, 0.76rem) !important;
     font-weight: 600 !important;
     color: #8BA2BF !important;
     text-transform: uppercase !important;
     letter-spacing: 0.03em !important;
-    margin-bottom: clamp(2px, 0.4vh, 5px) !important;
+    margin-bottom: clamp(2px, 0.35vh, 5px) !important;
     line-height: 1.15 !important;
 }
 
 .module-card .info,
 .module-card div[class*="info"] {
-    font-size: clamp(0.63rem, 1vh, 0.74rem) !important;
+    font-size: clamp(0.61rem, 0.98vh, 0.74rem) !important;
     color: #627A97 !important;
     margin-top: 2px !important;
     margin-bottom: 0 !important;
     line-height: 1.15 !important;
 }
 
-.gradio-container input[type="text"],
-.gradio-container input[type="password"],
+.gradio-container input[type="text"]:not([role="combobox"]),
+.gradio-container input[type="password"]:not([role="combobox"]),
 .gradio-container select {
     background-color: var(--arctic-input) !important;
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
     border-radius: 9px !important;
     color: var(--frost-white) !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.75rem, 1.2vh, 0.86rem) !important;
-    height: clamp(30px, 4vh, 42px) !important;
-    min-height: clamp(30px, 4vh, 42px) !important;
+    font-size: clamp(0.73rem, 1.18vh, 0.86rem) !important;
+    height: clamp(29px, 3.9vh, 42px) !important;
+    min-height: clamp(29px, 3.9vh, 42px) !important;
     padding: 3px 10px !important;
     transition: all 0.2s ease !important;
 }
 
-.gradio-container input[type="text"]:focus,
-.gradio-container input[type="password"]:focus,
+.gradio-container input[type="text"]:not([role="combobox"]):focus,
+.gradio-container input[type="password"]:not([role="combobox"]):focus,
 .gradio-container select:focus {
     border-color: var(--aurora-green) !important;
     box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.22), 0 0 12px rgba(0, 255, 135, 0.15) !important;
     outline: none !important;
 }
 
-/* ── DROPDOWNS Y MENÚS DESPLEGABLES (AURORA BOREAL) ── */
+/* ── DROPDOWNS Y MENÚS DESPLEGABLES (AURORA BOREAL, BORDE ÚNICO Y DESPLIEGUE INFERIOR) ── */
 .module-card .wrap:has(.secondary-wrap),
-.module-card .gradio-dropdown .wrap,
-.module-card .wrap-inner,
-.module-card .gradio-dropdown .wrap-inner {
+.module-card .gradio-dropdown .wrap {
     background: var(--arctic-input) !important;
     border: 1px solid rgba(0, 212, 255, 0.16) !important;
     border-radius: 9px !important;
-    min-height: clamp(31px, 4.1vh, 42px) !important;
-    height: clamp(31px, 4.1vh, 42px) !important;
+    min-height: clamp(29px, 3.9vh, 42px) !important;
+    height: clamp(29px, 3.9vh, 42px) !important;
     transition: all 0.2s ease !important;
     position: relative !important;
+    cursor: pointer !important;
+    overflow: visible !important;
+}
+
+.module-card .wrap-inner,
+.module-card .gradio-dropdown .wrap-inner {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    min-height: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    position: relative !important;
+    cursor: pointer !important;
 }
 
 /* El contenedor envolvente de la página NUNCA debe tener borde ni fondo */
@@ -702,34 +742,60 @@ div.wrap:not(.module-card *) {
     height: 100% !important;
     padding: 1px 10px !important;
     background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    position: relative !important;
+    cursor: pointer !important;
+}
+
+.module-card .secondary-wrap .icon-wrap {
+    position: absolute !important;
+    right: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    pointer-events: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .module-card .wrap:has(.secondary-wrap):focus-within,
 .module-card .gradio-dropdown .wrap:focus-within,
-.module-card .wrap-inner:focus-within,
-.module-card .gradio-dropdown .wrap-inner:focus-within {
+.module-card .wrap:has(.wrap-inner.show_options) {
     border-color: var(--aurora-green) !important;
     box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.22), 0 0 12px rgba(0, 255, 135, 0.15) !important;
 }
 
 .module-card input[role="combobox"],
-.gradio-container input[role="combobox"] {
+.gradio-container input[role="combobox"],
+.module-card input[role="combobox"]:focus,
+.gradio-container input[role="combobox"]:focus {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     color: var(--frost-white) !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.75rem, 1.2vh, 0.86rem) !important;
+    font-size: clamp(0.73rem, 1.18vh, 0.86rem) !important;
     font-weight: 500 !important;
     outline: none !important;
     width: 100% !important;
-    padding: 2px 0 !important;
+    padding: 2px 24px 2px 0 !important;
+    margin: 0 !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     cursor: pointer !important;
     user-select: none !important;
+    -webkit-user-select: none !important;
     caret-color: transparent !important;
+}
+
+.module-card input[role="combobox"]::selection,
+.gradio-container input[role="combobox"]::selection {
+    background: transparent !important;
+    color: var(--frost-white) !important;
 }
 
 .dropdown-arrow,
@@ -741,24 +807,35 @@ div.wrap:not(.module-card *) {
     height: 14px !important;
     min-width: 14px !important;
     flex-shrink: 0 !important;
-    margin-left: 4px !important;
+    margin: 0 !important;
     transition: transform 0.2s ease, fill 0.2s ease !important;
 }
 
 .module-card .wrap:hover .dropdown-arrow,
-.gradio-container .wrap:hover .dropdown-arrow {
+.gradio-container .wrap:hover .dropdown-arrow,
+.module-card .wrap-inner.show_options .dropdown-arrow,
+.module-card .wrap:has(input[role="combobox"][aria-expanded="true"]) .dropdown-arrow {
     fill: var(--aurora-green) !important;
     color: var(--aurora-green) !important;
 }
 
-/* ── MENÚ DE OPCIONES DESPLEGABLE (CON CUADRITOS ESTILIZADOS) ── */
-.options,
-ul.options,
-.option-list,
-div[class*="options"],
-ul[role="listbox"],
-div[role="listbox"],
-.dropdown-menu {
+.module-card .wrap-inner.show_options .dropdown-arrow,
+.module-card .wrap:has(input[role="combobox"][aria-expanded="true"]) .dropdown-arrow {
+    transform: rotate(180deg) !important;
+}
+
+/* ── MENÚ DE OPCIONES DESPLEGABLE (SIEMPRE DEBAJO DEL CUADRO CON CAJITAS ESTILIZADAS) ── */
+.module-card .wrap > .options,
+.gradio-container .wrap > .options,
+div.options.svelte-1ou0lab {
+    position: absolute !important;
+    top: calc(100% + 5px) !important;
+    bottom: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
     background: #060E1D !important;
     border: 1px solid rgba(0, 212, 255, 0.28) !important;
     border-radius: 10px !important;
@@ -767,21 +844,34 @@ div[role="listbox"],
     color: var(--frost-white) !important;
     max-height: 220px !important;
     overflow-y: auto !important;
-    margin-top: 4px !important;
+    margin: 0 !important;
     padding: 5px !important;
+}
+
+.option-list,
+ul.option-list,
+ul[role="listbox"] {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-height: 208px !important;
+    overflow-y: auto !important;
 }
 
 li[role="option"],
 .item,
-div[class*="options"] li,
 .option-list li,
 ul.options > li,
 .options .item,
 [role="listbox"] > li,
-[role="listbox"] > div,
 [role="option"] {
+    width: 100% !important;
+    max-width: 100% !important;
     padding: 6px 10px !important;
-    font-size: clamp(0.75rem, 1.15vh, 0.84rem) !important;
+    font-size: clamp(0.73rem, 1.14vh, 0.84rem) !important;
     font-family: 'Montserrat', sans-serif !important;
     color: var(--frost-white) !important;
     cursor: pointer !important;
@@ -793,6 +883,12 @@ ul.options > li,
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
+    box-sizing: border-box !important;
+}
+
+li[role="option"] > *,
+[role="option"] > * {
+    pointer-events: none !important;
 }
 
 li[role="option"]:last-child,
@@ -826,14 +922,14 @@ li[role="option"][aria-selected="true"],
     border: none !important;
     box-shadow: none !important;
     cursor: pointer !important;
-    margin-top: clamp(8px, 1.5vh, 18px) !important;
+    margin-top: clamp(6px, 1.35vh, 18px) !important;
 }
 
 .module-card label:has(input[type="checkbox"]):hover {
     color: var(--aurora-green) !important;
 }
 
-/* ── MODULO 1: ARRASTRAR ARCHIVO (RESPONSIVO Y ELÁSTICO) ── */
+/* ── MODULO 1: ARRASTRAR ARCHIVO (RESPONSIVO Y ELÁSTICO SIN SOLAPAR TEXTO DE FORMATOS) ── */
 .file-upload-zone,
 .upload-card .file-upload-zone,
 .upload-card .file-upload-zone > div {
@@ -843,10 +939,20 @@ li[role="option"][aria-selected="true"],
     padding: 0 !important;
     width: 100% !important;
     flex: 1 1 0% !important;
-    min-height: 46px !important;
-    height: 100% !important;
+    min-height: 40px !important;
+    height: auto !important;
     display: flex !important;
     flex-direction: column !important;
+}
+
+/* Anula el min-height: var(--size-60) (240px) interno de Gradio 6 en .wrap.svelte-1vmd51o */
+.file-upload-zone .wrap,
+.file-upload-zone [data-upload-density],
+.file-upload-zone .icon-wrap {
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .file-upload-zone .boundedheight,
@@ -857,14 +963,15 @@ li[role="option"][aria-selected="true"],
     border-radius: 10px !important;
     width: 100% !important;
     flex: 1 1 0% !important;
-    min-height: 46px !important;
+    min-height: 40px !important;
     height: 100% !important;
-    padding: 6px 14px !important;
+    padding: 4px 12px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
     box-sizing: border-box !important;
+    overflow: hidden !important;
     transition: all 0.25s ease !important;
 }
 
@@ -888,14 +995,18 @@ li[role="option"][aria-selected="true"],
     color: transparent !important;
     line-height: 0 !important;
     width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .file-upload-zone [data-testid="upload-icon"] svg,
 .file-upload-zone svg.feather-upload,
 .file-upload-zone button svg {
     display: inline-block !important;
-    width: clamp(17px, 2.4vh, 24px) !important;
-    height: clamp(17px, 2.4vh, 24px) !important;
+    width: clamp(16px, 2.3vh, 24px) !important;
+    height: clamp(16px, 2.3vh, 24px) !important;
     margin: 0 !important;
     color: var(--ice-cyan) !important;
     flex-shrink: 0 !important;
@@ -910,7 +1021,7 @@ li[role="option"][aria-selected="true"],
 .file-upload-zone button > div::after {
     content: "Arrastre el archivo aquí o haga clic para cargar" !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.74rem, 1.25vh, 0.88rem) !important;
+    font-size: clamp(0.72rem, 1.2vh, 0.88rem) !important;
     line-height: 1.25 !important;
     font-weight: 500 !important;
     color: var(--frost-white) !important;
@@ -931,7 +1042,7 @@ li[role="option"][aria-selected="true"],
 
 .file-hint {
     flex: 0 0 auto !important;
-    font-size: clamp(0.63rem, 1vh, 0.74rem) !important;
+    font-size: clamp(0.61rem, 0.98vh, 0.74rem) !important;
     color: #627A97 !important;
     margin-top: 2px !important;
     line-height: 1.15 !important;
@@ -954,7 +1065,7 @@ li[role="option"][aria-selected="true"],
     justify-content: space-between !important;
     height: 100% !important;
     min-height: 0 !important;
-    gap: clamp(5px, 0.9vh, 12px) !important;
+    gap: clamp(4px, 0.85vh, 12px) !important;
 }
 
 .output-textbox,
@@ -975,17 +1086,17 @@ li[role="option"][aria-selected="true"],
 
 .output-textbox textarea {
     flex: 1 1 0% !important;
-    height: 100% !important;
-    min-height: 160px !important;
+    height: 0 !important;
+    min-height: 110px !important;
     max-height: none !important;
     background-color: #040813 !important;
     border: 1px solid rgba(0, 212, 255, 0.12) !important;
     border-radius: 10px !important;
     color: var(--frost-white) !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: clamp(0.76rem, 1.25vh, 0.88rem) !important;
+    font-size: clamp(0.74rem, 1.22vh, 0.88rem) !important;
     line-height: 1.55 !important;
-    padding: clamp(8px, 1.3vh, 16px) clamp(10px, 1.2vw, 18px) !important;
+    padding: clamp(8px, 1.25vh, 16px) clamp(10px, 1.2vw, 18px) !important;
     resize: none !important;
     overflow-y: auto !important;
     box-sizing: border-box !important;
@@ -1432,6 +1543,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         value=ProviderType.DEEPGRAM.value,
                         label="Proveedor de Transcripción",
                         filterable=False,
+                        min_width=100,
                         scale=1,
                     )
                     model_dropdown = gr.Dropdown(
@@ -1439,6 +1551,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         value=DeepgramModel.NOVA_2.value,
                         label="Modelo de Transcripción",
                         filterable=False,
+                        min_width=100,
                         scale=1,
                     )
 
@@ -1446,6 +1559,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     diarize_checkbox = gr.Checkbox(
                         value=False,
                         label="Identificar quién habla (Diarización)",
+                        min_width=100,
                         scale=1,
                     )
                     timestamps_dropdown = gr.Dropdown(
@@ -1457,6 +1571,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         value="Simple ([HH:MM:SS])",
                         label="Formato de Marcas de Tiempo",
                         filterable=False,
+                        min_width=100,
                         scale=1,
                     )
 
@@ -1863,6 +1978,177 @@ with gr.Blocks(**blocks_kwargs) as demo:
             *panel_vis,
         )
 
+    _ui_enhancements_js = """(...args) => {
+        if (!window.__transcriptorUiEnhancements) {
+            window.__transcriptorUiEnhancements = true;
+
+            // 1. Toggle abrir/cerrar en los menús desplegables al hacer clic (1er clic abre, 2do clic cierra)
+            const toggleCombo = (wrap, e) => {
+                const input = wrap.querySelector('input[role="combobox"]');
+                if (!input) return;
+                const wrapInner = wrap.querySelector('.wrap-inner');
+                const isOpen =
+                    input.getAttribute('aria-expanded') === 'true' ||
+                    (wrapInner && wrapInner.classList.contains('show_options')) ||
+                    !!wrap.querySelector('.options');
+
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.getSelection) {
+                    const sel = window.getSelection();
+                    if (sel && sel.removeAllRanges) sel.removeAllRanges();
+                }
+
+                if (isOpen) {
+                    input.blur();
+                } else {
+                    document.querySelectorAll('input[role="combobox"]').forEach((other) => {
+                        if (other !== input) other.blur();
+                    });
+                    if (document.activeElement === input) {
+                        input.blur();
+                    }
+                    input.focus({ preventScroll: true });
+                }
+            };
+
+            document.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+
+                const optionTarget = e.target.closest('.options, .option-list, [role="listbox"], [role="option"], li.item');
+                if (optionTarget) {
+                    setTimeout(() => {
+                        document.querySelectorAll('input[role="combobox"]').forEach((inp) => inp.blur());
+                        if (window.getSelection) {
+                            const sel = window.getSelection();
+                            if (sel && sel.removeAllRanges) sel.removeAllRanges();
+                        }
+                    }, 15);
+                    return;
+                }
+
+                const wrap = e.target.closest('.wrap:has(input[role="combobox"])');
+                if (wrap) {
+                    window.__lastComboMousedown = Date.now();
+                    toggleCombo(wrap, e);
+                    return;
+                }
+
+                document.querySelectorAll('input[role="combobox"]').forEach((inp) => {
+                    if (
+                        document.activeElement === inp ||
+                        inp.getAttribute('aria-expanded') === 'true'
+                    ) {
+                        inp.blur();
+                    }
+                });
+            }, true);
+
+            document.addEventListener('click', (e) => {
+                const optionTarget = e.target.closest('.options, .option-list, [role="listbox"], [role="option"], li.item');
+                if (optionTarget) return;
+
+                const wrap = e.target.closest('.wrap:has(input[role="combobox"])');
+                if (!wrap) return;
+
+                if (Date.now() - (window.__lastComboMousedown || 0) < 350) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+                toggleCombo(wrap, e);
+            }, true);
+
+            // 2. Responsividad en tiempo real al cambiar entre monitores (ej. 24" <-> 16" laptop) sin recargar
+            let lastParentVh = 0;
+            const syncViewport = () => {
+                const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+                const effectiveVh = lastParentVh > 0 ? lastParentVh : vh;
+
+                if (effectiveVh > 0) {
+                    document.documentElement.style.setProperty('--app-vh', `${Math.round(effectiveVh)}px`);
+                }
+                if (vw > 0) {
+                    document.documentElement.style.setProperty('--app-vw', `${Math.round(vw)}px`);
+                }
+
+                // Limpiar alturas en línea que Gradio BaseTextbox inyecta al redimensionar
+                document.querySelectorAll('.output-textbox textarea').forEach((ta) => {
+                    if (ta.style.height) {
+                        ta.style.removeProperty('height');
+                    }
+                });
+            };
+
+            const hookParentIframe = () => {
+                if (window.parentIFrame && !window.__transcriptorHookedParentIframe) {
+                    window.__transcriptorHookedParentIframe = true;
+                    const origSize = window.parentIFrame.size ? window.parentIFrame.size.bind(window.parentIFrame) : null;
+                    if (origSize) {
+                        window.parentIFrame.size = (customH, customW) => {
+                            if (lastParentVh > 0) {
+                                return origSize(lastParentVh, customW);
+                            }
+                            return origSize(customH, customW);
+                        };
+                    }
+                    if (typeof window.parentIFrame.getPageInfo === 'function') {
+                        window.parentIFrame.getPageInfo((info) => {
+                            if (!info || !info.clientHeight) return;
+                            const topOffset = Math.max(0, info.offsetTop || 0);
+                            const targetH = Math.max(460, info.clientHeight - topOffset);
+                            if (Math.abs(targetH - lastParentVh) > 2) {
+                                lastParentVh = targetH;
+                                document.documentElement.style.setProperty('--app-vh', `${Math.round(targetH)}px`);
+                                if (origSize) origSize(targetH);
+                            }
+                        });
+                    }
+                }
+            };
+
+            syncViewport();
+            hookParentIframe();
+            setTimeout(() => { syncViewport(); hookParentIframe(); }, 120);
+            setTimeout(() => { syncViewport(); hookParentIframe(); }, 500);
+
+            let rafId = 0;
+            const onViewportChange = () => {
+                if (rafId) cancelAnimationFrame(rafId);
+                rafId = requestAnimationFrame(() => {
+                    syncViewport();
+                    hookParentIframe();
+                });
+            };
+
+            window.addEventListener('resize', onViewportChange, { passive: true });
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', onViewportChange, { passive: true });
+            }
+            if ('ResizeObserver' in window) {
+                const ro = new ResizeObserver(onViewportChange);
+                ro.observe(document.documentElement);
+            }
+
+            // Detectar cambio de escala DPI al arrastrar la ventana entre monitor externo (100%) y laptop (125%/150%)
+            const watchDpiChange = () => {
+                const mq = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+                const handler = () => {
+                    onViewportChange();
+                    setTimeout(onViewportChange, 60);
+                    setTimeout(onViewportChange, 180);
+                    watchDpiChange();
+                };
+                if (mq.addEventListener) {
+                    mq.addEventListener('change', handler, { once: true });
+                }
+            };
+            watchDpiChange();
+        }
+        return args;
+    }"""
+
     demo.load(
         fn=check_url_auth,
         inputs=[provider_dropdown, diarize_checkbox],
@@ -1876,6 +2162,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             deepgram_key_box,
             assemblyai_key_box,
         ],
+        js=_ui_enhancements_js,
         show_progress="hidden",
     )
 
