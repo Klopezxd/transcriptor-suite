@@ -243,15 +243,40 @@ body, html {
 
 .gradio-container {
     max-width: 1440px !important;
-    width: 96% !important;
+    width: 98% !important;
     margin: 0 auto !important;
-    padding: 10px 14px 20px 14px !important;
+    padding: 4px 12px 4px 12px !important;
     border: none !important;
     box-shadow: none !important;
     outline: none !important;
 }
 
-/* ── ELIMINA LA CAJA EXTERIOR QUE CUBRE A TODOS LOS MÓDULOS ── */
+/* Ocultar loaders invisibles de Gradio, bloques <style> sin contenido visual y el footer por defecto */
+.wrap.default.full.hide,
+.module-card > .wrap.hide,
+.modal-overlay > .wrap.hide,
+.block:has(> .html-container > div > style),
+.block:has(> div > style),
+footer:not(.app-footer) {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Reducir gaps de filas y columnas de Gradio para que todo quepa en 1 sola pantalla */
+.gradio-container .row,
+.gradio-container .gradio-row {
+    gap: 8px !important;
+}
+
+.gradio-container .column,
+.gradio-container .gradio-column {
+    gap: 6px !important;
+}
+
+/* ── ELIMINA LA CAJA EXTERIOR QUE CUBRE A TODOS LOS MÓDULOS Y PADDING EXTRA ── */
 .gradio-container,
 .gradio-container-6-30-0,
 .gradio-container > .main,
@@ -263,6 +288,16 @@ gradio-app {
     border: none !important;
     box-shadow: none !important;
     outline: none !important;
+}
+
+.gradio-container > .main,
+.gradio-container > .main > .wrap,
+main.contain,
+main.contain > .wrap {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
 }
 
 /* ── PREVIENE QUE CONTENEDORES PADRE CAPTUREN POSITION: FIXED ── */
@@ -281,55 +316,63 @@ main.contain {
     contain: none !important;
 }
 
-/* ── NAVBAR HEADER ────────────────────────────────── */
+/* ── NAVBAR HEADER (COMPACTO) ─────────────────────── */
 .app-navbar {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 8px 18px !important;
+    padding: 6px 14px !important;
     background: rgba(10, 22, 40, 0.82) !important;
     backdrop-filter: blur(18px) !important;
     -webkit-backdrop-filter: blur(18px) !important;
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
-    border-radius: 16px !important;
-    margin-bottom: 12px !important;
-    box-shadow: 0 4px 20px rgba(5, 11, 26, 0.5), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
+    border-radius: 13px !important;
+    margin-bottom: 6px !important;
+    box-shadow: 0 4px 16px rgba(5, 11, 26, 0.5), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
+}
+
+.app-navbar .html-container,
+.app-navbar .prose {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
 }
 
 .nav-brand {
     display: flex !important;
     align-items: center !important;
-    gap: 12px !important;
+    gap: 10px !important;
 }
 
 .brand-icon {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 32px !important;
-    height: 32px !important;
+    width: 28px !important;
+    height: 28px !important;
     background: rgba(0, 255, 135, 0.1) !important;
     border: 1px solid rgba(0, 255, 135, 0.35) !important;
-    border-radius: 9px !important;
+    border-radius: 8px !important;
     color: var(--aurora-green) !important;
-    box-shadow: 0 0 12px rgba(0, 255, 135, 0.18) !important;
+    box-shadow: 0 0 10px rgba(0, 255, 135, 0.18) !important;
     flex-shrink: 0 !important;
 }
 
 .brand-titles h1 {
-    font-size: 1.08rem !important;
+    font-size: 0.98rem !important;
     font-weight: 800 !important;
     margin: 0 !important;
-    line-height: 1.2 !important;
+    line-height: 1.15 !important;
     background: linear-gradient(135deg, #FAFBFC 15%, #00FF87 55%, #00D4FF 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
 }
 
 .brand-titles p {
-    font-size: 0.72rem !important;
+    font-size: 0.68rem !important;
     color: #8BA2BF !important;
-    margin: 1px 0 0 0 !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
 }
 
 .nav-actions {
@@ -345,12 +388,12 @@ main.contain {
 .btn-login-compact {
     width: auto !important;
     min-width: unset !important;
-    max-width: 110px !important;
-    height: 32px !important;
-    padding: 4px 12px !important;
-    font-size: 0.78rem !important;
+    max-width: 105px !important;
+    height: 28px !important;
+    padding: 3px 10px !important;
+    font-size: 0.74rem !important;
     font-weight: 600 !important;
-    border-radius: 9px !important;
+    border-radius: 8px !important;
     background: rgba(232, 244, 248, 0.05) !important;
     border: 1px solid rgba(0, 212, 255, 0.2) !important;
     color: var(--frost-white) !important;
@@ -371,14 +414,15 @@ main.contain {
     transform: translateY(-1px) !important;
 }
 
-/* ── MODULOS EN CUADROS REDONDEADOS (AURORA BOREAL) ── */
+/* ── MODULOS EN CUADROS REDONDEADOS (AURORA BOREAL COMPACTOS) ── */
 .module-card {
     background: #0A1628 !important;
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
-    border-radius: 16px !important;
-    padding: 13px 16px !important;
-    margin-bottom: 11px !important;
-    box-shadow: 0 4px 20px rgba(5, 11, 26, 0.6), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
+    border-radius: 13px !important;
+    padding: 8px 14px !important;
+    margin-bottom: 0 !important;
+    gap: 4px !important;
+    box-shadow: 0 4px 16px rgba(5, 11, 26, 0.6), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
     transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
     position: relative !important;
     overflow: visible !important;
@@ -386,10 +430,10 @@ main.contain {
 
 .module-card:hover {
     border-color: rgba(0, 255, 135, 0.35) !important;
-    box-shadow: 0 6px 26px rgba(5, 11, 26, 0.7), 0 0 16px rgba(0, 255, 135, 0.12) !important;
+    box-shadow: 0 6px 22px rgba(5, 11, 26, 0.7), 0 0 14px rgba(0, 255, 135, 0.12) !important;
 }
 
-/* ── CERO CUADROS ANIDADOS (ELIMINA BORDES Y FONDOS INTERNOS DE GRADIO) ── */
+/* ── CERO CUADROS ANIDADOS Y CERO PADDING EXTRA EN BLOQUES INTERNOS ── */
 .module-card .block,
 .module-card .gr-block,
 .module-card .form,
@@ -402,12 +446,15 @@ main.contain {
 .module-card div[data-testid*="block"],
 .module-card div[data-testid*="group"],
 .module-card div[data-testid*="form"],
-.module-card .container {
+.module-card .container,
+.module-card .html-container,
+.module-card .prose {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
+    min-height: 0 !important;
     outline: none !important;
 }
 
@@ -420,38 +467,81 @@ main.contain {
     overflow: visible !important;
 }
 
-.module-header {
+.module-header,
+.gradio-container .row.module-header,
+.module-card .row.module-header {
     display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: space-between !important;
-    margin-bottom: 8px !important;
-    padding-bottom: 6px !important;
+    width: 100% !important;
+    margin-bottom: 3px !important;
+    padding-bottom: 4px !important;
     border-bottom: 1px solid rgba(0, 212, 255, 0.1) !important;
+}
+
+/* En encabezados con múltiples elementos (como Resultado + "En espera"), alinear extremos en la misma fila */
+.module-header > div:first-child,
+.row.module-header > .block:first-child {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    margin-right: auto !important;
+}
+
+.status-badge-container,
+.row.module-header > .status-badge-container,
+.module-header .status-badge-container,
+.status-badge-container .html-container,
+.status-badge-container .prose {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: fit-content !important;
+    margin-left: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    text-align: right !important;
 }
 
 .module-title {
     display: flex !important;
     align-items: center !important;
-    gap: 7px !important;
-    font-size: 0.84rem !important;
+    gap: 6px !important;
+    font-size: 0.79rem !important;
     font-weight: 700 !important;
     color: var(--frost-white) !important;
     letter-spacing: -0.01em !important;
+    line-height: 1.2 !important;
 }
 
 .module-title-icon {
-    font-size: 0.95rem !important;
+    font-size: 0.88rem !important;
 }
 
-/* ── FORM ELEMENTS SUAVES ────────────────────────── */
-.gradio-container label span {
+/* ── FORM ELEMENTS SUAVES Y COMPACTOS ────────────── */
+.gradio-container label span,
+.module-card span[data-testid="block-info"] {
     font-family: 'Montserrat', sans-serif !important;
-    font-size: 0.71rem !important;
+    font-size: 0.66rem !important;
     font-weight: 600 !important;
     color: #8BA2BF !important;
     text-transform: uppercase !important;
     letter-spacing: 0.03em !important;
-    margin-bottom: 3px !important;
+    margin-bottom: 2px !important;
+    line-height: 1.15 !important;
+}
+
+/* Ocultar o compactar subtítulo secundario de input para ahorrar espacio vertical */
+.module-card .info,
+.module-card div[class*="info"] {
+    font-size: 0.65rem !important;
+    color: #627A97 !important;
+    margin-top: 2px !important;
+    margin-bottom: 0 !important;
+    line-height: 1.15 !important;
 }
 
 .gradio-container input[type="text"],
@@ -459,10 +549,13 @@ main.contain {
 .gradio-container select {
     background-color: var(--arctic-input) !important;
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
-    border-radius: 10px !important;
+    border-radius: 8px !important;
     color: var(--frost-white) !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: 0.82rem !important;
+    font-size: 0.77rem !important;
+    height: 31px !important;
+    min-height: 31px !important;
+    padding: 3px 10px !important;
     transition: all 0.2s ease !important;
 }
 
@@ -481,8 +574,9 @@ main.contain {
 .module-card .gradio-dropdown .wrap-inner {
     background: var(--arctic-input) !important;
     border: 1px solid rgba(0, 212, 255, 0.16) !important;
-    border-radius: 10px !important;
-    min-height: 38px !important;
+    border-radius: 8px !important;
+    min-height: 32px !important;
+    height: 32px !important;
     transition: all 0.2s ease !important;
     position: relative !important;
 }
@@ -503,7 +597,8 @@ div.wrap:not(.module-card *) {
     align-items: center !important;
     justify-content: space-between !important;
     width: 100% !important;
-    padding: 2px 10px !important;
+    height: 100% !important;
+    padding: 1px 8px !important;
     background: transparent !important;
 }
 
@@ -522,11 +617,11 @@ div.wrap:not(.module-card *) {
     box-shadow: none !important;
     color: var(--frost-white) !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: 0.81rem !important;
+    font-size: 0.76rem !important;
     font-weight: 500 !important;
     outline: none !important;
     width: 100% !important;
-    padding: 4px 0 !important;
+    padding: 2px 0 !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -540,11 +635,11 @@ div.wrap:not(.module-card *) {
 .gradio-container .dropdown-arrow {
     fill: #8BA2BF !important;
     color: #8BA2BF !important;
-    width: 16px !important;
-    height: 16px !important;
-    min-width: 16px !important;
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
     flex-shrink: 0 !important;
-    margin-left: 6px !important;
+    margin-left: 4px !important;
     transition: transform 0.2s ease, fill 0.2s ease !important;
 }
 
@@ -564,14 +659,14 @@ div[role="listbox"],
 .dropdown-menu {
     background: #060E1D !important;
     border: 1px solid rgba(0, 212, 255, 0.28) !important;
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     box-shadow: 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 18px rgba(0, 212, 255, 0.18) !important;
     z-index: 999999 !important;
     color: var(--frost-white) !important;
-    max-height: 230px !important;
+    max-height: 210px !important;
     overflow-y: auto !important;
-    margin-top: 5px !important;
-    padding: 6px !important;
+    margin-top: 4px !important;
+    padding: 5px !important;
 }
 
 li[role="option"],
@@ -583,14 +678,14 @@ ul.options > li,
 [role="listbox"] > li,
 [role="listbox"] > div,
 [role="option"] {
-    padding: 8px 12px !important;
-    font-size: 0.80rem !important;
+    padding: 6px 10px !important;
+    font-size: 0.76rem !important;
     font-family: 'Montserrat', sans-serif !important;
     color: var(--frost-white) !important;
     cursor: pointer !important;
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
-    border-radius: 8px !important;
-    margin-bottom: 5px !important;
+    border-radius: 7px !important;
+    margin-bottom: 4px !important;
     background: rgba(10, 22, 40, 0.8) !important;
     transition: all 0.15s ease !important;
     display: flex !important;
@@ -623,20 +718,20 @@ li[role="option"][aria-selected="true"],
 .module-card label:has(input[type="checkbox"]) {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 7px !important;
-    padding: 4px 0 !important;
+    gap: 6px !important;
+    padding: 2px 0 !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     cursor: pointer !important;
-    margin-top: 1px !important;
+    margin-top: 12px !important;
 }
 
 .module-card label:has(input[type="checkbox"]):hover {
     color: var(--aurora-green) !important;
 }
 
-/* ── MODULO 1: ARRASTRAR ARCHIVO ──────────────────── */
+/* ── MODULO 1: ARRASTRAR ARCHIVO (COMPACTO) ───────── */
 .file-upload-zone {
     border: none !important;
     background: transparent !important;
@@ -650,11 +745,11 @@ li[role="option"][aria-selected="true"],
 .file-upload-zone button {
     background: rgba(6, 14, 29, 0.6) !important;
     border: 1.5px dashed rgba(0, 212, 255, 0.28) !important;
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     width: 100% !important;
-    min-height: 96px !important;
-    height: 96px !important;
-    padding: 10px 14px !important;
+    min-height: 50px !important;
+    height: 50px !important;
+    padding: 4px 12px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -668,16 +763,17 @@ li[role="option"][aria-selected="true"],
 .file-upload-zone button:hover {
     border-color: var(--aurora-green) !important;
     background: rgba(0, 255, 135, 0.05) !important;
-    box-shadow: 0 0 16px rgba(0, 255, 135, 0.16) !important;
+    box-shadow: 0 0 14px rgba(0, 255, 135, 0.16) !important;
 }
 
 /* Reemplazo limpio del texto nativo sin overflow */
 .file-upload-zone [data-testid="upload-text"],
 .file-upload-zone button > div {
     display: flex !important;
-    flex-direction: column !important;
+    flex-direction: row !important;
     align-items: center !important;
     justify-content: center !important;
+    gap: 8px !important;
     font-size: 0 !important;
     color: transparent !important;
     line-height: 0 !important;
@@ -687,11 +783,12 @@ li[role="option"][aria-selected="true"],
 .file-upload-zone [data-testid="upload-icon"] svg,
 .file-upload-zone svg.feather-upload,
 .file-upload-zone button svg {
-    display: block !important;
-    width: 24px !important;
-    height: 24px !important;
-    margin: 0 auto 6px auto !important;
+    display: inline-block !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
     color: var(--ice-cyan) !important;
+    flex-shrink: 0 !important;
 }
 
 .file-upload-zone .or,
@@ -703,13 +800,13 @@ li[role="option"][aria-selected="true"],
 .file-upload-zone button > div::after {
     content: "Arrastre el archivo aquí o haga clic para cargar" !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: 0.80rem !important;
-    line-height: 1.35 !important;
+    font-size: 0.76rem !important;
+    line-height: 1.25 !important;
     font-weight: 500 !important;
     color: var(--frost-white) !important;
     text-align: center !important;
-    display: block !important;
-    margin-top: 4px !important;
+    display: inline-block !important;
+    margin: 0 !important;
 }
 
 .file-upload-zone input[type="file"],
@@ -723,9 +820,10 @@ li[role="option"][aria-selected="true"],
 }
 
 .file-hint {
-    font-size: 0.69rem !important;
+    font-size: 0.65rem !important;
     color: #627A97 !important;
-    margin-top: 4px !important;
+    margin-top: 2px !important;
+    line-height: 1.15 !important;
 }
 
 /* ── MODULO 4: RESULTADO DE LA TRANSCRIPCIÓN (ALTURA SIMÉTRICA) ── */
@@ -761,17 +859,17 @@ li[role="option"][aria-selected="true"],
 }
 
 .output-textbox textarea {
-    height: 760px !important;
-    min-height: 760px !important;
+    height: 383px !important;
+    min-height: 383px !important;
     flex: 1 1 auto !important;
     background-color: #040813 !important;
     border: 1px solid rgba(0, 212, 255, 0.12) !important;
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     color: var(--frost-white) !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.82rem !important;
-    line-height: 1.65 !important;
-    padding: 12px 14px !important;
+    font-size: 0.78rem !important;
+    line-height: 1.55 !important;
+    padding: 10px 12px !important;
     resize: none !important;
     overflow-y: auto !important;
     box-sizing: border-box !important;
@@ -799,9 +897,9 @@ li[role="option"][aria-selected="true"],
     box-shadow: 0 0 8px rgba(0, 255, 135, 0.5);
 }
 
-/* ── BOTONES DE ACCIÓN ───────────────────────────── */
+/* ── BOTONES DE ACCIÓN (COMPACTOS) ───────────────── */
 .actions-row {
-    margin-top: 4px !important;
+    margin-top: 2px !important;
     gap: 8px !important;
 }
 
@@ -810,11 +908,13 @@ li[role="option"][aria-selected="true"],
     color: #050B1A !important;
     font-family: 'Montserrat', sans-serif !important;
     font-weight: 700 !important;
-    font-size: 0.86rem !important;
+    font-size: 0.80rem !important;
     border: none !important;
-    border-radius: 10px !important;
-    padding: 9px 16px !important;
-    box-shadow: 0 4px 18px rgba(0, 255, 135, 0.32) !important;
+    border-radius: 9px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 6px 14px !important;
+    box-shadow: 0 4px 14px rgba(0, 255, 135, 0.28) !important;
     transition: all 0.25s ease !important;
     cursor: pointer !important;
 }
@@ -822,7 +922,7 @@ li[role="option"][aria-selected="true"],
 .btn-primary:hover {
     background: linear-gradient(135deg, #00D4FF 0%, #7B2FBE 100%) !important;
     color: #FAFBFC !important;
-    box-shadow: 0 6px 24px rgba(0, 212, 255, 0.48), 0 0 16px rgba(123, 47, 190, 0.3) !important;
+    box-shadow: 0 6px 20px rgba(0, 212, 255, 0.45), 0 0 14px rgba(123, 47, 190, 0.3) !important;
     transform: translateY(-1px) !important;
 }
 
@@ -832,9 +932,11 @@ li[role="option"][aria-selected="true"],
     color: var(--frost-white) !important;
     font-family: 'Montserrat', sans-serif !important;
     font-weight: 600 !important;
-    font-size: 0.82rem !important;
-    border-radius: 10px !important;
-    padding: 9px 14px !important;
+    font-size: 0.77rem !important;
+    border-radius: 9px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 6px 12px !important;
     transition: all 0.25s ease !important;
     cursor: pointer !important;
 }
@@ -851,10 +953,11 @@ li[role="option"][aria-selected="true"],
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 3px 8px;
-    border-radius: 7px;
-    font-size: 0.70rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.68rem;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .status-success {
@@ -879,14 +982,15 @@ li[role="option"][aria-selected="true"],
 .info-notice {
     display: flex;
     align-items: center;
-    gap: 7px;
-    padding: 6px 10px;
-    border-radius: 9px;
-    font-size: 0.72rem;
+    gap: 6px;
+    padding: 4px 9px;
+    border-radius: 8px;
+    font-size: 0.68rem;
+    line-height: 1.25;
     background: rgba(0, 212, 255, 0.08);
     border: 1px solid rgba(0, 212, 255, 0.22);
     color: #7DD3FC;
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 .info-free {
@@ -896,7 +1000,7 @@ li[role="option"][aria-selected="true"],
     box-shadow: 0 0 12px rgba(0, 255, 135, 0.12) !important;
 }
 
-/* ── MODAL ADMIN (ESTRICTAMENTE CENTRADO EN PANTALLA Y ACOMPAÑA SCROLL) ── */
+/* ── MODAL ADMIN (CENTRADO EN PESTAÑA VISIBLE Y ACOMPAÑA EL SCROLL) ── */
 .modal-overlay,
 div.modal-overlay,
 .gradio-container .modal-overlay,
@@ -906,18 +1010,15 @@ div.modal-overlay,
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
-    inset: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    background: rgba(3, 7, 18, 0.85) !important;
+    background: rgba(3, 7, 18, 0.82) !important;
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
-    z-index: 9999999 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 20px !important;
+    z-index: 2147483640 !important;
     margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
     box-sizing: border-box !important;
 }
 
@@ -925,52 +1026,62 @@ div.modal-overlay,
 div.modal-dialog,
 .gradio-container .modal-dialog,
 .gradio-container div.modal-dialog {
+    position: fixed !important;
+    top: var(--visible-center-y, 50vh) !important;
+    left: 50vw !important;
+    transform: translate(-50%, -50%) !important;
     background: #0A1628 !important;
-    border: 1px solid rgba(0, 212, 255, 0.22) !important;
-    border-radius: 18px !important;
-    width: 100% !important;
-    max-width: 380px !important;
+    border: 1px solid rgba(0, 212, 255, 0.28) !important;
+    border-radius: 16px !important;
+    width: 90vw !important;
+    max-width: 370px !important;
     height: auto !important;
     min-height: unset !important;
     max-height: fit-content !important;
     flex: 0 0 auto !important;
-    flex-grow: 0 !important;
-    flex-shrink: 0 !important;
-    align-self: center !important;
-    margin: auto !important;
-    padding: 22px !important;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 24px rgba(0, 212, 255, 0.18) !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    z-index: 2147483647 !important;
+    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.92), 0 0 24px rgba(0, 212, 255, 0.22) !important;
     box-sizing: border-box !important;
+    transition: top 0.08s ease-out !important;
+}
+
+.modal-dialog .html-container,
+.modal-dialog .prose {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
 }
 
 .modal-title-row {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 6px !important;
     flex-wrap: nowrap !important;
     width: 100% !important;
 }
 
 .modal-title {
-    font-size: 0.96rem !important;
+    font-size: 0.92rem !important;
     font-weight: 700 !important;
     color: var(--frost-white) !important;
     margin: 0 !important;
 }
 
 .btn-modal-close {
-    width: 30px !important;
-    height: 30px !important;
-    min-width: 30px !important;
-    max-width: 30px !important;
-    flex: 0 0 30px !important;
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
+    flex: 0 0 28px !important;
     padding: 0 !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border-radius: 8px !important;
-    font-size: 0.85rem !important;
+    border-radius: 7px !important;
+    font-size: 0.80rem !important;
     color: #8BA2BF !important;
     background: rgba(232, 244, 248, 0.05) !important;
     border: 1px solid rgba(0, 212, 255, 0.15) !important;
@@ -984,19 +1095,19 @@ div.modal-dialog,
 }
 
 .modal-subtext {
-    font-size: 0.75rem !important;
+    font-size: 0.73rem !important;
     color: #8BA2BF !important;
-    margin: 0 0 12px 0 !important;
-    line-height: 1.4 !important;
+    margin: 0 0 10px 0 !important;
+    line-height: 1.35 !important;
 }
 
 .app-footer {
     text-align: center !important;
-    font-size: 0.70rem !important;
+    font-size: 0.65rem !important;
     color: #627A97 !important;
-    padding: 12px 0 4px 0 !important;
+    padding: 4px 0 0 0 !important;
     border-top: 1px solid rgba(0, 212, 255, 0.06) !important;
-    margin-top: 14px !important;
+    margin-top: 4px !important;
 }
 """
 
@@ -1113,9 +1224,21 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
             login_msg = gr.HTML("", visible=False)
 
-            with gr.Row():
-                btn_cancel_login = gr.Button("Cancelar", variant="secondary", scale=1)
-                btn_submit_login = gr.Button("Ingresar", variant="primary", scale=2)
+            with gr.Row(elem_classes=["actions-row"]):
+                btn_cancel_login = gr.Button(
+                    "Cancelar",
+                    variant="secondary",
+                    elem_classes=["btn-secondary"],
+                    min_width=80,
+                    scale=1,
+                )
+                btn_submit_login = gr.Button(
+                    "Ingresar",
+                    variant="primary",
+                    elem_classes=["btn-primary"],
+                    min_width=120,
+                    scale=2,
+                )
 
     # ── 3. CUERPO PRINCIPAL (LANDING PAGE ÚNICA DE 2 COLUMNAS) ───
     with gr.Row():
@@ -1138,7 +1261,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     show_label=False,
                     file_types=["audio", "video"],
                     file_count="single",
-                    height=100,
+                    height=60,
                     container=False,
                     elem_classes=["file-upload-zone"],
                 )
@@ -1284,7 +1407,8 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         """
                     )
                     status_badge = gr.HTML(
-                        '<span class="status-badge status-warning">En espera</span>'
+                        '<span class="status-badge status-warning">En espera</span>',
+                        elem_classes=["status-badge-container"],
                     )
 
                 output_textbox = gr.Textbox(
@@ -1300,11 +1424,13 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         value=None,
                         interactive=False,
                         variant="secondary",
+                        elem_classes=["btn-secondary"],
                         scale=2,
                     )
                     btn_copy = gr.Button(
                         "📋 Copiar texto",
                         variant="secondary",
+                        elem_classes=["btn-secondary"],
                         scale=1,
                     )
 
@@ -1408,9 +1534,67 @@ with gr.Blocks(**blocks_kwargs) as demo:
     def close_login_dialog():
         return gr.Column(visible=False), "", gr.HTML(visible=False)
 
+    _modal_center_js = """(...args) => {
+        const setupModalCenter = () => {
+            const overlay = document.querySelector('.modal-overlay');
+            const dialog = document.querySelector('.modal-dialog');
+            if (!overlay || !dialog) return;
+            if (overlay.parentElement !== document.body) {
+                document.body.appendChild(overlay);
+            }
+            const applyCenter = (centerY, centerX) => {
+                dialog.style.setProperty('--visible-center-y', `${Math.round(centerY)}px`);
+                dialog.style.setProperty('top', `${Math.round(centerY)}px`, 'important');
+                dialog.style.setProperty('left', `${Math.round(centerX)}px`, 'important');
+                dialog.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
+            };
+            const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+            const offsetTop = window.visualViewport ? window.visualViewport.offsetTop : 0;
+            const offsetLeft = window.visualViewport ? window.visualViewport.offsetLeft : 0;
+            applyCenter(offsetTop + vh / 2, offsetLeft + vw / 2);
+
+            if ('IntersectionObserver' in window) {
+                const io = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.intersectionRect && entry.intersectionRect.height > 0) {
+                            const cy = entry.intersectionRect.top + entry.intersectionRect.height / 2;
+                            const cx = entry.intersectionRect.left + entry.intersectionRect.width / 2;
+                            applyCenter(cy, cx);
+                        }
+                    }
+                    io.disconnect();
+                }, { root: null });
+                io.observe(document.documentElement);
+            }
+        };
+
+        setupModalCenter();
+        setTimeout(setupModalCenter, 40);
+        setTimeout(setupModalCenter, 150);
+
+        if (!window.__transcriptorModalTracker) {
+            window.__transcriptorModalTracker = true;
+            window.addEventListener('scroll', setupModalCenter, { passive: true, capture: true });
+            window.addEventListener('resize', setupModalCenter, { passive: true });
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('scroll', setupModalCenter, { passive: true });
+                window.visualViewport.addEventListener('resize', setupModalCenter, { passive: true });
+            }
+            setInterval(() => {
+                const overlay = document.querySelector('.modal-overlay');
+                if (overlay && !overlay.classList.contains('hide') && getComputedStyle(overlay).display !== 'none') {
+                    setupModalCenter();
+                }
+            }, 180);
+        }
+        return args;
+    }"""
+
     btn_open_login.click(
         fn=open_login_dialog,
         outputs=[modal_login, input_pin, login_msg],
+        js=_modal_center_js,
     )
     btn_close_login.click(
         fn=close_login_dialog,
@@ -1552,6 +1736,8 @@ with gr.Blocks(**blocks_kwargs) as demo:
             assemblyai_key_box,
         ],
     )
+
+    demo.load(fn=None, js=_modal_center_js)
 
     # --- Limpiar campos ---
     def clear_all():
