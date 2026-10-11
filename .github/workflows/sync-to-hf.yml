@@ -38,6 +38,6 @@ jobs:
         uses: huggingface/hub-sync@v0.3.0
         with:
           github_repo_id: ${{ github.repository }}
-          huggingface_repo_id: Klopezxd/transcriptor-whisperx
+          huggingface_repo_id: Klopezxd/transcriptor-suite
           repo_type: space
           hf_token: ${{ secrets.HF_TOKEN }}

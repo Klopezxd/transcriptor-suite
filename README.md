@@ -1,13 +1,13 @@
-# WhisperX Audio Transcriptor & Diarization Pipeline
+# Transcriptor Suite — Neural Speech Recognition & Diarization Pipeline
 
-[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces%20Live%20Demo-blue)](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx)
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces%20Live%20Demo-blue)](https://huggingface.co/spaces/Klopezxd/transcriptor-suite)
 ![Python](https://img.shields.io/badge/Python-3.10-3776AB.svg?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C.svg?logo=pytorch&logoColor=white)
 ![CUDA](https://img.shields.io/badge/CUDA-12.x-76B900.svg?logo=nvidia&logoColor=white)
 ![Linter](https://img.shields.io/badge/Linter-Ruff-000000.svg?logo=ruff&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-> High-throughput speech transcription pipeline featuring word-level phoneme alignment and speaker diarization using WhisperX and Pyannote Audio.
+> High-throughput speech transcription pipeline featuring word-level phoneme alignment and speaker diarization using WhisperX, Pyannote Audio, Deepgram, and AssemblyAI.
 
 *Leer este documento en Español: [README.es.md](README.es.md)*
 
@@ -19,10 +19,10 @@
 > The system operates across a continuous deployment lifecycle bridging **GitHub** and **Hugging Face Spaces**, supporting both local execution and external cloud foundation services. The configuration breakdown by infrastructure tier is detailed below:
 >
 > ### 1. Automated Deployment via GitHub Actions (`HF_TOKEN`)
-> * **Purpose:** Authorizes the automated synchronization pipeline (`.github/workflows/sync-to-hf.yml`) to deploy repository updates directly to the Hugging Face Space repository ([Klopezxd/transcriptor-whisperx](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx)) upon `git push`.
+> * **Purpose:** Authorizes the automated synchronization pipeline (`.github/workflows/sync-to-hf.yml`) to deploy repository updates directly to the Hugging Face Space repository ([Klopezxd/transcriptor-suite](https://huggingface.co/spaces/Klopezxd/transcriptor-suite)) upon `git push`.
 > * **Token Scope:** Personal Access Token created in [Hugging Face Settings > Access Tokens](https://huggingface.co/settings/tokens) with **Write (`Write`)** role.
 > * **Configuration Steps:**
->   1. Navigate to the GitHub repository: [whisperx-transcriptor](https://github.com/Klopezxd/whisperx-transcriptor).
+>   1. Navigate to the GitHub repository: [transcriptor-suite](https://github.com/Klopezxd/transcriptor-suite).
 >   2. Go to **Settings** ➔ **Secrets and variables** ➔ **Actions**.
 >   3. Click **New repository secret**.
 >   4. Set **Name:** `HF_TOKEN` | **Secret:** Your write-scoped token (`hf_...`).
@@ -35,7 +35,7 @@
 >   * [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)
 >   * [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0)
 > * **Configuration Steps:**
->   1. Open the Space settings: [huggingface.co/spaces/Klopezxd/transcriptor-whisperx/settings](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx/settings).
+>   1. Open the Space settings: [huggingface.co/spaces/Klopezxd/transcriptor-suite/settings](https://huggingface.co/spaces/Klopezxd/transcriptor-suite/settings).
 >   2. Scroll to **Variables and secrets** ➔ **New secret**.
 >   3. Set **Name:** `HF_TOKEN` | **Value:** Your read-scoped token (`hf_...`).
 >
@@ -83,7 +83,7 @@
 
 Test the pipeline directly on Hugging Face Spaces:
 
-👉 **[Launch on Hugging Face Spaces: Klopezxd/transcriptor-whisperx](https://huggingface.co/spaces/Klopezxd/transcriptor-whisperx)**
+👉 **[Launch on Hugging Face Spaces: Klopezxd/transcriptor-suite](https://huggingface.co/spaces/Klopezxd/transcriptor-suite)**
 
 ---
 
@@ -202,7 +202,7 @@ Technical and economic comparison of implemented speech recognition models relat
 If you need to audit or manage this repository in the future without a local clone, here is the exact architectural breakdown of each component:
 
 ```text
-whisperx-transcriptor/
+transcriptor-suite/
 │
 ├── app.py                  # Gradio Web Interface: Nordic Aurora theme, academic statusbar v2.1.0,
 │                           # reactive model dropdowns, and isolated @spaces.GPU decorator execution.
@@ -263,8 +263,8 @@ whisperx-transcriptor/
 
 ```bash
 # Clone the repository
-git clone https://github.com/Klopezxd/whisperx-transcriptor.git
-cd whisperx-transcriptor
+git clone https://github.com/Klopezxd/transcriptor-suite.git
+cd transcriptor-suite
 
 # Create and activate isolated Python 3.10 environment
 conda create -n transcriptor python=3.10 -y
@@ -361,7 +361,7 @@ python cli.py -i "meeting.wav" --timestamps range -o "./transcripts"
 ## Repository Structure
 
 ```text
-whisperx-transcriptor/
+transcriptor-suite/
 ├── .github/
 │   └── workflows/
 │       ├── sync-to-hf.yml       # Continuous Deployment to Hugging Face Spaces

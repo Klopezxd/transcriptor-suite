@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "whisperx-transcriptor"
+name = "transcriptor-suite"
 version = "2.1.0"
-description = "Pipeline modular de transcripción, alineación fonética y diarización de audio con WhisperX."
+description = "Transcriptor Suite — Pipeline modular de transcripción, alineación fonética y diarización de audio."
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
