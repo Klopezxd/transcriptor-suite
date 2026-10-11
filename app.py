@@ -241,20 +241,120 @@ body, html {
     -webkit-font-smoothing: antialiased;
 }
 
-.gradio-container {
-    max-width: 1440px !important;
-    width: 98% !important;
+.gradio-container,
+.gradio-container > .main,
+.gradio-container .contain,
+main.contain {
+    max-width: 100% !important;
+    width: 100% !important;
     margin: 0 auto !important;
-    padding: 4px 12px 4px 12px !important;
+    box-sizing: border-box !important;
+}
+
+.gradio-container {
+    padding: clamp(4px, 1vh, 14px) clamp(10px, 1.6vw, 28px) !important;
     border: none !important;
     box-shadow: none !important;
     outline: none !important;
+}
+
+/* ── LAYOUT RESPONSIVO DE PANTALLA COMPLETA (100dvh SIN SCROLL EN LAPTOP 14"-16" Y MONITOR 24"-27") ── */
+@media (min-width: 900px) and (min-height: 540px) {
+    html,
+    body,
+    gradio-app {
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+    }
+
+    .gradio-container,
+    .gradio-container > .main,
+    .gradio-container > .main > .wrap,
+    main.contain,
+    main.contain > .wrap,
+    .gradio-container div:has(> .main-body-row) {
+        height: 100% !important;
+        max-height: 100% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 0% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    .main-body-row,
+    .gradio-container .row.main-body-row {
+        flex: 1 1 0% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        gap: clamp(8px, 1.1vw, 18px) !important;
+    }
+
+    .left-column,
+    .gradio-container .column.left-column {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        gap: clamp(5px, 1vh, 14px) !important;
+        overflow: visible !important;
+    }
+
+    .upload-card,
+    .gradio-container .column.upload-card {
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        overflow: hidden !important;
+    }
+
+    .options-card,
+    .gradio-container .column.options-card {
+        flex: 0 0 auto !important;
+        flex-shrink: 0 !important;
+        height: fit-content !important;
+        min-height: fit-content !important;
+        max-height: none !important;
+        overflow: visible !important;
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        gap: clamp(4px, 0.9vh, 12px) !important;
+    }
+
+    .keys-card,
+    .gradio-container .column.keys-card {
+        flex: 0 0 auto !important;
+        flex-shrink: 0 !important;
+        height: fit-content !important;
+        min-height: fit-content !important;
+        max-height: none !important;
+        overflow: visible !important;
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        gap: clamp(3px, 0.7vh, 10px) !important;
+    }
 }
 
 /* Ocultar loaders invisibles de Gradio, bloques <style> sin contenido visual y el footer por defecto */
 .wrap.default.full.hide,
 .module-card > .wrap.hide,
 .modal-overlay > .wrap.hide,
+.modal-dialog .wrap.default.full,
 .block:has(> .html-container > div > style),
 .block:has(> div > style),
 footer:not(.app-footer) {
@@ -265,15 +365,15 @@ footer:not(.app-footer) {
     padding: 0 !important;
 }
 
-/* Reducir gaps de filas y columnas de Gradio para que todo quepa en 1 sola pantalla */
+/* Gaps responsivos de filas y columnas de Gradio */
 .gradio-container .row,
 .gradio-container .gradio-row {
-    gap: 8px !important;
+    gap: clamp(6px, 0.9vw, 14px) !important;
 }
 
 .gradio-container .column,
 .gradio-container .gradio-column {
-    gap: 6px !important;
+    gap: clamp(4px, 0.8vh, 10px) !important;
 }
 
 /* ── ELIMINA LA CAJA EXTERIOR QUE CUBRE A TODOS LOS MÓDULOS Y PADDING EXTRA ── */
@@ -316,18 +416,19 @@ main.contain {
     contain: none !important;
 }
 
-/* ── NAVBAR HEADER (COMPACTO) ─────────────────────── */
+/* ── NAVBAR HEADER (RESPONSIVO) ───────────────────── */
 .app-navbar {
+    flex: 0 0 auto !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 6px 14px !important;
+    padding: clamp(5px, 0.9vh, 12px) clamp(12px, 1.4vw, 22px) !important;
     background: rgba(10, 22, 40, 0.82) !important;
     backdrop-filter: blur(18px) !important;
     -webkit-backdrop-filter: blur(18px) !important;
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
     border-radius: 13px !important;
-    margin-bottom: 6px !important;
+    margin-bottom: clamp(4px, 0.8vh, 10px) !important;
     box-shadow: 0 4px 16px rgba(5, 11, 26, 0.5), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
 }
 
@@ -341,15 +442,15 @@ main.contain {
 .nav-brand {
     display: flex !important;
     align-items: center !important;
-    gap: 10px !important;
+    gap: clamp(8px, 0.9vw, 14px) !important;
 }
 
 .brand-icon {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 28px !important;
-    height: 28px !important;
+    width: clamp(26px, 3.6vh, 36px) !important;
+    height: clamp(26px, 3.6vh, 36px) !important;
     background: rgba(0, 255, 135, 0.1) !important;
     border: 1px solid rgba(0, 255, 135, 0.35) !important;
     border-radius: 8px !important;
@@ -359,7 +460,7 @@ main.contain {
 }
 
 .brand-titles h1 {
-    font-size: 0.98rem !important;
+    font-size: clamp(0.94rem, 1.65vh, 1.18rem) !important;
     font-weight: 800 !important;
     margin: 0 !important;
     line-height: 1.15 !important;
@@ -369,7 +470,7 @@ main.contain {
 }
 
 .brand-titles p {
-    font-size: 0.68rem !important;
+    font-size: clamp(0.66rem, 1.1vh, 0.80rem) !important;
     color: #8BA2BF !important;
     margin: 0 !important;
     line-height: 1.2 !important;
@@ -388,10 +489,10 @@ main.contain {
 .btn-login-compact {
     width: auto !important;
     min-width: unset !important;
-    max-width: 105px !important;
-    height: 28px !important;
-    padding: 3px 10px !important;
-    font-size: 0.74rem !important;
+    max-width: 115px !important;
+    height: clamp(27px, 3.6vh, 36px) !important;
+    padding: 3px 12px !important;
+    font-size: clamp(0.72rem, 1.15vh, 0.84rem) !important;
     font-weight: 600 !important;
     border-radius: 8px !important;
     background: rgba(232, 244, 248, 0.05) !important;
@@ -414,18 +515,19 @@ main.contain {
     transform: translateY(-1px) !important;
 }
 
-/* ── MODULOS EN CUADROS REDONDEADOS (AURORA BOREAL COMPACTOS) ── */
+/* ── MODULOS EN CUADROS REDONDEADOS (AURORA BOREAL RESPONSIVOS) ── */
 .module-card {
     background: #0A1628 !important;
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
-    border-radius: 13px !important;
-    padding: 8px 14px !important;
+    border-radius: 14px !important;
+    padding: clamp(7px, 1.25vh, 18px) clamp(12px, 1.4vw, 22px) !important;
     margin-bottom: 0 !important;
-    gap: 4px !important;
+    gap: clamp(3px, 0.7vh, 10px) !important;
     box-shadow: 0 4px 16px rgba(5, 11, 26, 0.6), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
     transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
     position: relative !important;
     overflow: visible !important;
+    box-sizing: border-box !important;
 }
 
 .module-card:hover {
@@ -470,14 +572,15 @@ main.contain {
 .module-header,
 .gradio-container .row.module-header,
 .module-card .row.module-header {
+    flex: 0 0 auto !important;
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: space-between !important;
     width: 100% !important;
-    margin-bottom: 3px !important;
-    padding-bottom: 4px !important;
+    margin-bottom: clamp(2px, 0.5vh, 6px) !important;
+    padding-bottom: clamp(3px, 0.6vh, 7px) !important;
     border-bottom: 1px solid rgba(0, 212, 255, 0.1) !important;
 }
 
@@ -510,7 +613,7 @@ main.contain {
     display: flex !important;
     align-items: center !important;
     gap: 6px !important;
-    font-size: 0.79rem !important;
+    font-size: clamp(0.77rem, 1.3vh, 0.92rem) !important;
     font-weight: 700 !important;
     color: var(--frost-white) !important;
     letter-spacing: -0.01em !important;
@@ -518,26 +621,25 @@ main.contain {
 }
 
 .module-title-icon {
-    font-size: 0.88rem !important;
+    font-size: clamp(0.86rem, 1.4vh, 1.02rem) !important;
 }
 
-/* ── FORM ELEMENTS SUAVES Y COMPACTOS ────────────── */
+/* ── FORM ELEMENTS SUAVES Y RESPONSIVOS ──────────── */
 .gradio-container label span,
 .module-card span[data-testid="block-info"] {
     font-family: 'Montserrat', sans-serif !important;
-    font-size: 0.66rem !important;
+    font-size: clamp(0.64rem, 1.05vh, 0.76rem) !important;
     font-weight: 600 !important;
     color: #8BA2BF !important;
     text-transform: uppercase !important;
     letter-spacing: 0.03em !important;
-    margin-bottom: 2px !important;
+    margin-bottom: clamp(2px, 0.4vh, 5px) !important;
     line-height: 1.15 !important;
 }
 
-/* Ocultar o compactar subtítulo secundario de input para ahorrar espacio vertical */
 .module-card .info,
 .module-card div[class*="info"] {
-    font-size: 0.65rem !important;
+    font-size: clamp(0.63rem, 1vh, 0.74rem) !important;
     color: #627A97 !important;
     margin-top: 2px !important;
     margin-bottom: 0 !important;
@@ -549,12 +651,12 @@ main.contain {
 .gradio-container select {
     background-color: var(--arctic-input) !important;
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
-    border-radius: 8px !important;
+    border-radius: 9px !important;
     color: var(--frost-white) !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: 0.77rem !important;
-    height: 31px !important;
-    min-height: 31px !important;
+    font-size: clamp(0.75rem, 1.2vh, 0.86rem) !important;
+    height: clamp(30px, 4vh, 42px) !important;
+    min-height: clamp(30px, 4vh, 42px) !important;
     padding: 3px 10px !important;
     transition: all 0.2s ease !important;
 }
@@ -574,9 +676,9 @@ main.contain {
 .module-card .gradio-dropdown .wrap-inner {
     background: var(--arctic-input) !important;
     border: 1px solid rgba(0, 212, 255, 0.16) !important;
-    border-radius: 8px !important;
-    min-height: 32px !important;
-    height: 32px !important;
+    border-radius: 9px !important;
+    min-height: clamp(31px, 4.1vh, 42px) !important;
+    height: clamp(31px, 4.1vh, 42px) !important;
     transition: all 0.2s ease !important;
     position: relative !important;
 }
@@ -598,7 +700,7 @@ div.wrap:not(.module-card *) {
     justify-content: space-between !important;
     width: 100% !important;
     height: 100% !important;
-    padding: 1px 8px !important;
+    padding: 1px 10px !important;
     background: transparent !important;
 }
 
@@ -617,7 +719,7 @@ div.wrap:not(.module-card *) {
     box-shadow: none !important;
     color: var(--frost-white) !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: 0.76rem !important;
+    font-size: clamp(0.75rem, 1.2vh, 0.86rem) !important;
     font-weight: 500 !important;
     outline: none !important;
     width: 100% !important;
@@ -663,7 +765,7 @@ div[role="listbox"],
     box-shadow: 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 18px rgba(0, 212, 255, 0.18) !important;
     z-index: 999999 !important;
     color: var(--frost-white) !important;
-    max-height: 210px !important;
+    max-height: 220px !important;
     overflow-y: auto !important;
     margin-top: 4px !important;
     padding: 5px !important;
@@ -679,7 +781,7 @@ ul.options > li,
 [role="listbox"] > div,
 [role="option"] {
     padding: 6px 10px !important;
-    font-size: 0.76rem !important;
+    font-size: clamp(0.75rem, 1.15vh, 0.84rem) !important;
     font-family: 'Montserrat', sans-serif !important;
     color: var(--frost-white) !important;
     cursor: pointer !important;
@@ -724,20 +826,27 @@ li[role="option"][aria-selected="true"],
     border: none !important;
     box-shadow: none !important;
     cursor: pointer !important;
-    margin-top: 12px !important;
+    margin-top: clamp(8px, 1.5vh, 18px) !important;
 }
 
 .module-card label:has(input[type="checkbox"]):hover {
     color: var(--aurora-green) !important;
 }
 
-/* ── MODULO 1: ARRASTRAR ARCHIVO (COMPACTO) ───────── */
-.file-upload-zone {
+/* ── MODULO 1: ARRASTRAR ARCHIVO (RESPONSIVO Y ELÁSTICO) ── */
+.file-upload-zone,
+.upload-card .file-upload-zone,
+.upload-card .file-upload-zone > div {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
     width: 100% !important;
+    flex: 1 1 0% !important;
+    min-height: 46px !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
 .file-upload-zone .boundedheight,
@@ -747,9 +856,10 @@ li[role="option"][aria-selected="true"],
     border: 1.5px dashed rgba(0, 212, 255, 0.28) !important;
     border-radius: 10px !important;
     width: 100% !important;
-    min-height: 50px !important;
-    height: 50px !important;
-    padding: 4px 12px !important;
+    flex: 1 1 0% !important;
+    min-height: 46px !important;
+    height: 100% !important;
+    padding: 6px 14px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -784,8 +894,8 @@ li[role="option"][aria-selected="true"],
 .file-upload-zone svg.feather-upload,
 .file-upload-zone button svg {
     display: inline-block !important;
-    width: 18px !important;
-    height: 18px !important;
+    width: clamp(17px, 2.4vh, 24px) !important;
+    height: clamp(17px, 2.4vh, 24px) !important;
     margin: 0 !important;
     color: var(--ice-cyan) !important;
     flex-shrink: 0 !important;
@@ -800,7 +910,7 @@ li[role="option"][aria-selected="true"],
 .file-upload-zone button > div::after {
     content: "Arrastre el archivo aquí o haga clic para cargar" !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: 0.76rem !important;
+    font-size: clamp(0.74rem, 1.25vh, 0.88rem) !important;
     line-height: 1.25 !important;
     font-weight: 500 !important;
     color: var(--frost-white) !important;
@@ -820,56 +930,62 @@ li[role="option"][aria-selected="true"],
 }
 
 .file-hint {
-    font-size: 0.65rem !important;
+    flex: 0 0 auto !important;
+    font-size: clamp(0.63rem, 1vh, 0.74rem) !important;
     color: #627A97 !important;
     margin-top: 2px !important;
     line-height: 1.15 !important;
 }
 
-/* ── MODULO 4: RESULTADO DE LA TRANSCRIPCIÓN (ALTURA SIMÉTRICA) ── */
-.result-column {
+/* ── MODULO 4: RESULTADO DE LA TRANSCRIPCIÓN (ALTURA SIMÉTRICA Y RESPONSIVA) ── */
+.result-column,
+.gradio-container .column.result-column {
     display: flex !important;
     flex-direction: column !important;
+    height: 100% !important;
+    min-height: 0 !important;
 }
 
-.result-card {
+.result-card,
+.gradio-container .column.result-card {
+    flex: 1 1 0% !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
     height: 100% !important;
+    min-height: 0 !important;
+    gap: clamp(5px, 0.9vh, 12px) !important;
 }
 
-.output-textbox {
+.output-textbox,
+.output-textbox > div,
+.output-textbox .container,
+.output-textbox label,
+.output-textbox .input-container {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
-    flex: 1 1 auto !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-
-.output-textbox > div,
-.output-textbox .container,
-.output-textbox label {
-    flex: 1 1 auto !important;
+    flex: 1 1 0% !important;
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
+    min-height: 0 !important;
 }
 
 .output-textbox textarea {
-    height: 383px !important;
-    min-height: 383px !important;
-    flex: 1 1 auto !important;
+    flex: 1 1 0% !important;
+    height: 100% !important;
+    min-height: 160px !important;
+    max-height: none !important;
     background-color: #040813 !important;
     border: 1px solid rgba(0, 212, 255, 0.12) !important;
     border-radius: 10px !important;
     color: var(--frost-white) !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.78rem !important;
+    font-size: clamp(0.76rem, 1.25vh, 0.88rem) !important;
     line-height: 1.55 !important;
-    padding: 10px 12px !important;
+    padding: clamp(8px, 1.3vh, 16px) clamp(10px, 1.2vw, 18px) !important;
     resize: none !important;
     overflow-y: auto !important;
     box-sizing: border-box !important;
@@ -897,10 +1013,11 @@ li[role="option"][aria-selected="true"],
     box-shadow: 0 0 8px rgba(0, 255, 135, 0.5);
 }
 
-/* ── BOTONES DE ACCIÓN (COMPACTOS) ───────────────── */
+/* ── BOTONES DE ACCIÓN (RESPONSIVOS) ─────────────── */
 .actions-row {
-    margin-top: 2px !important;
-    gap: 8px !important;
+    flex: 0 0 auto !important;
+    margin-top: 0 !important;
+    gap: clamp(6px, 0.8vw, 12px) !important;
 }
 
 .btn-primary {
@@ -908,12 +1025,12 @@ li[role="option"][aria-selected="true"],
     color: #050B1A !important;
     font-family: 'Montserrat', sans-serif !important;
     font-weight: 700 !important;
-    font-size: 0.80rem !important;
+    font-size: clamp(0.78rem, 1.3vh, 0.90rem) !important;
     border: none !important;
     border-radius: 9px !important;
-    height: 34px !important;
-    min-height: 34px !important;
-    padding: 6px 14px !important;
+    height: clamp(33px, 4.3vh, 45px) !important;
+    min-height: clamp(33px, 4.3vh, 45px) !important;
+    padding: 5px 14px !important;
     box-shadow: 0 4px 14px rgba(0, 255, 135, 0.28) !important;
     transition: all 0.25s ease !important;
     cursor: pointer !important;
@@ -932,11 +1049,11 @@ li[role="option"][aria-selected="true"],
     color: var(--frost-white) !important;
     font-family: 'Montserrat', sans-serif !important;
     font-weight: 600 !important;
-    font-size: 0.77rem !important;
+    font-size: clamp(0.75rem, 1.25vh, 0.86rem) !important;
     border-radius: 9px !important;
-    height: 34px !important;
-    min-height: 34px !important;
-    padding: 6px 12px !important;
+    height: clamp(33px, 4.3vh, 45px) !important;
+    min-height: clamp(33px, 4.3vh, 45px) !important;
+    padding: 5px 12px !important;
     transition: all 0.25s ease !important;
     cursor: pointer !important;
 }
@@ -953,9 +1070,9 @@ li[role="option"][aria-selected="true"],
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 2px 8px;
+    padding: 2px 9px;
     border-radius: 6px;
-    font-size: 0.68rem;
+    font-size: clamp(0.66rem, 1.05vh, 0.76rem);
     font-weight: 600;
     white-space: nowrap;
 }
@@ -983,9 +1100,9 @@ li[role="option"][aria-selected="true"],
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 9px;
+    padding: clamp(4px, 0.7vh, 9px) clamp(8px, 1vw, 13px);
     border-radius: 8px;
-    font-size: 0.68rem;
+    font-size: clamp(0.66rem, 1.08vh, 0.77rem);
     line-height: 1.25;
     background: rgba(0, 212, 255, 0.08);
     border: 1px solid rgba(0, 212, 255, 0.22);
@@ -1000,34 +1117,48 @@ li[role="option"][aria-selected="true"],
     box-shadow: 0 0 12px rgba(0, 255, 135, 0.12) !important;
 }
 
-/* ── MODAL ADMIN (CENTRADO EN PESTAÑA VISIBLE Y ACOMPAÑA EL SCROLL) ── */
-.modal-overlay,
-div.modal-overlay,
-.gradio-container .modal-overlay,
-.gradio-container div.modal-overlay {
+/* ── MODAL ADMIN (CENTRADO EN PESTAÑA VISIBLE Y CIERRE INSTANTÁNEO SIN CONGELAMIENTO) ── */
+.modal-overlay.hide,
+div.modal-overlay.hide,
+.gradio-container .modal-overlay.hide,
+.gradio-container div.modal-overlay.hide,
+.modal-overlay[hidden],
+.modal-overlay.hide .modal-dialog {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.modal-overlay:not(.hide),
+div.modal-overlay:not(.hide),
+.gradio-container .modal-overlay:not(.hide),
+.gradio-container div.modal-overlay:not(.hide) {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
+    inset: 0 !important;
     width: 100vw !important;
-    height: 100vh !important;
+    height: 100dvh !important;
     background: rgba(3, 7, 18, 0.82) !important;
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
     z-index: 2147483640 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 20px !important;
     border: none !important;
     box-sizing: border-box !important;
 }
 
-.modal-dialog,
-div.modal-dialog,
-.gradio-container .modal-dialog,
-.gradio-container div.modal-dialog {
+.modal-overlay:not(.hide) .modal-dialog,
+.gradio-container .modal-overlay:not(.hide) .modal-dialog {
     position: fixed !important;
-    top: var(--visible-center-y, 50vh) !important;
+    top: var(--visible-center-y, 50dvh) !important;
     left: 50vw !important;
     transform: translate(-50%, -50%) !important;
     background: #0A1628 !important;
@@ -1044,7 +1175,6 @@ div.modal-dialog,
     z-index: 2147483647 !important;
     box-shadow: 0 20px 55px rgba(0, 0, 0, 0.92), 0 0 24px rgba(0, 212, 255, 0.22) !important;
     box-sizing: border-box !important;
-    transition: top 0.08s ease-out !important;
 }
 
 .modal-dialog .html-container,
@@ -1101,13 +1231,21 @@ div.modal-dialog,
     line-height: 1.35 !important;
 }
 
+.block:has(.app-footer) {
+    flex: 0 0 auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+}
+
 .app-footer {
+    flex: 0 0 auto !important;
     text-align: center !important;
-    font-size: 0.65rem !important;
+    font-size: clamp(0.63rem, 1vh, 0.73rem) !important;
     color: #627A97 !important;
-    padding: 4px 0 0 0 !important;
+    padding: clamp(3px, 0.6vh, 8px) 0 0 0 !important;
     border-top: 1px solid rgba(0, 212, 255, 0.06) !important;
-    margin-top: 4px !important;
+    margin-top: clamp(3px, 0.6vh, 8px) !important;
 }
 """
 
@@ -1241,11 +1379,11 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 )
 
     # ── 3. CUERPO PRINCIPAL (LANDING PAGE ÚNICA DE 2 COLUMNAS) ───
-    with gr.Row():
+    with gr.Row(elem_classes=["main-body-row"]):
         # Columna Izquierda: Módulos de Entrada y Configuración
-        with gr.Column(scale=5):
+        with gr.Column(scale=5, elem_classes=["left-column"]):
             # Módulo 1: Archivo Multimedia (Drag & Drop)
-            with gr.Column(min_width=0, elem_classes=["module-card"]):
+            with gr.Column(min_width=0, elem_classes=["module-card", "upload-card"]):
                 gr.HTML(
                     """
                     <div class="module-header">
@@ -1261,7 +1399,6 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     show_label=False,
                     file_types=["audio", "video"],
                     file_count="single",
-                    height=60,
                     container=False,
                     elem_classes=["file-upload-zone"],
                 )
@@ -1274,7 +1411,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 )
 
             # Módulo 2: Motor y Opciones
-            with gr.Column(min_width=0, elem_classes=["module-card"]):
+            with gr.Column(min_width=0, elem_classes=["module-card", "options-card"]):
                 gr.HTML(
                     """
                     <div class="module-header">
@@ -1334,7 +1471,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
             # Módulo 3: Credenciales de API (Modo Invitado / Admin)
             with gr.Column(
-                visible=True, min_width=0, elem_classes=["module-card"]
+                visible=True, min_width=0, elem_classes=["module-card", "keys-card"]
             ) as guest_keys_panel:
                 gr.HTML(
                     """
@@ -1449,11 +1586,11 @@ with gr.Blocks(**blocks_kwargs) as demo:
         """Controla la visibilidad del panel de claves de acuerdo a si es invitado o administrador."""
         if is_admin:
             return (
-                gr.Column(visible=False),
-                gr.HTML(visible=False),
-                gr.Textbox(visible=False),
-                gr.Textbox(visible=False),
-                gr.Textbox(visible=False),
+                gr.update(visible=False),
+                gr.update(visible=False),
+                gr.update(visible=False),
+                gr.update(visible=False),
+                gr.update(visible=False),
             )
 
         is_wx = selected_provider == ProviderType.WHISPERX.value
@@ -1466,11 +1603,11 @@ with gr.Blocks(**blocks_kwargs) as demo:
         show_aai = is_aai
 
         return (
-            gr.Column(visible=True),
-            gr.HTML(visible=show_notice),
-            gr.Textbox(visible=show_hf),
-            gr.Textbox(visible=show_dg),
-            gr.Textbox(visible=show_aai),
+            gr.update(visible=True),
+            gr.update(visible=show_notice),
+            gr.update(visible=show_hf),
+            gr.update(visible=show_dg),
+            gr.update(visible=show_aai),
         )
 
     def on_provider_selected(selected_provider: str, is_diarize: bool, is_admin: bool):
@@ -1496,8 +1633,8 @@ with gr.Blocks(**blocks_kwargs) as demo:
         panel_vis = update_guest_api_panel(selected_provider, is_diarize, is_admin)
 
         return (
-            gr.Dropdown(choices=choices, value=default_val, filterable=False),
-            gr.HTML(value=info_dict.get(selected_provider, "")),
+            gr.update(choices=choices, value=default_val, filterable=False),
+            gr.update(value=info_dict.get(selected_provider, "")),
             *panel_vis,
         )
 
@@ -1513,6 +1650,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             deepgram_key_box,
             assemblyai_key_box,
         ],
+        show_progress="hidden",
     )
 
     diarize_checkbox.change(
@@ -1525,23 +1663,21 @@ with gr.Blocks(**blocks_kwargs) as demo:
             deepgram_key_box,
             assemblyai_key_box,
         ],
+        show_progress="hidden",
     )
 
     # --- Flujo de Autenticación de Administrador ---
     def open_login_dialog():
-        return gr.Column(visible=True), "", gr.HTML(visible=False)
+        return gr.update(visible=True), "", gr.update(value="", visible=False)
 
     def close_login_dialog():
-        return gr.Column(visible=False), "", gr.HTML(visible=False)
+        return gr.update(visible=False), "", gr.update(value="", visible=False)
 
-    _modal_center_js = """(...args) => {
-        const setupModalCenter = () => {
+    _modal_open_js = """(...args) => {
+        const updateModalCenter = () => {
             const overlay = document.querySelector('.modal-overlay');
             const dialog = document.querySelector('.modal-dialog');
             if (!overlay || !dialog) return;
-            if (overlay.parentElement !== document.body) {
-                document.body.appendChild(overlay);
-            }
             const applyCenter = (centerY, centerX) => {
                 dialog.style.setProperty('--visible-center-y', `${Math.round(centerY)}px`);
                 dialog.style.setProperty('top', `${Math.round(centerY)}px`, 'important');
@@ -1569,55 +1705,57 @@ with gr.Blocks(**blocks_kwargs) as demo:
             }
         };
 
-        setupModalCenter();
-        setTimeout(setupModalCenter, 40);
-        setTimeout(setupModalCenter, 150);
+        const overlay = document.querySelector('.modal-overlay');
+        if (overlay) overlay.classList.remove('hide');
+        updateModalCenter();
+        setTimeout(updateModalCenter, 30);
 
-        if (!window.__transcriptorModalTracker) {
-            window.__transcriptorModalTracker = true;
-            window.addEventListener('scroll', setupModalCenter, { passive: true, capture: true });
-            window.addEventListener('resize', setupModalCenter, { passive: true });
-            if (window.visualViewport) {
-                window.visualViewport.addEventListener('scroll', setupModalCenter, { passive: true });
-                window.visualViewport.addEventListener('resize', setupModalCenter, { passive: true });
-            }
-            setInterval(() => {
-                const overlay = document.querySelector('.modal-overlay');
-                if (overlay && !overlay.classList.contains('hide') && getComputedStyle(overlay).display !== 'none') {
-                    setupModalCenter();
-                }
-            }, 180);
+        if (!window.__transcriptorModalListeners) {
+            window.__transcriptorModalListeners = true;
+            window.addEventListener('scroll', updateModalCenter, { passive: true, capture: true });
+            window.addEventListener('resize', updateModalCenter, { passive: true });
         }
+        return args;
+    }"""
+
+    _modal_close_js = """(...args) => {
+        const overlay = document.querySelector('.modal-overlay');
+        if (overlay) overlay.classList.add('hide');
         return args;
     }"""
 
     btn_open_login.click(
         fn=open_login_dialog,
         outputs=[modal_login, input_pin, login_msg],
-        js=_modal_center_js,
+        js=_modal_open_js,
+        show_progress="hidden",
     )
     btn_close_login.click(
         fn=close_login_dialog,
         outputs=[modal_login, input_pin, login_msg],
+        js=_modal_close_js,
+        show_progress="hidden",
     )
     btn_cancel_login.click(
         fn=close_login_dialog,
         outputs=[modal_login, input_pin, login_msg],
+        js=_modal_close_js,
+        show_progress="hidden",
     )
 
     def process_admin_login(pin: str, current_provider: str, is_diarize: bool):
         if verify_admin_pin(pin):
             return (
                 True,  # admin_state
-                gr.Column(visible=False),  # modal_login
-                gr.Button(visible=False),  # btn_open_login
-                gr.Button(visible=True),  # btn_logout
-                gr.Column(visible=False),  # guest_keys_panel
-                gr.HTML(visible=False),
-                gr.Textbox(visible=False),
-                gr.Textbox(visible=False),
-                gr.Textbox(visible=False),
-                gr.HTML(visible=False),
+                gr.update(visible=False),  # modal_login
+                gr.update(visible=False),  # btn_open_login
+                gr.update(visible=True),  # btn_logout
+                gr.update(visible=False),  # guest_keys_panel
+                gr.update(visible=False),
+                gr.update(visible=False),
+                gr.update(visible=False),
+                gr.update(visible=False),
+                gr.update(value="", visible=False),
                 "",  # limpia input_pin
             )
         else:
@@ -1625,11 +1763,11 @@ with gr.Blocks(**blocks_kwargs) as demo:
             panel_vis = update_guest_api_panel(current_provider, is_diarize, False)
             return (
                 False,  # admin_state
-                gr.Column(visible=True),  # modal_login sigue abierto
-                gr.Button(visible=True),  # btn_open_login
-                gr.Button(visible=False),  # btn_logout
+                gr.update(visible=True),  # modal_login sigue abierto
+                gr.update(visible=True),  # btn_open_login
+                gr.update(visible=False),  # btn_logout
                 *panel_vis,
-                gr.HTML(value=err_html, visible=True),
+                gr.update(value=err_html, visible=True),
                 pin,
             )
 
@@ -1649,6 +1787,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             login_msg,
             input_pin,
         ],
+        show_progress="hidden",
     )
 
     input_pin.submit(
@@ -1667,6 +1806,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             login_msg,
             input_pin,
         ],
+        show_progress="hidden",
     )
 
     def process_admin_logout(current_provider: str, is_diarize: bool):
@@ -1674,8 +1814,8 @@ with gr.Blocks(**blocks_kwargs) as demo:
         panel_vis = update_guest_api_panel(current_provider, is_diarize, False)
         return (
             False,  # admin_state
-            gr.Button(visible=True),  # btn_open_login
-            gr.Button(visible=False),  # btn_logout
+            gr.update(visible=True),  # btn_open_login
+            gr.update(visible=False),  # btn_logout
             *panel_vis,
         )
 
@@ -1692,6 +1832,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             deepgram_key_box,
             assemblyai_key_box,
         ],
+        show_progress="hidden",
     )
 
     # --- Autenticación silenciosa por URL (?pin=...) ---
@@ -1705,20 +1846,20 @@ with gr.Blocks(**blocks_kwargs) as demo:
             if pin_val and verify_admin_pin(pin_val):
                 return (
                     True,  # admin_state
-                    gr.Button(visible=False),
-                    gr.Button(visible=True),
-                    gr.Column(visible=False),
-                    gr.HTML(visible=False),
-                    gr.Textbox(visible=False),
-                    gr.Textbox(visible=False),
-                    gr.Textbox(visible=False),
+                    gr.update(visible=False),
+                    gr.update(visible=True),
+                    gr.update(visible=False),
+                    gr.update(visible=False),
+                    gr.update(visible=False),
+                    gr.update(visible=False),
+                    gr.update(visible=False),
                 )
 
         panel_vis = update_guest_api_panel(current_provider, is_diarize, False)
         return (
             False,
-            gr.Button(visible=True),
-            gr.Button(visible=False),
+            gr.update(visible=True),
+            gr.update(visible=False),
             *panel_vis,
         )
 
@@ -1735,9 +1876,8 @@ with gr.Blocks(**blocks_kwargs) as demo:
             deepgram_key_box,
             assemblyai_key_box,
         ],
+        show_progress="hidden",
     )
-
-    demo.load(fn=None, js=_modal_center_js)
 
     # --- Limpiar campos ---
     def clear_all():
@@ -1751,6 +1891,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
     btn_clear.click(
         fn=clear_all,
         outputs=[media_input, output_textbox, btn_download, status_badge],
+        show_progress="hidden",
     )
 
     # --- Copiar al portapapeles ---
