@@ -697,7 +697,7 @@ main.contain {
 }
 
 /* ── DROPDOWNS Y MENÚS DESPLEGABLES (AURORA BOREAL, BORDE ÚNICO Y DESPLIEGUE INFERIOR) ── */
-.module-card .wrap:has(.secondary-wrap),
+.module-card .wrap:has(> .wrap-inner > .secondary-wrap),
 .module-card .gradio-dropdown .wrap {
     background: var(--arctic-input) !important;
     border: 1px solid rgba(0, 212, 255, 0.16) !important;
@@ -761,9 +761,9 @@ div.wrap:not(.module-card *) {
     padding: 0 !important;
 }
 
-.module-card .wrap:has(.secondary-wrap):focus-within,
+.module-card .wrap:has(> .wrap-inner > .secondary-wrap):focus-within,
 .module-card .gradio-dropdown .wrap:focus-within,
-.module-card .wrap:has(.wrap-inner.show_options) {
+.module-card .wrap:has(> .wrap-inner.show_options) {
     border-color: var(--aurora-green) !important;
     box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.22), 0 0 12px rgba(0, 255, 135, 0.15) !important;
 }
@@ -811,16 +811,15 @@ div.wrap:not(.module-card *) {
     transition: transform 0.2s ease, fill 0.2s ease !important;
 }
 
-.module-card .wrap:hover .dropdown-arrow,
-.gradio-container .wrap:hover .dropdown-arrow,
+.module-card .wrap:has(> .wrap-inner > .secondary-wrap):hover .dropdown-arrow,
 .module-card .wrap-inner.show_options .dropdown-arrow,
-.module-card .wrap:has(input[role="combobox"][aria-expanded="true"]) .dropdown-arrow {
+.module-card .wrap:has(> .wrap-inner input[role="combobox"][aria-expanded="true"]) .dropdown-arrow {
     fill: var(--aurora-green) !important;
     color: var(--aurora-green) !important;
 }
 
 .module-card .wrap-inner.show_options .dropdown-arrow,
-.module-card .wrap:has(input[role="combobox"][aria-expanded="true"]) .dropdown-arrow {
+.module-card .wrap:has(> .wrap-inner input[role="combobox"][aria-expanded="true"]) .dropdown-arrow {
     transform: rotate(180deg) !important;
 }
 
@@ -2027,10 +2026,10 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     return;
                 }
 
-                const wrap = e.target.closest('.wrap:has(input[role="combobox"])');
-                if (wrap) {
+                const wrapInner = e.target.closest('.wrap-inner:has(input[role="combobox"])');
+                if (wrapInner && wrapInner.parentElement) {
                     window.__lastComboMousedown = Date.now();
-                    toggleCombo(wrap, e);
+                    toggleCombo(wrapInner.parentElement, e);
                     return;
                 }
 
@@ -2048,15 +2047,15 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 const optionTarget = e.target.closest('.options, .option-list, [role="listbox"], [role="option"], li.item');
                 if (optionTarget) return;
 
-                const wrap = e.target.closest('.wrap:has(input[role="combobox"])');
-                if (!wrap) return;
+                const wrapInner = e.target.closest('.wrap-inner:has(input[role="combobox"])');
+                if (!wrapInner || !wrapInner.parentElement) return;
 
                 if (Date.now() - (window.__lastComboMousedown || 0) < 350) {
                     e.preventDefault();
                     e.stopPropagation();
                     return;
                 }
-                toggleCombo(wrap, e);
+                toggleCombo(wrapInner.parentElement, e);
             }, true);
 
             // 2. Responsividad en tiempo real al cambiar entre monitores (ej. 24" <-> 16" laptop) sin recargar
