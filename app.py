@@ -956,7 +956,7 @@ li[role="option"][aria-selected="true"],
 /* ── MODULO 1: ARRASTRAR ARCHIVO (RESPONSIVO Y ELÁSTICO SIN SOLAPAR TEXTO DE FORMATOS) ── */
 .file-upload-zone,
 .upload-card .file-upload-zone,
-.upload-card .file-upload-zone > div {
+.upload-card .file-upload-zone > div:not([data-testid="status-tracker"]):not(.file-preview-holder):not(.icon-button-wrapper) {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -967,10 +967,11 @@ li[role="option"][aria-selected="true"],
     height: auto !important;
     display: flex !important;
     flex-direction: column !important;
+    position: relative !important;
 }
 
 /* Anula el min-height: var(--size-60) (240px) interno de Gradio 6 en .wrap.svelte-1vmd51o */
-.file-upload-zone .wrap,
+.file-upload-zone .wrap:not([data-testid="status-tracker"]),
 .file-upload-zone [data-upload-density],
 .file-upload-zone .icon-wrap {
     min-height: 0 !important;
@@ -979,9 +980,9 @@ li[role="option"][aria-selected="true"],
     padding: 0 !important;
 }
 
-.file-upload-zone .boundedheight,
-.file-upload-zone [aria-label*="upload"],
-.file-upload-zone button {
+/* Zona de subida vacía (solo aplica al botón dropzone .boundedheight, NUNCA al botón X de borrar) */
+.file-upload-zone button.boundedheight,
+.file-upload-zone [aria-label*="upload"] {
     background: rgba(6, 14, 29, 0.6) !important;
     border: 1.5px dashed rgba(0, 212, 255, 0.28) !important;
     border-radius: 10px !important;
@@ -999,17 +1000,16 @@ li[role="option"][aria-selected="true"],
     transition: all 0.25s ease !important;
 }
 
-.file-upload-zone .boundedheight:hover,
-.file-upload-zone [aria-label*="upload"]:hover,
-.file-upload-zone button:hover {
+.file-upload-zone button.boundedheight:hover,
+.file-upload-zone [aria-label*="upload"]:hover {
     border-color: var(--aurora-green) !important;
     background: rgba(0, 255, 135, 0.05) !important;
     box-shadow: 0 0 14px rgba(0, 255, 135, 0.16) !important;
 }
 
-/* Reemplazo limpio del texto nativo sin overflow */
+/* Reemplazo limpio del texto nativo sin overflow (solo en el dropzone vacío) */
 .file-upload-zone [data-testid="upload-text"],
-.file-upload-zone button > div {
+.file-upload-zone button.boundedheight > div {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
@@ -1027,7 +1027,7 @@ li[role="option"][aria-selected="true"],
 
 .file-upload-zone [data-testid="upload-icon"] svg,
 .file-upload-zone svg.feather-upload,
-.file-upload-zone button svg {
+.file-upload-zone button.boundedheight svg {
     display: inline-block !important;
     width: clamp(22px, 3.2vh, 32px) !important;
     height: clamp(22px, 3.2vh, 32px) !important;
@@ -1042,7 +1042,7 @@ li[role="option"][aria-selected="true"],
 }
 
 .file-upload-zone [data-testid="upload-text"]::after,
-.file-upload-zone button > div::after {
+.file-upload-zone button.boundedheight > div::after {
     content: "Arrastre el archivo aquí o haga clic para cargar" !important;
     font-family: 'Montserrat', sans-serif !important;
     font-size: clamp(0.95rem, 2.0vh, 1.20rem) !important;
@@ -1052,6 +1052,149 @@ li[role="option"][aria-selected="true"],
     text-align: center !important;
     display: inline-block !important;
     margin: 0 !important;
+}
+
+/* Estado con archivo cargado: tarjeta limpia de archivo + botón X compacto en la esquina derecha */
+.file-upload-zone .file-preview-holder {
+    background: rgba(6, 14, 29, 0.82) !important;
+    border: 1px solid rgba(0, 255, 135, 0.35) !important;
+    border-radius: 10px !important;
+    box-shadow: inset 0 0 14px rgba(0, 255, 135, 0.06) !important;
+    width: 100% !important;
+    flex: 1 1 0% !important;
+    min-height: 44px !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 6px 44px 6px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+.file-upload-zone table.file-preview,
+.file-upload-zone table.file-preview tbody {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+.file-upload-zone tr.file {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    height: auto !important;
+    gap: 12px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+.file-upload-zone td.filename {
+    display: flex !important;
+    align-items: center !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: clamp(0.88rem, 1.75vh, 1.04rem) !important;
+    font-weight: 600 !important;
+    color: var(--aurora-green) !important;
+    padding: 0 !important;
+    border: none !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+.file-upload-zone td.download,
+.file-upload-zone td.download a {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: clamp(0.80rem, 1.6vh, 0.94rem) !important;
+    font-weight: 600 !important;
+    color: #8CE0FF !important;
+    text-decoration: none !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+.file-upload-zone .icon-button-wrapper {
+    position: absolute !important;
+    top: 50% !important;
+    right: 10px !important;
+    transform: translateY(-50%) !important;
+    z-index: 15 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.file-upload-zone button.icon-button,
+.file-upload-zone [aria-label="Clear"],
+.file-upload-zone [title="Clear"] {
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    min-height: 26px !important;
+    max-width: 26px !important;
+    max-height: 26px !important;
+    flex: 0 0 26px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 7px !important;
+    background: rgba(15, 29, 54, 0.92) !important;
+    border: 1px solid rgba(0, 212, 255, 0.28) !important;
+    color: #A3BBD6 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease !important;
+}
+
+.file-upload-zone button.icon-button:hover,
+.file-upload-zone [aria-label="Clear"]:hover,
+.file-upload-zone [title="Clear"]:hover {
+    background: rgba(239, 68, 68, 0.22) !important;
+    border-color: rgba(239, 68, 68, 0.6) !important;
+    color: #F87171 !important;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.28) !important;
+}
+
+.file-upload-zone button.icon-button > div {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.file-upload-zone button.icon-button > div::after {
+    content: none !important;
+    display: none !important;
+}
+
+.file-upload-zone button.icon-button svg {
+    width: 14px !important;
+    height: 14px !important;
+    color: currentColor !important;
+    stroke: currentColor !important;
 }
 
 .file-upload-zone input[type="file"],
@@ -1093,7 +1236,7 @@ li[role="option"][aria-selected="true"],
 }
 
 .output-textbox,
-.output-textbox > div,
+.output-textbox > div:not([data-testid="status-tracker"]),
 .output-textbox .container,
 .output-textbox label,
 .output-textbox .input-container {
@@ -1106,6 +1249,93 @@ li[role="option"][aria-selected="true"],
     flex-direction: column !important;
     height: 100% !important;
     min-height: 0 !important;
+    position: relative !important;
+}
+
+/* Ocultar trackers duplicados en el badge superior y en la fila de botones */
+.status-badge-container [data-testid="status-tracker"],
+.module-header [data-testid="status-tracker"],
+.actions-row [data-testid="status-tracker"],
+[data-testid="status-tracker"].hide {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Overlay limpio y opaco para el progreso de transcripción dentro del área de resultado */
+.output-textbox [data-testid="status-tracker"]:not(.hide),
+.file-upload-zone [data-testid="status-tracker"]:not(.hide) {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(4, 8, 19, 0.95) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(0, 212, 255, 0.25) !important;
+    border-radius: 10px !important;
+    z-index: 40 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+}
+
+.output-textbox [data-testid="status-tracker"] .progress-level {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    max-width: 440px !important;
+    margin: 0 !important;
+}
+
+.output-textbox [data-testid="status-tracker"] .progress-level-inner {
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: clamp(0.95rem, 1.9vh, 1.12rem) !important;
+    font-weight: 600 !important;
+    color: var(--frost-white) !important;
+    text-align: center !important;
+    line-height: 1.35 !important;
+    margin: 0 !important;
+}
+
+.output-textbox [data-testid="status-tracker"] .progress-bar-wrap {
+    width: 100% !important;
+    max-width: 380px !important;
+    height: 10px !important;
+    border-radius: 999px !important;
+    background: rgba(10, 22, 40, 0.95) !important;
+    border: 1px solid rgba(0, 212, 255, 0.32) !important;
+    overflow: hidden !important;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6) !important;
+}
+
+.output-textbox [data-testid="status-tracker"] .progress-bar {
+    height: 100% !important;
+    background: linear-gradient(90deg, #00FF87 0%, #00D4FF 100%) !important;
+    border-radius: 999px !important;
+    box-shadow: 0 0 12px rgba(0, 255, 135, 0.45) !important;
+}
+
+.output-textbox [data-testid="status-tracker"] .meta-text,
+.output-textbox [data-testid="status-tracker"] .meta-text-center {
+    position: static !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: clamp(0.85rem, 1.7vh, 1.0rem) !important;
+    font-weight: 600 !important;
+    color: var(--aurora-green) !important;
+    background: rgba(0, 255, 135, 0.08) !important;
+    border: 1px solid rgba(0, 255, 135, 0.25) !important;
+    border-radius: 6px !important;
+    padding: 3px 10px !important;
+    margin: 2px 0 0 0 !important;
 }
 
 .output-textbox textarea {
