@@ -331,13 +331,25 @@ main.contain {
         overflow-y: visible !important;
         display: flex !important;
         flex-direction: column !important;
-        justify-content: space-between !important;
-        gap: clamp(4px, 0.85vh, 12px) !important;
+        justify-content: flex-start !important;
+        gap: clamp(6px, 1.15vh, 14px) !important;
         z-index: 40 !important;
     }
 
-    .keys-card,
-    .gradio-container .column.keys-card {
+    /* En modo Admin (cuando Credenciales de API está oculto), dar más aire natural a Motor y Opciones */
+    .left-column:not(:has(.keys-card:not(.hide))) .options-card,
+    .gradio-container .column.left-column:not(:has(.keys-card:not(.hide))) .options-card {
+        padding: clamp(12px, 2vh, 24px) clamp(16px, 1.7vw, 26px) !important;
+        gap: clamp(8px, 1.6vh, 18px) !important;
+    }
+
+    .keys-card.hide,
+    .gradio-container .column.keys-card.hide {
+        display: none !important;
+    }
+
+    .keys-card:not(.hide),
+    .gradio-container .column.keys-card:not(.hide) {
         flex: 0 0 auto !important;
         flex-shrink: 0 !important;
         height: fit-content !important;
@@ -348,8 +360,8 @@ main.contain {
         overflow-y: visible !important;
         display: flex !important;
         flex-direction: column !important;
-        justify-content: space-between !important;
-        gap: clamp(3px, 0.7vh, 10px) !important;
+        justify-content: flex-start !important;
+        gap: clamp(5px, 0.95vh, 12px) !important;
         z-index: 10 !important;
     }
 }
@@ -372,12 +384,12 @@ footer:not(.app-footer) {
 /* Gaps responsivos de filas y columnas de Gradio */
 .gradio-container .row,
 .gradio-container .gradio-row {
-    gap: clamp(6px, 0.9vw, 14px) !important;
+    gap: clamp(8px, 1.1vw, 16px) !important;
 }
 
 .gradio-container .column,
 .gradio-container .gradio-column {
-    gap: clamp(4px, 0.8vh, 10px) !important;
+    gap: clamp(6px, 1vh, 12px) !important;
 }
 
 /* ── ELIMINA LA CAJA EXTERIOR QUE CUBRE A TODOS LOS MÓDULOS Y PADDING EXTRA ── */
@@ -420,19 +432,19 @@ main.contain {
     contain: none !important;
 }
 
-/* ── NAVBAR HEADER (RESPONSIVO) ───────────────────── */
+/* ── NAVBAR HEADER (RESPONSIVO Y LEGIBLE) ──────────── */
 .app-navbar {
     flex: 0 0 auto !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: clamp(4px, 0.85vh, 12px) clamp(12px, 1.4vw, 22px) !important;
+    padding: clamp(7px, 1.15vh, 14px) clamp(14px, 1.6vw, 24px) !important;
     background: rgba(10, 22, 40, 0.82) !important;
     backdrop-filter: blur(18px) !important;
     -webkit-backdrop-filter: blur(18px) !important;
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
     border-radius: 13px !important;
-    margin-bottom: clamp(3px, 0.75vh, 10px) !important;
+    margin-bottom: clamp(5px, 0.9vh, 12px) !important;
     box-shadow: 0 4px 16px rgba(5, 11, 26, 0.5), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
 }
 
@@ -446,25 +458,25 @@ main.contain {
 .nav-brand {
     display: flex !important;
     align-items: center !important;
-    gap: clamp(8px, 0.9vw, 14px) !important;
+    gap: clamp(10px, 1.1vw, 16px) !important;
 }
 
 .brand-icon {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: clamp(25px, 3.5vh, 36px) !important;
-    height: clamp(25px, 3.5vh, 36px) !important;
+    width: clamp(32px, 4.5vh, 44px) !important;
+    height: clamp(32px, 4.5vh, 44px) !important;
     background: rgba(0, 255, 135, 0.1) !important;
     border: 1px solid rgba(0, 255, 135, 0.35) !important;
-    border-radius: 8px !important;
+    border-radius: 9px !important;
     color: var(--aurora-green) !important;
     box-shadow: 0 0 10px rgba(0, 255, 135, 0.18) !important;
     flex-shrink: 0 !important;
 }
 
 .brand-titles h1 {
-    font-size: clamp(0.92rem, 1.6vh, 1.18rem) !important;
+    font-size: clamp(1.18rem, 2.5vh, 1.55rem) !important;
     font-weight: 800 !important;
     margin: 0 !important;
     line-height: 1.15 !important;
@@ -474,8 +486,8 @@ main.contain {
 }
 
 .brand-titles p {
-    font-size: clamp(0.65rem, 1.08vh, 0.80rem) !important;
-    color: #8BA2BF !important;
+    font-size: clamp(0.82rem, 1.65vh, 1.0rem) !important;
+    color: #9BB2CE !important;
     margin: 0 !important;
     line-height: 1.2 !important;
 }
@@ -489,23 +501,23 @@ main.contain {
     margin: 0 !important;
 }
 
-/* ── BOTONCITO DE LOGIN ADMIN (ESQUINA SUPERIOR DERECHA) ── */
+/* ── BOTÓN DE LOGIN ADMIN / SALIR (ESQUINA SUPERIOR DERECHA) ── */
 .btn-login-compact {
     width: auto !important;
     min-width: unset !important;
-    max-width: 115px !important;
-    height: clamp(26px, 3.5vh, 36px) !important;
-    padding: 3px 12px !important;
-    font-size: clamp(0.71rem, 1.12vh, 0.84rem) !important;
+    max-width: 145px !important;
+    height: clamp(34px, 4.5vh, 44px) !important;
+    padding: 5px 18px !important;
+    font-size: clamp(0.88rem, 1.75vh, 1.04rem) !important;
     font-weight: 600 !important;
-    border-radius: 8px !important;
+    border-radius: 9px !important;
     background: rgba(232, 244, 248, 0.05) !important;
-    border: 1px solid rgba(0, 212, 255, 0.2) !important;
+    border: 1px solid rgba(0, 212, 255, 0.22) !important;
     color: var(--frost-white) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 5px !important;
+    gap: 6px !important;
     white-space: nowrap !important;
     transition: all 0.25s ease !important;
     cursor: pointer !important;
@@ -524,9 +536,9 @@ main.contain {
     background: #0A1628 !important;
     border: 1px solid rgba(0, 212, 255, 0.14) !important;
     border-radius: 14px !important;
-    padding: clamp(6px, 1.18vh, 18px) clamp(11px, 1.35vw, 22px) !important;
+    padding: clamp(9px, 1.45vh, 20px) clamp(14px, 1.6vw, 24px) !important;
     margin-bottom: 0 !important;
-    gap: clamp(3px, 0.65vh, 10px) !important;
+    gap: clamp(5px, 0.9vh, 12px) !important;
     box-shadow: 0 4px 16px rgba(5, 11, 26, 0.6), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
     transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
     position: relative !important;
@@ -606,9 +618,9 @@ main.contain {
     align-items: center !important;
     justify-content: space-between !important;
     width: 100% !important;
-    margin-bottom: clamp(2px, 0.45vh, 6px) !important;
-    padding-bottom: clamp(2px, 0.55vh, 7px) !important;
-    border-bottom: 1px solid rgba(0, 212, 255, 0.1) !important;
+    margin-bottom: clamp(3px, 0.55vh, 8px) !important;
+    padding-bottom: clamp(4px, 0.65vh, 9px) !important;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.12) !important;
 }
 
 /* En encabezados con múltiples elementos (como Resultado + "En espera"), alinear extremos en la misma fila */
@@ -639,8 +651,8 @@ main.contain {
 .module-title {
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
-    font-size: clamp(0.75rem, 1.25vh, 0.92rem) !important;
+    gap: 8px !important;
+    font-size: clamp(1.0rem, 2.1vh, 1.26rem) !important;
     font-weight: 700 !important;
     color: var(--frost-white) !important;
     letter-spacing: -0.01em !important;
@@ -648,43 +660,43 @@ main.contain {
 }
 
 .module-title-icon {
-    font-size: clamp(0.84rem, 1.35vh, 1.02rem) !important;
+    font-size: clamp(1.08rem, 2.2vh, 1.32rem) !important;
 }
 
-/* ── FORM ELEMENTS SUAVES Y RESPONSIVOS ──────────── */
+/* ── FORM ELEMENTS SUAVES, GRANDES Y LEGIBLES ──────────── */
 .gradio-container label span,
 .module-card span[data-testid="block-info"] {
     font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.62rem, 1.02vh, 0.76rem) !important;
-    font-weight: 600 !important;
-    color: #8BA2BF !important;
+    font-size: clamp(0.80rem, 1.62vh, 0.96rem) !important;
+    font-weight: 700 !important;
+    color: #A3BBD6 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.03em !important;
-    margin-bottom: clamp(2px, 0.35vh, 5px) !important;
-    line-height: 1.15 !important;
+    margin-bottom: clamp(3px, 0.5vh, 6px) !important;
+    line-height: 1.2 !important;
 }
 
 .module-card .info,
 .module-card div[class*="info"] {
-    font-size: clamp(0.61rem, 0.98vh, 0.74rem) !important;
-    color: #627A97 !important;
-    margin-top: 2px !important;
+    font-size: clamp(0.78rem, 1.55vh, 0.94rem) !important;
+    color: #88A2C2 !important;
+    margin-top: 3px !important;
     margin-bottom: 0 !important;
-    line-height: 1.15 !important;
+    line-height: 1.22 !important;
 }
 
 .gradio-container input[type="text"]:not([role="combobox"]),
 .gradio-container input[type="password"]:not([role="combobox"]),
 .gradio-container select {
     background-color: var(--arctic-input) !important;
-    border: 1px solid rgba(0, 212, 255, 0.14) !important;
+    border: 1px solid rgba(0, 212, 255, 0.16) !important;
     border-radius: 9px !important;
     color: var(--frost-white) !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.73rem, 1.18vh, 0.86rem) !important;
-    height: clamp(29px, 3.9vh, 42px) !important;
-    min-height: clamp(29px, 3.9vh, 42px) !important;
-    padding: 3px 10px !important;
+    font-size: clamp(0.90rem, 1.82vh, 1.08rem) !important;
+    height: clamp(35px, 4.8vh, 46px) !important;
+    min-height: clamp(35px, 4.8vh, 46px) !important;
+    padding: 4px 12px !important;
     transition: all 0.2s ease !important;
 }
 
@@ -700,10 +712,10 @@ main.contain {
 .module-card .wrap:has(> .wrap-inner > .secondary-wrap),
 .module-card .gradio-dropdown .wrap {
     background: var(--arctic-input) !important;
-    border: 1px solid rgba(0, 212, 255, 0.16) !important;
+    border: 1px solid rgba(0, 212, 255, 0.18) !important;
     border-radius: 9px !important;
-    min-height: clamp(29px, 3.9vh, 42px) !important;
-    height: clamp(29px, 3.9vh, 42px) !important;
+    min-height: clamp(35px, 4.8vh, 46px) !important;
+    height: clamp(35px, 4.8vh, 46px) !important;
     transition: all 0.2s ease !important;
     position: relative !important;
     cursor: pointer !important;
@@ -740,7 +752,7 @@ div.wrap:not(.module-card *) {
     justify-content: space-between !important;
     width: 100% !important;
     height: 100% !important;
-    padding: 1px 10px !important;
+    padding: 2px 12px !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -750,7 +762,7 @@ div.wrap:not(.module-card *) {
 
 .module-card .secondary-wrap .icon-wrap {
     position: absolute !important;
-    right: 10px !important;
+    right: 11px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
     display: flex !important;
@@ -777,11 +789,11 @@ div.wrap:not(.module-card *) {
     box-shadow: none !important;
     color: var(--frost-white) !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.73rem, 1.18vh, 0.86rem) !important;
+    font-size: clamp(0.90rem, 1.82vh, 1.08rem) !important;
     font-weight: 500 !important;
     outline: none !important;
     width: 100% !important;
-    padding: 2px 24px 2px 0 !important;
+    padding: 2px 26px 2px 0 !important;
     margin: 0 !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
@@ -801,11 +813,11 @@ div.wrap:not(.module-card *) {
 .dropdown-arrow,
 .module-card .dropdown-arrow,
 .gradio-container .dropdown-arrow {
-    fill: #8BA2BF !important;
-    color: #8BA2BF !important;
-    width: 14px !important;
-    height: 14px !important;
-    min-width: 14px !important;
+    fill: #9BB2CE !important;
+    color: #9BB2CE !important;
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
     flex-shrink: 0 !important;
     margin: 0 !important;
     transition: transform 0.2s ease, fill 0.2s ease !important;
@@ -841,10 +853,10 @@ div.options.svelte-1ou0lab {
     box-shadow: 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 18px rgba(0, 212, 255, 0.18) !important;
     z-index: 999999 !important;
     color: var(--frost-white) !important;
-    max-height: 220px !important;
+    max-height: 260px !important;
     overflow-y: auto !important;
     margin: 0 !important;
-    padding: 5px !important;
+    padding: 6px !important;
 }
 
 .option-list,
@@ -856,7 +868,7 @@ ul[role="listbox"] {
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
-    max-height: 208px !important;
+    max-height: 248px !important;
     overflow-y: auto !important;
 }
 
@@ -869,15 +881,15 @@ ul.options > li,
 [role="option"] {
     width: 100% !important;
     max-width: 100% !important;
-    padding: 6px 10px !important;
-    font-size: clamp(0.73rem, 1.14vh, 0.84rem) !important;
+    padding: 9px 13px !important;
+    font-size: clamp(0.88rem, 1.75vh, 1.04rem) !important;
     font-family: 'Montserrat', sans-serif !important;
     color: var(--frost-white) !important;
     cursor: pointer !important;
-    border: 1px solid rgba(0, 212, 255, 0.14) !important;
-    border-radius: 7px !important;
-    margin-bottom: 4px !important;
-    background: rgba(10, 22, 40, 0.8) !important;
+    border: 1px solid rgba(0, 212, 255, 0.15) !important;
+    border-radius: 8px !important;
+    margin-bottom: 5px !important;
+    background: rgba(10, 22, 40, 0.85) !important;
     transition: all 0.15s ease !important;
     display: flex !important;
     align-items: center !important;
@@ -915,13 +927,26 @@ li[role="option"][aria-selected="true"],
 .module-card label:has(input[type="checkbox"]) {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 6px !important;
-    padding: 2px 0 !important;
+    gap: 8px !important;
+    padding: 4px 0 !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     cursor: pointer !important;
-    margin-top: clamp(6px, 1.35vh, 18px) !important;
+    margin-top: clamp(14px, 2.1vh, 23px) !important;
+}
+
+.module-card label:has(input[type="checkbox"]) span {
+    font-size: clamp(0.76rem, 1.4vh, 0.88rem) !important;
+    letter-spacing: 0.01em !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0 !important;
+}
+
+.module-card input[type="checkbox"] {
+    width: clamp(17px, 2.2vh, 21px) !important;
+    height: clamp(17px, 2.2vh, 21px) !important;
+    flex-shrink: 0 !important;
 }
 
 .module-card label:has(input[type="checkbox"]):hover {
@@ -938,7 +963,7 @@ li[role="option"][aria-selected="true"],
     padding: 0 !important;
     width: 100% !important;
     flex: 1 1 0% !important;
-    min-height: 40px !important;
+    min-height: 44px !important;
     height: auto !important;
     display: flex !important;
     flex-direction: column !important;
@@ -962,9 +987,9 @@ li[role="option"][aria-selected="true"],
     border-radius: 10px !important;
     width: 100% !important;
     flex: 1 1 0% !important;
-    min-height: 40px !important;
+    min-height: 44px !important;
     height: 100% !important;
-    padding: 4px 12px !important;
+    padding: 6px 14px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -989,7 +1014,7 @@ li[role="option"][aria-selected="true"],
     flex-direction: row !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 8px !important;
+    gap: 10px !important;
     font-size: 0 !important;
     color: transparent !important;
     line-height: 0 !important;
@@ -1004,8 +1029,8 @@ li[role="option"][aria-selected="true"],
 .file-upload-zone svg.feather-upload,
 .file-upload-zone button svg {
     display: inline-block !important;
-    width: clamp(16px, 2.3vh, 24px) !important;
-    height: clamp(16px, 2.3vh, 24px) !important;
+    width: clamp(22px, 3.2vh, 32px) !important;
+    height: clamp(22px, 3.2vh, 32px) !important;
     margin: 0 !important;
     color: var(--ice-cyan) !important;
     flex-shrink: 0 !important;
@@ -1020,9 +1045,9 @@ li[role="option"][aria-selected="true"],
 .file-upload-zone button > div::after {
     content: "Arrastre el archivo aquí o haga clic para cargar" !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.72rem, 1.2vh, 0.88rem) !important;
+    font-size: clamp(0.95rem, 2.0vh, 1.20rem) !important;
     line-height: 1.25 !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
     color: var(--frost-white) !important;
     text-align: center !important;
     display: inline-block !important;
@@ -1041,10 +1066,10 @@ li[role="option"][aria-selected="true"],
 
 .file-hint {
     flex: 0 0 auto !important;
-    font-size: clamp(0.61rem, 0.98vh, 0.74rem) !important;
-    color: #627A97 !important;
-    margin-top: 2px !important;
-    line-height: 1.15 !important;
+    font-size: clamp(0.78rem, 1.55vh, 0.94rem) !important;
+    color: #88A2C2 !important;
+    margin-top: 3px !important;
+    line-height: 1.2 !important;
 }
 
 /* ── MODULO 4: RESULTADO DE LA TRANSCRIPCIÓN (ALTURA SIMÉTRICA Y RESPONSIVA) ── */
@@ -1064,7 +1089,7 @@ li[role="option"][aria-selected="true"],
     justify-content: space-between !important;
     height: 100% !important;
     min-height: 0 !important;
-    gap: clamp(4px, 0.85vh, 12px) !important;
+    gap: clamp(6px, 1vh, 14px) !important;
 }
 
 .output-textbox,
@@ -1089,13 +1114,13 @@ li[role="option"][aria-selected="true"],
     min-height: 110px !important;
     max-height: none !important;
     background-color: #040813 !important;
-    border: 1px solid rgba(0, 212, 255, 0.12) !important;
+    border: 1px solid rgba(0, 212, 255, 0.14) !important;
     border-radius: 10px !important;
     color: var(--frost-white) !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: clamp(0.74rem, 1.22vh, 0.88rem) !important;
-    line-height: 1.55 !important;
-    padding: clamp(8px, 1.25vh, 16px) clamp(10px, 1.2vw, 18px) !important;
+    font-size: clamp(0.92rem, 1.82vh, 1.12rem) !important;
+    line-height: 1.6 !important;
+    padding: clamp(10px, 1.4vh, 18px) clamp(12px, 1.4vw, 20px) !important;
     resize: none !important;
     overflow-y: auto !important;
     box-sizing: border-box !important;
@@ -1123,11 +1148,11 @@ li[role="option"][aria-selected="true"],
     box-shadow: 0 0 8px rgba(0, 255, 135, 0.5);
 }
 
-/* ── BOTONES DE ACCIÓN (RESPONSIVOS) ─────────────── */
+/* ── BOTONES DE ACCIÓN (RESPONSIVOS Y MÁS GRANDES) ─────────────── */
 .actions-row {
     flex: 0 0 auto !important;
     margin-top: 0 !important;
-    gap: clamp(6px, 0.8vw, 12px) !important;
+    gap: clamp(8px, 0.9vw, 14px) !important;
 }
 
 .btn-primary {
@@ -1135,12 +1160,12 @@ li[role="option"][aria-selected="true"],
     color: #050B1A !important;
     font-family: 'Montserrat', sans-serif !important;
     font-weight: 700 !important;
-    font-size: clamp(0.78rem, 1.3vh, 0.90rem) !important;
+    font-size: clamp(0.95rem, 1.9vh, 1.15rem) !important;
     border: none !important;
-    border-radius: 9px !important;
-    height: clamp(33px, 4.3vh, 45px) !important;
-    min-height: clamp(33px, 4.3vh, 45px) !important;
-    padding: 5px 14px !important;
+    border-radius: 10px !important;
+    height: clamp(38px, 5.1vh, 50px) !important;
+    min-height: clamp(38px, 5.1vh, 50px) !important;
+    padding: 6px 16px !important;
     box-shadow: 0 4px 14px rgba(0, 255, 135, 0.28) !important;
     transition: all 0.25s ease !important;
     cursor: pointer !important;
@@ -1155,15 +1180,15 @@ li[role="option"][aria-selected="true"],
 
 .btn-secondary {
     background: rgba(232, 244, 248, 0.04) !important;
-    border: 1px solid rgba(0, 212, 255, 0.16) !important;
+    border: 1px solid rgba(0, 212, 255, 0.18) !important;
     color: var(--frost-white) !important;
     font-family: 'Montserrat', sans-serif !important;
     font-weight: 600 !important;
-    font-size: clamp(0.75rem, 1.25vh, 0.86rem) !important;
-    border-radius: 9px !important;
-    height: clamp(33px, 4.3vh, 45px) !important;
-    min-height: clamp(33px, 4.3vh, 45px) !important;
-    padding: 5px 12px !important;
+    font-size: clamp(0.90rem, 1.8vh, 1.08rem) !important;
+    border-radius: 10px !important;
+    height: clamp(38px, 5.1vh, 50px) !important;
+    min-height: clamp(38px, 5.1vh, 50px) !important;
+    padding: 6px 14px !important;
     transition: all 0.25s ease !important;
     cursor: pointer !important;
 }
@@ -1179,10 +1204,10 @@ li[role="option"][aria-selected="true"],
 .status-badge {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 2px 9px;
-    border-radius: 6px;
-    font-size: clamp(0.66rem, 1.05vh, 0.76rem);
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 7px;
+    font-size: clamp(0.82rem, 1.6vh, 0.96rem);
     font-weight: 600;
     white-space: nowrap;
 }
@@ -1209,14 +1234,14 @@ li[role="option"][aria-selected="true"],
 .info-notice {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: clamp(4px, 0.7vh, 9px) clamp(8px, 1vw, 13px);
-    border-radius: 8px;
-    font-size: clamp(0.66rem, 1.08vh, 0.77rem);
-    line-height: 1.25;
+    gap: 8px;
+    padding: clamp(6px, 0.95vh, 11px) clamp(10px, 1.1vw, 15px);
+    border-radius: 9px;
+    font-size: clamp(0.82rem, 1.62vh, 0.96rem);
+    line-height: 1.34;
     background: rgba(0, 212, 255, 0.08);
     border: 1px solid rgba(0, 212, 255, 0.22);
-    color: #7DD3FC;
+    color: #8CE0FF;
     margin-top: 2px;
 }
 
@@ -1225,6 +1250,56 @@ li[role="option"][aria-selected="true"],
     border-color: rgba(0, 255, 135, 0.28) !important;
     color: var(--aurora-green) !important;
     box-shadow: 0 0 12px rgba(0, 255, 135, 0.12) !important;
+}
+
+/* Ajuste compacto de espaciados verticales para pantallas bajas (<= 720px de alto) manteniendo letras grandes */
+@media (max-height: 720px) {
+    .gradio-container {
+        padding: 4px clamp(10px, 1.5vw, 22px) !important;
+    }
+    .app-navbar {
+        padding: 5px 14px !important;
+        margin-bottom: 4px !important;
+    }
+    .left-column,
+    .gradio-container .column.left-column {
+        gap: 5px !important;
+    }
+    .module-card {
+        padding: 6px 14px !important;
+        gap: 4px !important;
+    }
+    .options-card,
+    .gradio-container .column.options-card {
+        gap: 4px !important;
+    }
+    .module-header,
+    .gradio-container .row.module-header,
+    .module-card .row.module-header {
+        margin-bottom: 2px !important;
+        padding-bottom: 2px !important;
+    }
+    .gradio-container input[type="text"]:not([role="combobox"]),
+    .gradio-container input[type="password"]:not([role="combobox"]),
+    .gradio-container select,
+    .module-card .wrap:has(> .wrap-inner > .secondary-wrap),
+    .module-card .gradio-dropdown .wrap {
+        height: 33px !important;
+        min-height: 33px !important;
+    }
+    .btn-primary,
+    .btn-secondary {
+        height: 35px !important;
+        min-height: 35px !important;
+    }
+    .info-notice {
+        padding: 4px 9px !important;
+        line-height: 1.2 !important;
+    }
+    .app-footer {
+        padding-top: 2px !important;
+        margin-top: 2px !important;
+    }
 }
 
 /* ── MODAL ADMIN (CENTRADO EN PESTAÑA VISIBLE Y CIERRE INSTANTÁNEO SIN CONGELAMIENTO) ── */
@@ -1275,13 +1350,13 @@ div.modal-overlay:not(.hide),
     border: 1px solid rgba(0, 212, 255, 0.28) !important;
     border-radius: 16px !important;
     width: 90vw !important;
-    max-width: 370px !important;
+    max-width: 420px !important;
     height: auto !important;
     min-height: unset !important;
     max-height: fit-content !important;
     flex: 0 0 auto !important;
     margin: 0 !important;
-    padding: 20px !important;
+    padding: 24px !important;
     z-index: 2147483647 !important;
     box-shadow: 0 20px 55px rgba(0, 0, 0, 0.92), 0 0 24px rgba(0, 212, 255, 0.22) !important;
     box-sizing: border-box !important;
@@ -1298,31 +1373,31 @@ div.modal-overlay:not(.hide),
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 8px !important;
     flex-wrap: nowrap !important;
     width: 100% !important;
 }
 
 .modal-title {
-    font-size: 0.92rem !important;
+    font-size: 1.12rem !important;
     font-weight: 700 !important;
     color: var(--frost-white) !important;
     margin: 0 !important;
 }
 
 .btn-modal-close {
-    width: 28px !important;
-    height: 28px !important;
-    min-width: 28px !important;
-    max-width: 28px !important;
-    flex: 0 0 28px !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    flex: 0 0 32px !important;
     padding: 0 !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border-radius: 7px !important;
-    font-size: 0.80rem !important;
-    color: #8BA2BF !important;
+    border-radius: 8px !important;
+    font-size: 0.92rem !important;
+    color: #9BB2CE !important;
     background: rgba(232, 244, 248, 0.05) !important;
     border: 1px solid rgba(0, 212, 255, 0.15) !important;
     cursor: pointer !important;
@@ -1335,10 +1410,10 @@ div.modal-overlay:not(.hide),
 }
 
 .modal-subtext {
-    font-size: 0.73rem !important;
-    color: #8BA2BF !important;
-    margin: 0 0 10px 0 !important;
-    line-height: 1.35 !important;
+    font-size: 0.88rem !important;
+    color: #9BB2CE !important;
+    margin: 0 0 12px 0 !important;
+    line-height: 1.4 !important;
 }
 
 .block:has(.app-footer) {
@@ -1351,11 +1426,11 @@ div.modal-overlay:not(.hide),
 .app-footer {
     flex: 0 0 auto !important;
     text-align: center !important;
-    font-size: clamp(0.63rem, 1vh, 0.73rem) !important;
-    color: #627A97 !important;
-    padding: clamp(3px, 0.6vh, 8px) 0 0 0 !important;
-    border-top: 1px solid rgba(0, 212, 255, 0.06) !important;
-    margin-top: clamp(3px, 0.6vh, 8px) !important;
+    font-size: clamp(0.78rem, 1.48vh, 0.92rem) !important;
+    color: #88A2C2 !important;
+    padding: clamp(4px, 0.65vh, 8px) 0 0 0 !important;
+    border-top: 1px solid rgba(0, 212, 255, 0.08) !important;
+    margin-top: clamp(4px, 0.65vh, 8px) !important;
 }
 """
 
