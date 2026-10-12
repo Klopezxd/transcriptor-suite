@@ -6,6 +6,7 @@ patrón Aurora Boreal Nórdica y gestión limpia de credenciales.
 """
 
 import sys
+import time
 
 if sys.platform == "win32":
     try:
@@ -53,6 +54,13 @@ def execute_whisperx(pipeline, media_path: str, progress_callback):
     return pipeline.process(media_path=media_path, progress_callback=progress_callback)
 
 
+IDLE_TIME_BADGE = '<span class="status-badge status-time status-time-idle">⏱️ Transcrito en -- s</span>'
+
+
+def _build_status_badges(status_span: str, time_span: str = IDLE_TIME_BADGE) -> str:
+    return f'<div class="status-badges-group">{time_span}{status_span}</div>'
+
+
 def process_transcription(
     media_file,
     provider: str,
@@ -70,7 +78,7 @@ def process_transcription(
         return (
             "⚠️ Por favor selecciona o arrastra un archivo de audio o video para comenzar.",
             gr.DownloadButton(label="📥 Descargar Documento (.txt)", value=None, interactive=False),
-            '<span class="status-badge status-warning">Sin archivo</span>',
+            _build_status_badges('<span class="status-badge status-warning">Sin archivo</span>'),
         )
 
     media_path = media_file.name if hasattr(media_file, "name") else str(media_file)
@@ -97,7 +105,9 @@ def process_transcription(
                 gr.DownloadButton(
                     label="📥 Descargar Documento (.txt)", value=None, interactive=False
                 ),
-                '<span class="status-badge status-error">Token HF requerido</span>',
+                _build_status_badges(
+                    '<span class="status-badge status-error">Token HF requerido</span>'
+                ),
             )
 
     elif provider == ProviderType.DEEPGRAM.value:
@@ -117,7 +127,9 @@ def process_transcription(
                 gr.DownloadButton(
                     label="📥 Descargar Documento (.txt)", value=None, interactive=False
                 ),
-                '<span class="status-badge status-error">API Key requerida</span>',
+                _build_status_badges(
+                    '<span class="status-badge status-error">API Key requerida</span>'
+                ),
             )
 
     elif provider == ProviderType.ASSEMBLYAI.value:
@@ -137,11 +149,15 @@ def process_transcription(
                 gr.DownloadButton(
                     label="📥 Descargar Documento (.txt)", value=None, interactive=False
                 ),
-                '<span class="status-badge status-error">API Key requerida</span>',
+                _build_status_badges(
+                    '<span class="status-badge status-error">API Key requerida</span>'
+                ),
             )
 
     def on_progress(p: float, msg: str) -> None:
         progress(p, desc=msg)
+
+    start_time = time.perf_counter()
 
     try:
         config = TranscriptionConfig.create_default(
@@ -163,12 +179,22 @@ def process_transcription(
                 progress_callback=on_progress,
             )
 
+        elapsed_seconds = max(0.1, time.perf_counter() - start_time)
+        time_badge_html = (
+            f'<span class="status-badge status-time">'
+            f"⏱️ Transcrito en {elapsed_seconds:.1f} segundos"
+            f"</span>"
+        )
+
         lang_info = (
             f"Idioma: {result.detected_language.upper()}"
             if getattr(result, "detected_language", None)
             else "Completado"
         )
-        status_html = f'<span class="status-badge status-success">✓ {lang_info}</span>'
+        status_html = _build_status_badges(
+            f'<span class="status-badge status-success">✓ {lang_info}</span>',
+            time_span=time_badge_html,
+        )
 
         return (
             result.formatted_text,
@@ -186,7 +212,7 @@ def process_transcription(
         return (
             f"❌ Error de transcripción:\n{e}",
             gr.DownloadButton(label="📥 Descargar Documento (.txt)", value=None, interactive=False),
-            '<span class="status-badge status-error">Error</span>',
+            _build_status_badges('<span class="status-badge status-error">Error</span>'),
         )
     except Exception as e:
         clear_gpu_vram()
@@ -194,7 +220,7 @@ def process_transcription(
         return (
             f"❌ Ocurrió un error inesperado durante el procesamiento:\n{e}",
             gr.DownloadButton(label="📥 Descargar Documento (.txt)", value=None, interactive=False),
-            '<span class="status-badge status-error">Error inesperado</span>',
+            _build_status_badges('<span class="status-badge status-error">Error inesperado</span>'),
         )
 
 
@@ -1431,6 +1457,14 @@ li[role="option"][aria-selected="true"],
 }
 
 /* ── STATUS BADGES & AVISOS ──────────────────────── */
+.status-badges-group {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -1440,6 +1474,21 @@ li[role="option"][aria-selected="true"],
     font-size: clamp(0.82rem, 1.6vh, 0.96rem);
     font-weight: 600;
     white-space: nowrap;
+}
+
+.status-time {
+    background: rgba(0, 212, 255, 0.12);
+    color: var(--ice-cyan);
+    border: 1px solid rgba(0, 212, 255, 0.35);
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.16);
+    font-variant-numeric: tabular-nums;
+}
+
+.status-time-idle {
+    background: rgba(155, 178, 206, 0.07);
+    color: #88A2C2;
+    border: 1px solid rgba(0, 212, 255, 0.18);
+    box-shadow: none;
 }
 
 .status-success {
@@ -1963,7 +2012,9 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         """
                     )
                     status_badge = gr.HTML(
-                        '<span class="status-badge status-warning">En espera</span>',
+                        _build_status_badges(
+                            '<span class="status-badge status-warning">En espera</span>'
+                        ),
                         elem_classes=["status-badge-container"],
                     )
 
@@ -2476,7 +2527,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             None,
             "",
             gr.DownloadButton(label="📥 Descargar Documento (.txt)", value=None, interactive=False),
-            '<span class="status-badge status-warning">En espera</span>',
+            _build_status_badges('<span class="status-badge status-warning">En espera</span>'),
         )
 
     btn_clear.click(
