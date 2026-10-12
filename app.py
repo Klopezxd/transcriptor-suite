@@ -51,7 +51,6 @@ def execute_whisperx(pipeline, media_path: str, progress_callback):
     return pipeline.process(media_path=media_path, progress_callback=progress_callback)
 
 
-IDLE_TIME_BADGE = '<span class="status-badge status-time status-time-idle">⏱️ Transcrito en -- s</span>'
 EMPTY_DOWNLOAD_LABEL = "📥 Descargar Documento (.txt)"
 
 PROVIDER_INFO_HTML: dict[str, str] = {
@@ -70,7 +69,7 @@ PROVIDER_INFO_HTML: dict[str, str] = {
 }
 
 
-def _build_status_badges(status_span: str, time_span: str = IDLE_TIME_BADGE) -> str:
+def _build_status_badges(status_span: str, time_span: str = "") -> str:
     return f'<div class="status-badges-group">{time_span}{status_span}</div>'
 
 
