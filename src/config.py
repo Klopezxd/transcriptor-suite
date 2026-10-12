@@ -88,16 +88,18 @@ class TranscriptionConfig:
     def create_default(
         cls,
         provider: str = ProviderType.DEEPGRAM.value,
-        model_name: str = DeepgramModel.NOVA_2.value,
+        model_name: str | None = None,
         enable_diarization: bool = False,
+        timestamp_mode: TimestampMode = TimestampMode.SIMPLE,
         hf_token: str | None = None,
         api_key: str | None = None,
         device: str | None = None,
         compute_type: str | None = None,
+        language: str | None = None,
     ) -> "TranscriptionConfig":
-        """Crea una configuración con selección automática de hardware y proveedor."""
+        """Crea una configuración inmutable con selección automática de hardware y proveedor."""
         detected_device = "cpu"
-        detected_compute = "int8"
+        detected_compute = ComputeType.INT8.value
 
         # Solo verificar PyTorch CUDA si se utiliza WhisperX
         if provider == ProviderType.WHISPERX.value:
@@ -105,20 +107,45 @@ class TranscriptionConfig:
                 import torch
 
                 detected_device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-                detected_compute = compute_type or ("int8" if detected_device == "cuda" else "int8")
+                detected_compute = compute_type or ComputeType.INT8.value
             except ImportError:
                 detected_device = "cpu"
-                detected_compute = "int8"
+                detected_compute = ComputeType.INT8.value
+
+        resolved_model = model_name or get_default_model_for_provider(provider)
 
         return cls(
             provider=provider,
-            model_name=model_name,
+            model_name=resolved_model,
             device=detected_device,
             compute_type=detected_compute,
             enable_diarization=enable_diarization,
+            timestamp_mode=timestamp_mode,
             hf_token=hf_token,
             api_key=api_key,
+            language=language,
         )
+
+
+DEFAULT_PROVIDER_MODELS: dict[str, str] = {
+    ProviderType.WHISPERX.value: ModelName.LARGE_V3_TURBO.value,
+    ProviderType.DEEPGRAM.value: DeepgramModel.NOVA_2.value,
+    ProviderType.ASSEMBLYAI.value: AssemblyAIModel.BEST.value,
+}
+
+
+def get_default_model_for_provider(provider: str) -> str:
+    """Retorna el identificador del modelo predeterminado para el proveedor indicado."""
+    return DEFAULT_PROVIDER_MODELS.get(provider, ModelName.LARGE_V3_TURBO.value)
+
+
+TIMESTAMP_LABEL_MAP: dict[str, TimestampMode] = {
+    "Simple ([HH:MM:SS])": TimestampMode.SIMPLE,
+    "Rango ([Inicio - Fin])": TimestampMode.RANGE,
+    "Texto continuo (Sin marcas)": TimestampMode.NONE,
+}
+
+TIMESTAMP_CHOICES: list[str] = list(TIMESTAMP_LABEL_MAP.keys())
 
 
 PROVIDER_MODEL_CHOICES: dict[str, list[tuple[str, str]]] = {

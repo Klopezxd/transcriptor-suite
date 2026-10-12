@@ -5,20 +5,15 @@ Desarrollada desde cero con arquitectura modular, diseño responsivo,
 patrón Aurora Boreal Nórdica y gestión limpia de credenciales.
 """
 
-import sys
 import time
-
-if sys.platform == "win32":
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-        sys.stderr.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
+from typing import Any
 
 import gradio as gr
 
 from src.config import (
     PROVIDER_MODEL_CHOICES,
+    TIMESTAMP_CHOICES,
+    TIMESTAMP_LABEL_MAP,
     DeepgramModel,
     ProviderType,
     TimestampMode,
@@ -28,6 +23,7 @@ from src.transcriber import create_transcription_pipeline
 from src.utils import (
     TranscriptionError,
     clear_gpu_vram,
+    configure_utf8_console,
     resolve_assemblyai_api_key,
     resolve_deepgram_api_key,
     resolve_hf_token,
@@ -35,6 +31,7 @@ from src.utils import (
     verify_admin_pin,
 )
 
+configure_utf8_console()
 logger = setup_logger("whisperx_app")
 
 # Compatibilidad con ZeroGPU en Hugging Face Spaces
@@ -55,10 +52,115 @@ def execute_whisperx(pipeline, media_path: str, progress_callback):
 
 
 IDLE_TIME_BADGE = '<span class="status-badge status-time status-time-idle">⏱️ Transcrito en -- s</span>'
+EMPTY_DOWNLOAD_LABEL = "📥 Descargar Documento (.txt)"
+
+PROVIDER_INFO_HTML: dict[str, str] = {
+    ProviderType.WHISPERX.value: (
+        '<div class="info-notice"><span>💡</span>'
+        "<span><b>WhisperX:</b> Inferencia GPU local / ZeroGPU. Modelo <code>large-v3-turbo</code> ofrece máxima velocidad y eficiencia.</span></div>"
+    ),
+    ProviderType.DEEPGRAM.value: (
+        '<div class="info-notice"><span>💡</span>'
+        "<span><b>Deepgram:</b> Inferencia ultrarrápida (~20s por audio largo). Modelo <code>nova-2</code> es el más económico y <code>nova-3</code> óptimo para ruido y acentos.</span></div>"
+    ),
+    ProviderType.ASSEMBLYAI.value: (
+        '<div class="info-notice"><span>💡</span>'
+        "<span><b>AssemblyAI:</b> Precisión acústica y editorial de alta fidelidad. <code>best</code> (Universal-1) y <code>nano</code> (ahorro).</span></div>"
+    ),
+}
 
 
 def _build_status_badges(status_span: str, time_span: str = IDLE_TIME_BADGE) -> str:
     return f'<div class="status-badges-group">{time_span}{status_span}</div>'
+
+
+def _disabled_download_button() -> gr.DownloadButton:
+    return gr.DownloadButton(label=EMPTY_DOWNLOAD_LABEL, value=None, interactive=False)
+
+
+def _resolve_provider_credentials(
+    provider: str,
+    enable_diarization: bool,
+    hf_token_input: str,
+    deepgram_key_input: str,
+    assemblyai_key_input: str,
+    is_admin_session: bool,
+) -> tuple[str | None, str | None, tuple[str, Any, str] | None]:
+    """
+    Resuelve y valida las credenciales requeridas según el proveedor seleccionado.
+    Retorna (hf_token, api_key, error_tuple_or_none).
+    """
+    if provider == ProviderType.WHISPERX.value:
+        resolved_hf_token = resolve_hf_token(hf_token_input)
+        if enable_diarization and not resolved_hf_token:
+            return (
+                None,
+                None,
+                (
+                    "⚠️ La diarización con WhisperX requiere un token de Hugging Face.\n\n"
+                    "Requisitos para activarla:\n"
+                    "1. Acepta los términos de uso en: https://huggingface.co/pyannote/speaker-diarization-3.1\n"
+                    "2. Acepta los términos en: https://huggingface.co/pyannote/segmentation-3.0\n"
+                    "3. Ingresa tu token con permisos de lectura en el campo de Hugging Face.",
+                    _disabled_download_button(),
+                    _build_status_badges(
+                        '<span class="status-badge status-error">Token HF requerido</span>'
+                    ),
+                ),
+            )
+        return resolved_hf_token, None, None
+
+    if provider == ProviderType.DEEPGRAM.value:
+        if deepgram_key_input and deepgram_key_input.strip():
+            resolved_api_key = resolve_deepgram_api_key(deepgram_key_input)
+        elif is_admin_session:
+            resolved_api_key = resolve_deepgram_api_key()
+        else:
+            resolved_api_key = None
+
+        if not resolved_api_key:
+            return (
+                None,
+                None,
+                (
+                    "⚠️ Se requiere una clave de API de Deepgram para utilizar este motor.\n\n"
+                    "• Si tienes tu clave personal, ingrésala en el panel de credenciales.\n"
+                    "• Si eres administrador, inicia sesión para utilizar las claves del servidor.\n"
+                    "• O selecciona 'WhisperX (ZeroGPU / Local)' para transcribir de forma 100% gratuita.",
+                    _disabled_download_button(),
+                    _build_status_badges(
+                        '<span class="status-badge status-error">API Key requerida</span>'
+                    ),
+                ),
+            )
+        return None, resolved_api_key, None
+
+    if provider == ProviderType.ASSEMBLYAI.value:
+        if assemblyai_key_input and assemblyai_key_input.strip():
+            resolved_api_key = resolve_assemblyai_api_key(assemblyai_key_input)
+        elif is_admin_session:
+            resolved_api_key = resolve_assemblyai_api_key()
+        else:
+            resolved_api_key = None
+
+        if not resolved_api_key:
+            return (
+                None,
+                None,
+                (
+                    "⚠️ Se requiere una clave de API de AssemblyAI para utilizar este motor.\n\n"
+                    "• Si tienes tu clave personal, ingrésala en el panel de credenciales.\n"
+                    "• Si eres administrador, inicia sesión para utilizar las claves del servidor.\n"
+                    "• O selecciona 'WhisperX (ZeroGPU / Local)' para transcribir de forma 100% gratuita.",
+                    _disabled_download_button(),
+                    _build_status_badges(
+                        '<span class="status-badge status-error">API Key requerida</span>'
+                    ),
+                ),
+            )
+        return None, resolved_api_key, None
+
+    return None, None, None
 
 
 def process_transcription(
@@ -77,82 +179,23 @@ def process_transcription(
     if not media_file:
         return (
             "⚠️ Por favor selecciona o arrastra un archivo de audio o video para comenzar.",
-            gr.DownloadButton(label="📥 Descargar Documento (.txt)", value=None, interactive=False),
+            _disabled_download_button(),
             _build_status_badges('<span class="status-badge status-warning">Sin archivo</span>'),
         )
 
     media_path = media_file.name if hasattr(media_file, "name") else str(media_file)
+    selected_mode = TIMESTAMP_LABEL_MAP.get(timestamp_option, TimestampMode.SIMPLE)
 
-    mode_map = {
-        "Simple ([HH:MM:SS])": TimestampMode.SIMPLE,
-        "Rango ([Inicio - Fin])": TimestampMode.RANGE,
-        "Texto continuo (Sin marcas)": TimestampMode.NONE,
-    }
-    selected_mode = mode_map.get(timestamp_option, TimestampMode.SIMPLE)
-
-    resolved_hf_token = None
-    resolved_api_key = None
-
-    if provider == ProviderType.WHISPERX.value:
-        resolved_hf_token = resolve_hf_token(hf_token_input)
-        if enable_diarization and not resolved_hf_token:
-            return (
-                "⚠️ La diarización con WhisperX requiere un token de Hugging Face.\n\n"
-                "Requisitos para activarla:\n"
-                "1. Acepta los términos de uso en: https://huggingface.co/pyannote/speaker-diarization-3.1\n"
-                "2. Acepta los términos en: https://huggingface.co/pyannote/segmentation-3.0\n"
-                "3. Ingresa tu token con permisos de lectura en el campo de Hugging Face.",
-                gr.DownloadButton(
-                    label="📥 Descargar Documento (.txt)", value=None, interactive=False
-                ),
-                _build_status_badges(
-                    '<span class="status-badge status-error">Token HF requerido</span>'
-                ),
-            )
-
-    elif provider == ProviderType.DEEPGRAM.value:
-        if deepgram_key_input and deepgram_key_input.strip():
-            resolved_api_key = resolve_deepgram_api_key(deepgram_key_input)
-        elif is_admin_session:
-            resolved_api_key = resolve_deepgram_api_key()
-        else:
-            resolved_api_key = None
-
-        if not resolved_api_key:
-            return (
-                "⚠️ Se requiere una clave de API de Deepgram para utilizar este motor.\n\n"
-                "• Si tienes tu clave personal, ingrésala en el panel de credenciales.\n"
-                "• Si eres administrador, inicia sesión para utilizar las claves del servidor.\n"
-                "• O selecciona 'WhisperX (ZeroGPU / Local)' para transcribir de forma 100% gratuita.",
-                gr.DownloadButton(
-                    label="📥 Descargar Documento (.txt)", value=None, interactive=False
-                ),
-                _build_status_badges(
-                    '<span class="status-badge status-error">API Key requerida</span>'
-                ),
-            )
-
-    elif provider == ProviderType.ASSEMBLYAI.value:
-        if assemblyai_key_input and assemblyai_key_input.strip():
-            resolved_api_key = resolve_assemblyai_api_key(assemblyai_key_input)
-        elif is_admin_session:
-            resolved_api_key = resolve_assemblyai_api_key()
-        else:
-            resolved_api_key = None
-
-        if not resolved_api_key:
-            return (
-                "⚠️ Se requiere una clave de API de AssemblyAI para utilizar este motor.\n\n"
-                "• Si tienes tu clave personal, ingrésala en el panel de credenciales.\n"
-                "• Si eres administrador, inicia sesión para utilizar las claves del servidor.\n"
-                "• O selecciona 'WhisperX (ZeroGPU / Local)' para transcribir de forma 100% gratuita.",
-                gr.DownloadButton(
-                    label="📥 Descargar Documento (.txt)", value=None, interactive=False
-                ),
-                _build_status_badges(
-                    '<span class="status-badge status-error">API Key requerida</span>'
-                ),
-            )
+    resolved_hf_token, resolved_api_key, cred_error = _resolve_provider_credentials(
+        provider=provider,
+        enable_diarization=enable_diarization,
+        hf_token_input=hf_token_input,
+        deepgram_key_input=deepgram_key_input,
+        assemblyai_key_input=assemblyai_key_input,
+        is_admin_session=is_admin_session,
+    )
+    if cred_error is not None:
+        return cred_error
 
     def on_progress(p: float, msg: str) -> None:
         progress(p, desc=msg)
@@ -164,10 +207,10 @@ def process_transcription(
             provider=provider,
             model_name=model_name,
             enable_diarization=enable_diarization,
+            timestamp_mode=selected_mode,
             hf_token=resolved_hf_token,
             api_key=resolved_api_key,
         )
-        object.__setattr__(config, "timestamp_mode", selected_mode)
 
         pipeline = create_transcription_pipeline(config)
 
@@ -211,7 +254,7 @@ def process_transcription(
         logger.error("Error en procesamiento web: %s", e)
         return (
             f"❌ Error de transcripción:\n{e}",
-            gr.DownloadButton(label="📥 Descargar Documento (.txt)", value=None, interactive=False),
+            _disabled_download_button(),
             _build_status_badges('<span class="status-badge status-error">Error</span>'),
         )
     except Exception as e:
@@ -219,7 +262,7 @@ def process_transcription(
         logger.exception("Error inesperado en aplicación web")
         return (
             f"❌ Ocurrió un error inesperado durante el procesamiento:\n{e}",
-            gr.DownloadButton(label="📥 Descargar Documento (.txt)", value=None, interactive=False),
+            _disabled_download_button(),
             _build_status_badges('<span class="status-badge status-error">Error inesperado</span>'),
         )
 
@@ -1916,26 +1959,15 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         scale=1,
                     )
                     timestamps_dropdown = gr.Dropdown(
-                        choices=[
-                            "Simple ([HH:MM:SS])",
-                            "Rango ([Inicio - Fin])",
-                            "Texto continuo (Sin marcas)",
-                        ],
-                        value="Simple ([HH:MM:SS])",
+                        choices=TIMESTAMP_CHOICES,
+                        value=TIMESTAMP_CHOICES[0],
                         label="Formato de Marcas de Tiempo",
                         filterable=False,
                         min_width=100,
                         scale=1,
                     )
 
-                provider_info_box = gr.HTML(
-                    """
-                    <div class="info-notice">
-                        <span>💡</span>
-                        <span><b>Deepgram:</b> Inferencia ultrarrápida (~20s por audio largo). Modelo <code>nova-2</code> es el más económico y <code>nova-3</code> óptimo para ruido y acentos.</span>
-                    </div>
-                    """
-                )
+                provider_info_box = gr.HTML(PROVIDER_INFO_HTML[ProviderType.DEEPGRAM.value])
 
             # Módulo 3: Credenciales de API (Modo Invitado / Admin)
             with gr.Column(
@@ -2027,7 +2059,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
                 with gr.Row(elem_classes=["actions-row"]):
                     btn_download = gr.DownloadButton(
-                        label="📥 Descargar Documento (.txt)",
+                        label=EMPTY_DOWNLOAD_LABEL,
                         value=None,
                         interactive=False,
                         variant="secondary",
@@ -2084,27 +2116,11 @@ with gr.Blocks(**blocks_kwargs) as demo:
         """Actualiza modelos disponibles, panel de claves y descripción."""
         choices = PROVIDER_MODEL_CHOICES.get(selected_provider, [])
         default_val = choices[0][1] if choices else ""
-
-        info_dict = {
-            ProviderType.WHISPERX.value: (
-                '<div class="info-notice"><span>💡</span>'
-                "<span><b>WhisperX:</b> Inferencia GPU local / ZeroGPU. Modelo <code>large-v3-turbo</code> ofrece máxima velocidad y eficiencia.</span></div>"
-            ),
-            ProviderType.DEEPGRAM.value: (
-                '<div class="info-notice"><span>💡</span>'
-                "<span><b>Deepgram:</b> Inferencia ultrarrápida (~20s por audio largo). Modelo <code>nova-2</code> es el más económico y <code>nova-3</code> óptimo para ruido y acentos.</span></div>"
-            ),
-            ProviderType.ASSEMBLYAI.value: (
-                '<div class="info-notice"><span>💡</span>'
-                "<span><b>AssemblyAI:</b> Precisión acústica y editorial de alta fidelidad. <code>best</code> (Universal-1) y <code>nano</code> (ahorro).</span></div>"
-            ),
-        }
-
         panel_vis = update_guest_api_panel(selected_provider, is_diarize, is_admin)
 
         return (
             gr.update(choices=choices, value=default_val, filterable=False),
-            gr.update(value=info_dict.get(selected_provider, "")),
+            gr.update(value=PROVIDER_INFO_HTML.get(selected_provider, "")),
             *panel_vis,
         )
 
@@ -2526,7 +2542,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
         return (
             None,
             "",
-            gr.DownloadButton(label="📥 Descargar Documento (.txt)", value=None, interactive=False),
+            _disabled_download_button(),
             _build_status_badges('<span class="status-badge status-warning">En espera</span>'),
         )
 

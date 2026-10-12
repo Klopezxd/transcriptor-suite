@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Interfaz de Línea de Comandos (CLI) para WhisperX Transcriptor.
+Interfaz de Línea de Comandos (CLI) para Transcriptor Suite.
 Permite procesamiento por lotes o interactivo con selección gráfica de respaldo.
 """
 
@@ -8,24 +8,16 @@ import argparse
 import sys
 from pathlib import Path
 
-# Configuración de codificación UTF-8 para consolas Windows
-if sys.platform == "win32":
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-        sys.stderr.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
-
 from src.config import (
     ComputeType,
-    ModelName,
     ProviderType,
     TimestampMode,
     TranscriptionConfig,
 )
 from src.transcriber import create_transcription_pipeline
-from src.utils import TranscriptionError, setup_logger
+from src.utils import TranscriptionError, configure_utf8_console, setup_logger
 
+configure_utf8_console()
 logger = setup_logger("whisperx_cli")
 
 
@@ -54,7 +46,7 @@ def select_file_gui() -> str | None:
 def parse_arguments() -> argparse.Namespace:
     """Configura y parsea los argumentos de línea de comandos."""
     parser = argparse.ArgumentParser(
-        description="WhisperX Transcriptor - Pipeline de transcripción, alineación fonética y diarización.",
+        description="Transcriptor Suite - Pipeline de transcripción, alineación fonética y diarización.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -71,7 +63,7 @@ def parse_arguments() -> argparse.Namespace:
         type=str,
         default=ProviderType.WHISPERX.value,
         choices=[p.value for p in ProviderType],
-        help="Proveedor de inferencia: 'whisperx' (local/ZeroGPU), 'deepgram' o 'assemblyai'.",
+        help="Proveedor de inferencia: WhisperX (local/ZeroGPU), Deepgram o AssemblyAI.",
     )
     parser.add_argument(
         "-m",
@@ -156,35 +148,21 @@ def main() -> None:
         print(f"[X] Error: El archivo no existe en la ruta indicada: {media_path}")
         sys.exit(1)
 
-    # 2. Asignar modelo por defecto según proveedor si no se especificó
-    provider = args.provider
-    if not args.model:
-        if provider == ProviderType.DEEPGRAM.value:
-            model_name = "nova-2"
-        elif provider == ProviderType.ASSEMBLYAI.value:
-            model_name = "best"
-        else:
-            model_name = ModelName.LARGE_V3_TURBO.value
-    else:
-        model_name = args.model
-
-    # 3. Configurar pipeline
+    # 2. Construir configuración inmutable
     config = TranscriptionConfig.create_default(
-        model_name=model_name,
+        provider=args.provider,
+        model_name=args.model,
         enable_diarization=args.diarize,
+        timestamp_mode=TimestampMode(args.timestamps),
         hf_token=args.token,
+        api_key=args.api_key,
         device=args.device,
         compute_type=args.compute_type,
+        language=args.language,
     )
-    object.__setattr__(config, "provider", provider)
-    object.__setattr__(config, "timestamp_mode", TimestampMode(args.timestamps))
-    if args.api_key:
-        object.__setattr__(config, "api_key", args.api_key)
-    if args.language:
-        object.__setattr__(config, "language", args.language)
 
     print("\n" + "=" * 55)
-    print("  WHISPERX TRANSCRIPTOR PRO (CLI)")
+    print("  TRANSCRIPTOR SUITE (CLI)")
     print("=" * 55)
     print(f" * Archivo:       {media_path.name}")
     print(f" * Proveedor:     {config.provider}")

@@ -3,11 +3,15 @@ Módulo de utilidades: formateo, gestión de memoria, logging y excepciones.
 Aplica principios de Clean Code con funciones puras y manejo de recursos.
 """
 
+import contextlib
 import gc
+import hmac
 import logging
 import os
 import sys
+from collections.abc import Iterable
 from pathlib import Path
+from typing import Any
 
 from src.config import TimestampMode
 
@@ -26,7 +30,17 @@ class AudioProcessingError(TranscriptionError):
     """Lanzada cuando un archivo multimedia no puede ser procesado o cargado."""
 
 
-# --- Logging Configuración ---
+# --- Configuración de Consola y Logging ---
+
+
+def configure_utf8_console() -> None:
+    """Garantiza codificación UTF-8 en las salidas estándar en entornos Windows."""
+    if sys.platform == "win32":
+        for stream in (sys.stdout, sys.stderr):
+            reconfigure = getattr(stream, "reconfigure", None)
+            if callable(reconfigure):
+                with contextlib.suppress(Exception):
+                    reconfigure(encoding="utf-8")
 
 
 def setup_logger(name: str = "whisperx_transcriptor", level: int = logging.INFO) -> logging.Logger:
@@ -110,10 +124,47 @@ def format_segment(
 
     if mode == TimestampMode.SIMPLE:
         return f"[{start_str}] {speaker_prefix}{cleaned_text}\n"
-    elif mode == TimestampMode.RANGE:
+    if mode == TimestampMode.RANGE:
         return f"[{start_str} - {end_str}] {speaker_prefix}{cleaned_text}\n"
-    else:
-        return f"{speaker_prefix}{cleaned_text}\n"
+    return f"{speaker_prefix}{cleaned_text}\n"
+
+
+def render_segments_text(
+    segments: Iterable[dict[str, Any]],
+    mode: TimestampMode = TimestampMode.SIMPLE,
+    include_speaker: bool = True,
+) -> str:
+    """
+    Transforma una colección de segmentos crudos en el texto final formateado.
+    """
+    formatted_lines: list[str] = []
+    for seg in segments:
+        speaker = seg.get("speaker") if include_speaker else None
+        line = format_segment(
+            text=str(seg.get("text", "")),
+            start=float(seg.get("start", 0.0)),
+            end=float(seg.get("end", 0.0)),
+            speaker=speaker,
+            mode=mode,
+        )
+        if line:
+            formatted_lines.append(line)
+    return "".join(formatted_lines)
+
+
+def save_transcription_file(
+    formatted_text: str,
+    input_path: Path,
+    output_dir: str | Path | None = None,
+) -> Path:
+    """
+    Persiste el texto transcrito en un archivo '<nombre>_TRANSCRIPCION.txt' en UTF-8.
+    """
+    target_dir = Path(output_dir) if output_dir else input_path.parent
+    target_dir.mkdir(parents=True, exist_ok=True)
+    output_file = target_dir / f"{input_path.stem}_TRANSCRIPCION.txt"
+    output_file.write_text(formatted_text, encoding="utf-8")
+    return output_file
 
 
 # --- Manejo Seguro de Secretos ---
@@ -168,17 +219,17 @@ def resolve_admin_pin(explicit_pin: str | None = None) -> str | None:
     """Resuelve el PIN maestro de administración (ADMIN_PIN o ADMIN_PASSWORD)."""
     if explicit_pin and explicit_pin.strip():
         return explicit_pin.strip()
-    pin = _resolve_secret("ADMIN_PIN")
-    if not pin:
-        pin = _resolve_secret("ADMIN_PASSWORD")
-    return pin
+    return _resolve_secret("ADMIN_PIN") or _resolve_secret("ADMIN_PASSWORD")
 
 
 def verify_admin_pin(entered_pin: str | None) -> bool:
-    """Valida si el PIN ingresado coincide con el configurado en el servidor."""
+    """Valida en tiempo constante si el PIN ingresado coincide con el configurado en el servidor."""
     if not entered_pin or not str(entered_pin).strip():
         return False
     master_pin = resolve_admin_pin()
     if not master_pin:
         return False
-    return str(entered_pin).strip() == str(master_pin).strip()
+    return hmac.compare_digest(
+        str(entered_pin).strip().encode("utf-8"),
+        str(master_pin).strip().encode("utf-8"),
+    )

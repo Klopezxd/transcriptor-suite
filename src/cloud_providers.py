@@ -3,10 +3,12 @@ Módulo de proveedores en la nube para transcripción y diarización.
 Integra Deepgram (Nova-2/Nova-3) y AssemblyAI (Universal-1/Nano) con llamadas REST optimizadas.
 """
 
+from __future__ import annotations
+
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import requests
 
@@ -14,11 +16,15 @@ from src.config import TranscriptionConfig
 from src.utils import (
     AudioProcessingError,
     TranscriptionError,
-    format_segment,
+    render_segments_text,
     resolve_assemblyai_api_key,
     resolve_deepgram_api_key,
+    save_transcription_file,
     setup_logger,
 )
+
+if TYPE_CHECKING:
+    from src.transcriber import TranscriptionResult
 
 logger = setup_logger("cloud_providers")
 
@@ -30,6 +36,8 @@ class DeepgramPipeline:
     """
 
     API_URL = "https://api.deepgram.com/v1/listen"
+    MAX_SEGMENT_DURATION_SEC = 25.0
+    REQUEST_TIMEOUT_SEC = 600
 
     def __init__(self, config: TranscriptionConfig) -> None:
         self.config = config
@@ -40,12 +48,114 @@ class DeepgramPipeline:
                 "Configura 'DEEPGRAM_API_KEY' en tu entorno o ingrésala en la interfaz."
             )
 
+    def _build_query_params(self) -> dict[str, str]:
+        params: dict[str, str] = {
+            "model": self.config.model_name or "nova-2",
+            "smart_format": "true",
+            "punctuate": "true",
+            "diarize": "true" if self.config.enable_diarization else "false",
+        }
+        if self.config.language:
+            params["language"] = self.config.language
+        else:
+            params["detect_language"] = "true"
+        return params
+
+    def _send_audio_request(self, input_path: Path, params: dict[str, str]) -> dict[str, Any]:
+        headers = {
+            "Authorization": f"Token {self.api_key}",
+            "Content-Type": "application/octet-stream",
+        }
+        try:
+            with open(input_path, "rb") as audio_file:
+                response = requests.post(
+                    self.API_URL,
+                    params=params,
+                    headers=headers,
+                    data=audio_file,
+                    timeout=self.REQUEST_TIMEOUT_SEC,
+                )
+
+            if response.status_code == 401:
+                raise TranscriptionError(
+                    "Clave de API de Deepgram no autorizada (401). Verifica que tu DEEPGRAM_API_KEY sea válida."
+                )
+            if response.status_code != 200:
+                raise TranscriptionError(
+                    f"Error de Deepgram (HTTP {response.status_code}): {response.text}"
+                )
+
+            return response.json()
+        except requests.exceptions.RequestException as req_err:
+            raise TranscriptionError(f"Fallo de conexión con Deepgram: {req_err}") from req_err
+
+    def _extract_segments(self, channel_alt: dict[str, Any]) -> list[dict[str, Any]]:
+        words = channel_alt.get("words", [])
+        segments: list[dict[str, Any]] = []
+
+        if not words:
+            full_transcript = channel_alt.get("transcript", "")
+            if full_transcript:
+                segments.append(
+                    {
+                        "text": full_transcript,
+                        "start": 0.0,
+                        "end": 0.0,
+                        "speaker": None,
+                    }
+                )
+            return segments
+
+        current_speaker: int | None = None
+        current_words: list[str] = []
+        seg_start: float = 0.0
+        seg_end: float = 0.0
+
+        def flush_segment() -> None:
+            if not current_words:
+                return
+            speaker_label = (
+                f"SPEAKER_{current_speaker:02d}" if current_speaker is not None else None
+            )
+            segments.append(
+                {
+                    "text": " ".join(current_words),
+                    "start": seg_start,
+                    "end": seg_end,
+                    "speaker": speaker_label,
+                }
+            )
+
+        for word_item in words:
+            spk = word_item.get("speaker") if self.config.enable_diarization else None
+            w_text = word_item.get("punctuated_word", word_item.get("word", ""))
+            w_start = float(word_item.get("start", 0.0))
+            w_end = float(word_item.get("end", 0.0))
+
+            if not current_words:
+                current_speaker = spk
+                seg_start = w_start
+                seg_end = w_end
+                current_words = [w_text]
+            elif spk == current_speaker and (w_end - seg_start < self.MAX_SEGMENT_DURATION_SEC):
+                current_words.append(w_text)
+                seg_end = w_end
+            else:
+                flush_segment()
+                current_speaker = spk
+                seg_start = w_start
+                seg_end = w_end
+                current_words = [w_text]
+
+        flush_segment()
+        return segments
+
     def process(
         self,
         media_path: str | Path,
         output_dir: str | Path | None = None,
         progress_callback: Callable[[float, str], None] | None = None,
-    ) -> Any:
+    ) -> TranscriptionResult:
         from src.transcriber import TranscriptionResult
 
         input_path = Path(media_path)
@@ -58,144 +168,34 @@ class DeepgramPipeline:
                 progress_callback(p, msg)
 
         notify(0.10, f"Preparando archivo multimedia: {input_path.name}")
-
-        params: dict[str, str] = {
-            "model": self.config.model_name or "nova-2",
-            "smart_format": "true",
-            "punctuate": "true",
-            "diarize": "true" if self.config.enable_diarization else "false",
-        }
-        if self.config.language:
-            params["language"] = self.config.language
-        else:
-            params["detect_language"] = "true"
-
-        headers = {
-            "Authorization": f"Token {self.api_key}",
-            "Content-Type": "application/octet-stream",
-        }
+        params = self._build_query_params()
 
         notify(0.30, f"Enviando audio a Deepgram ({params['model']})...")
-
-        try:
-            with open(input_path, "rb") as audio_file:
-                response = requests.post(
-                    self.API_URL,
-                    params=params,
-                    headers=headers,
-                    data=audio_file,
-                    timeout=600,
-                )
-
-            if response.status_code == 401:
-                raise TranscriptionError(
-                    "Clave de API de Deepgram no autorizada (401). Verifica que tu DEEPGRAM_API_KEY sea válida."
-                )
-            if response.status_code != 200:
-                raise TranscriptionError(
-                    f"Error de Deepgram (HTTP {response.status_code}): {response.text}"
-                )
-
-            data = response.json()
-        except requests.exceptions.RequestException as req_err:
-            raise TranscriptionError(f"Fallo de conexión con Deepgram: {req_err}") from req_err
+        data = self._send_audio_request(input_path, params)
 
         notify(0.85, "Procesando respuesta y formateando marcas temporales...")
-
         try:
-            channel_alt = data["results"]["channels"][0]["alternatives"][0]
-            detected_language = data["results"]["channels"][0].get("detected_language", "es")
+            channel = data["results"]["channels"][0]
+            channel_alt = channel["alternatives"][0]
+            detected_language = channel.get("detected_language", "es")
         except (KeyError, IndexError) as err:
             raise TranscriptionError(
                 "La respuesta de Deepgram no contiene transcripciones válidas."
             ) from err
 
-        words = channel_alt.get("words", [])
-        segments: list[dict[str, Any]] = []
-
-        if words:
-            current_speaker: int | None = None
-            current_words: list[str] = []
-            seg_start: float = 0.0
-            seg_end: float = 0.0
-
-            for w in words:
-                spk = w.get("speaker") if self.config.enable_diarization else None
-                w_text = w.get("punctuated_word", w.get("word", ""))
-                w_start = float(w.get("start", 0.0))
-                w_end = float(w.get("end", 0.0))
-
-                if current_speaker is None:
-                    current_speaker = spk
-                    seg_start = w_start
-                    seg_end = w_end
-                    current_words = [w_text]
-                elif spk == current_speaker and (w_end - seg_start < 25.0):
-                    current_words.append(w_text)
-                    seg_end = w_end
-                else:
-                    speaker_label = (
-                        f"SPEAKER_{current_speaker:02d}" if current_speaker is not None else None
-                    )
-                    segments.append(
-                        {
-                            "text": " ".join(current_words),
-                            "start": seg_start,
-                            "end": seg_end,
-                            "speaker": speaker_label,
-                        }
-                    )
-                    current_speaker = spk
-                    seg_start = w_start
-                    seg_end = w_end
-                    current_words = [w_text]
-
-            if current_words:
-                speaker_label = (
-                    f"SPEAKER_{current_speaker:02d}" if current_speaker is not None else None
-                )
-                segments.append(
-                    {
-                        "text": " ".join(current_words),
-                        "start": seg_start,
-                        "end": seg_end,
-                        "speaker": speaker_label,
-                    }
-                )
-        else:
-            full_transcript = channel_alt.get("transcript", "")
-            if full_transcript:
-                segments.append(
-                    {
-                        "text": full_transcript,
-                        "start": 0.0,
-                        "end": 0.0,
-                        "speaker": None,
-                    }
-                )
+        segments = self._extract_segments(channel_alt)
 
         notify(0.95, "Escribiendo archivo de transcripción...")
-
-        formatted_lines: list[str] = []
-        for seg in segments:
-            line = format_segment(
-                text=seg.get("text", ""),
-                start=seg.get("start", 0.0),
-                end=seg.get("end", 0.0),
-                speaker=seg.get("speaker"),
-                mode=self.config.timestamp_mode,
-            )
-            if line:
-                formatted_lines.append(line)
-
-        formatted_text = "".join(formatted_lines)
-
-        target_dir = Path(output_dir) if output_dir else input_path.parent
-        target_dir.mkdir(parents=True, exist_ok=True)
-        output_file = target_dir / f"{input_path.stem}_TRANSCRIPCION.txt"
-
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write(formatted_text)
+        formatted_text = render_segments_text(
+            segments=segments,
+            mode=self.config.timestamp_mode,
+            include_speaker=True,
+        )
+        output_file = save_transcription_file(
+            formatted_text=formatted_text,
+            input_path=input_path,
+            output_dir=output_dir,
+        )
 
         notify(1.0, f"Transcripción completada con Deepgram: {output_file.name}")
 
@@ -215,6 +215,9 @@ class AssemblyAIPipeline:
 
     UPLOAD_URL = "https://api.assemblyai.com/v2/upload"
     TRANSCRIPT_URL = "https://api.assemblyai.com/v2/transcript"
+    UPLOAD_CHUNK_SIZE = 5_242_880
+    POLL_INTERVAL_SEC = 3
+    MAX_POLL_SECONDS = 3600
 
     def __init__(self, config: TranscriptionConfig) -> None:
         self.config = config
@@ -225,38 +228,18 @@ class AssemblyAIPipeline:
                 "Configura 'ASSEMBLYAI_API_KEY' en tu entorno o ingrésala en la interfaz."
             )
 
-    def process(
-        self,
-        media_path: str | Path,
-        output_dir: str | Path | None = None,
-        progress_callback: Callable[[float, str], None] | None = None,
-    ) -> Any:
-        from src.transcriber import TranscriptionResult
+    @staticmethod
+    def _file_chunk_stream(file_path: Path, chunk_size: int) -> Iterator[bytes]:
+        with open(file_path, "rb") as f:
+            while chunk := f.read(chunk_size):
+                yield chunk
 
-        input_path = Path(media_path)
-        if not input_path.exists():
-            raise AudioProcessingError(f"No se encontró el archivo: {input_path}")
-
-        def notify(p: float, msg: str) -> None:
-            logger.info("[%d%%] %s", int(p * 100), msg)
-            if progress_callback:
-                progress_callback(p, msg)
-
-        headers = {"authorization": self.api_key}
-
-        # --- Paso 1: Subida de archivo ---
-        notify(0.15, f"Subiendo archivo a AssemblyAI: {input_path.name}...")
-
-        def file_generator(file_path: Path, chunk_size: int = 5_242_880):
-            with open(file_path, "rb") as f:
-                while chunk := f.read(chunk_size):
-                    yield chunk
-
+    def _upload_media(self, input_path: Path, headers: dict[str, str]) -> str:
         try:
             upload_res = requests.post(
                 self.UPLOAD_URL,
                 headers=headers,
-                data=file_generator(input_path),
+                data=self._file_chunk_stream(input_path, self.UPLOAD_CHUNK_SIZE),
                 timeout=600,
             )
             if upload_res.status_code == 401:
@@ -271,12 +254,11 @@ class AssemblyAIPipeline:
             audio_url = upload_res.json().get("upload_url")
             if not audio_url:
                 raise TranscriptionError("AssemblyAI no retornó una URL de archivo válida.")
+            return str(audio_url)
         except requests.exceptions.RequestException as err:
             raise TranscriptionError(f"Fallo durante la subida a AssemblyAI: {err}") from err
 
-        # --- Paso 2: Solicitud de transcripción ---
-        notify(0.35, f"Iniciando transcripción con modelo '{self.config.model_name or 'best'}'...")
-
+    def _submit_transcript_job(self, audio_url: str, headers: dict[str, str]) -> str:
         transcript_payload: dict[str, Any] = {
             "audio_url": audio_url,
             "speech_model": self.config.model_name or "best",
@@ -299,32 +281,36 @@ class AssemblyAIPipeline:
                     f"Error al solicitar transcripción en AssemblyAI: {submit_res.text}"
                 )
             transcript_id = submit_res.json().get("id")
+            if not transcript_id:
+                raise TranscriptionError("AssemblyAI no retornó un ID de transcripción válido.")
+            return str(transcript_id)
         except requests.exceptions.RequestException as err:
             raise TranscriptionError(f"Error al contactar con AssemblyAI: {err}") from err
 
-        # --- Paso 3: Sondeo periódico (Polling) ---
+    def _poll_completion(
+        self,
+        transcript_id: str,
+        headers: dict[str, str],
+        notify: Callable[[float, str], None],
+    ) -> dict[str, Any]:
         poll_url = f"{self.TRANSCRIPT_URL}/{transcript_id}"
-        notify(0.45, "Procesando en los servidores de AssemblyAI...")
-
         elapsed = 0
-        final_data: dict[str, Any] = {}
 
-        while True:
-            time.sleep(3)
-            elapsed += 3
+        while elapsed < self.MAX_POLL_SECONDS:
+            time.sleep(self.POLL_INTERVAL_SEC)
+            elapsed += self.POLL_INTERVAL_SEC
             progress_val = min(0.45 + (elapsed * 0.015), 0.90)
             notify(progress_val, f"Transcribiendo en la nube con AssemblyAI ({elapsed}s)...")
 
             try:
                 poll_res = requests.get(poll_url, headers=headers, timeout=30)
                 if poll_res.status_code == 200:
-                    status_data = poll_res.json()
+                    status_data: dict[str, Any] = poll_res.json()
                     status = status_data.get("status")
 
                     if status == "completed":
-                        final_data = status_data
-                        break
-                    elif status == "error":
+                        return status_data
+                    if status == "error":
                         error_msg = status_data.get("error", "Error desconocido")
                         raise TranscriptionError(
                             f"AssemblyAI falló durante el procesamiento: {error_msg}"
@@ -332,52 +318,39 @@ class AssemblyAIPipeline:
             except requests.exceptions.RequestException as err:
                 logger.warning("Fallo temporal de sondeo: %s", err)
 
-        notify(0.92, "Formateando segmentos y hablantes...")
+        raise TranscriptionError(
+            "Tiempo máximo de espera agotado para la transcripción en AssemblyAI."
+        )
 
+    def _extract_segments(self, final_data: dict[str, Any]) -> list[dict[str, Any]]:
         segments: list[dict[str, Any]] = []
         utterances = final_data.get("utterances")
-        detected_language = final_data.get("language_code", "es")
 
         if self.config.enable_diarization and utterances:
             for utt in utterances:
-                start_s = float(utt.get("start", 0)) / 1000.0
-                end_s = float(utt.get("end", 0)) / 1000.0
-                spk = utt.get("speaker", "A")
-                text = utt.get("text", "")
                 segments.append(
                     {
-                        "text": text,
-                        "start": start_s,
-                        "end": end_s,
-                        "speaker": f"SPEAKER_{spk}",
+                        "text": utt.get("text", ""),
+                        "start": float(utt.get("start", 0)) / 1000.0,
+                        "end": float(utt.get("end", 0)) / 1000.0,
+                        "speaker": f"SPEAKER_{utt.get('speaker', 'A')}",
                     }
                 )
-        else:
-            words = final_data.get("words", [])
-            if words:
-                current_words: list[str] = []
-                seg_start = float(words[0].get("start", 0)) / 1000.0
-                seg_end = float(words[0].get("end", 0)) / 1000.0
+            return segments
 
-                for w in words:
-                    w_text = w.get("text", "")
-                    w_end = float(w.get("end", 0)) / 1000.0
-                    current_words.append(w_text)
-                    seg_end = w_end
+        words = final_data.get("words", [])
+        if words:
+            current_words: list[str] = []
+            seg_start = float(words[0].get("start", 0)) / 1000.0
+            seg_end = float(words[0].get("end", 0)) / 1000.0
 
-                    if (seg_end - seg_start) >= 20.0 or w_text.endswith((".", "?", "!")):
-                        segments.append(
-                            {
-                                "text": " ".join(current_words),
-                                "start": seg_start,
-                                "end": seg_end,
-                                "speaker": None,
-                            }
-                        )
-                        current_words = []
-                        seg_start = seg_end
+            for word_item in words:
+                w_text = word_item.get("text", "")
+                w_end = float(word_item.get("end", 0)) / 1000.0
+                current_words.append(w_text)
+                seg_end = w_end
 
-                if current_words:
+                if (seg_end - seg_start) >= 20.0 or w_text.endswith((".", "?", "!")):
                     segments.append(
                         {
                             "text": " ".join(current_words),
@@ -386,37 +359,78 @@ class AssemblyAIPipeline:
                             "speaker": None,
                         }
                     )
-            else:
-                full_text = final_data.get("text", "")
+                    current_words = []
+                    seg_start = seg_end
+
+            if current_words:
                 segments.append(
                     {
-                        "text": full_text,
-                        "start": 0.0,
-                        "end": 0.0,
+                        "text": " ".join(current_words),
+                        "start": seg_start,
+                        "end": seg_end,
                         "speaker": None,
                     }
                 )
+            return segments
 
-        formatted_lines: list[str] = []
-        for seg in segments:
-            line = format_segment(
-                text=seg.get("text", ""),
-                start=seg.get("start", 0.0),
-                end=seg.get("end", 0.0),
-                speaker=seg.get("speaker"),
-                mode=self.config.timestamp_mode,
+        full_text = final_data.get("text", "")
+        if full_text:
+            segments.append(
+                {
+                    "text": full_text,
+                    "start": 0.0,
+                    "end": 0.0,
+                    "speaker": None,
+                }
             )
-            if line:
-                formatted_lines.append(line)
+        return segments
 
-        formatted_text = "".join(formatted_lines)
+    def process(
+        self,
+        media_path: str | Path,
+        output_dir: str | Path | None = None,
+        progress_callback: Callable[[float, str], None] | None = None,
+    ) -> TranscriptionResult:
+        from src.transcriber import TranscriptionResult
 
-        target_dir = Path(output_dir) if output_dir else input_path.parent
-        target_dir.mkdir(parents=True, exist_ok=True)
-        output_file = target_dir / f"{input_path.stem}_TRANSCRIPCION.txt"
+        input_path = Path(media_path)
+        if not input_path.exists():
+            raise AudioProcessingError(f"No se encontró el archivo: {input_path}")
 
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write(formatted_text)
+        def notify(p: float, msg: str) -> None:
+            logger.info("[%d%%] %s", int(p * 100), msg)
+            if progress_callback:
+                progress_callback(p, msg)
+
+        headers = {"authorization": self.api_key or ""}
+
+        # --- Paso 1: Subida de archivo ---
+        notify(0.15, f"Subiendo archivo a AssemblyAI: {input_path.name}...")
+        audio_url = self._upload_media(input_path, headers)
+
+        # --- Paso 2: Solicitud de transcripción ---
+        notify(0.35, f"Iniciando transcripción con modelo '{self.config.model_name or 'best'}'...")
+        transcript_id = self._submit_transcript_job(audio_url, headers)
+
+        # --- Paso 3: Sondeo periódico (Polling) ---
+        notify(0.45, "Procesando en los servidores de AssemblyAI...")
+        final_data = self._poll_completion(transcript_id, headers, notify)
+
+        # --- Paso 4: Formateo y Persistencia ---
+        notify(0.92, "Formateando segmentos y hablantes...")
+        detected_language = final_data.get("language_code", "es")
+        segments = self._extract_segments(final_data)
+
+        formatted_text = render_segments_text(
+            segments=segments,
+            mode=self.config.timestamp_mode,
+            include_speaker=True,
+        )
+        output_file = save_transcription_file(
+            formatted_text=formatted_text,
+            input_path=input_path,
+            output_dir=output_dir,
+        )
 
         notify(1.0, f"Transcripción completada con AssemblyAI: {output_file.name}")
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Punto de entrada principal para WhisperX Transcriptor CLI.
+Punto de entrada principal para Transcriptor Suite CLI.
 Provee compatibilidad directa con `python main.py` delegando a `cli.main()`.
 """
 
