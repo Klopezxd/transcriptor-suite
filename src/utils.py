@@ -4,14 +4,18 @@ Aplica principios de Clean Code con funciones puras y manejo de recursos.
 """
 
 import contextlib
+import contextvars
 import gc
 import hmac
 import logging
+import math
 import os
 import sys
-from collections.abc import Iterable
+import threading
+import time
+from collections.abc import Callable, Iterable, Iterator
 from pathlib import Path
-from typing import Any
+from typing import Any, BinaryIO
 
 from src.config import TimestampMode
 
@@ -55,6 +59,123 @@ def setup_logger(name: str = "whisperx_transcriptor", level: int = logging.INFO)
         logger.addHandler(handler)
     logger.setLevel(level)
     return logger
+
+
+# --- Gestión de Progreso Continuo en Tiempo Real ---
+
+
+def make_progress_notifier(
+    logger: logging.Logger,
+    progress_callback: Callable[[float, str], None] | None,
+) -> Callable[[float, str], None]:
+    """
+    Crea un notificador thread-safe y monotónico que actualiza la barra de progreso
+    de Gradio en tiempo real y registra en consola únicamente los cambios de etapa.
+    """
+    last_logged_msg: str | None = None
+    last_p: float = 0.0
+    lock = threading.Lock()
+
+    def notify(progress_val: float, message: str) -> None:
+        nonlocal last_logged_msg, last_p
+        with lock:
+            clamped = min(1.0, max(last_p, progress_val))
+            last_p = clamped
+            notify.current_progress = clamped  # type: ignore[attr-defined]
+            if message != last_logged_msg:
+                logger.info("[%d%%] %s", int(clamped * 100), message)
+                last_logged_msg = message
+        if progress_callback:
+            with contextlib.suppress(Exception):
+                progress_callback(clamped, message)
+
+    notify.current_progress = 0.0  # type: ignore[attr-defined]
+    return notify
+
+
+@contextlib.contextmanager
+def smooth_progress_stage(
+    notify: Callable[[float, str], None],
+    start_p: float,
+    end_p: float,
+    message: str | Callable[[float, float], str],
+    tau_seconds: float = 8.0,
+    interval_seconds: float = 0.25,
+) -> Iterator[None]:
+    """
+    Avanza suavemente la barra de progreso entre start_p y end_p en un hilo
+    secundario (preservando contextvars de Gradio) mientras se ejecuta una
+    operación bloqueante de red o GPU.
+    """
+    stop_event = threading.Event()
+    ctx = contextvars.copy_context()
+    t0 = time.perf_counter()
+
+    initial_msg = message(start_p, 0.0) if callable(message) else message
+    notify(start_p, initial_msg)
+
+    def _ticker() -> None:
+        current_p = start_p
+        last_tick = t0
+        tau = max(0.5, tau_seconds)
+        while not stop_event.wait(interval_seconds):
+            now = time.perf_counter()
+            dt = max(0.01, now - last_tick)
+            last_tick = now
+            elapsed = now - t0
+            base_p = max(current_p, float(getattr(notify, "current_progress", current_p)))
+            step_fraction = 1.0 - math.exp(-dt / tau)
+            current_p = base_p + max(0.0, end_p - base_p) * step_fraction
+            current_msg = message(current_p, elapsed) if callable(message) else message
+            notify(current_p, current_msg)
+
+    worker = threading.Thread(target=ctx.run, args=(_ticker,), daemon=True)
+    worker.start()
+    try:
+        yield
+    finally:
+        stop_event.set()
+        worker.join(timeout=1.0)
+
+
+class ProgressFileReader:
+    """
+    Envoltorio de archivo binario que reporta el progreso real de lectura/subida
+    de bytes sin perder el encabezado Content-Length en peticiones HTTP.
+    """
+
+    def __init__(
+        self,
+        file_obj: BinaryIO,
+        total_size: int,
+        notify: Callable[[float, str], None],
+        start_p: float,
+        end_p: float,
+        upload_message: str,
+    ) -> None:
+        self._file = file_obj
+        self.total_size = max(1, total_size)
+        self._notify = notify
+        self._start_p = start_p
+        self._end_p = end_p
+        self._upload_message = upload_message
+        self.bytes_read = 0
+        self._last_emit = 0.0
+
+    def __len__(self) -> int:
+        return self.total_size
+
+    def read(self, size: int = -1) -> bytes:
+        chunk = self._file.read(size)
+        if chunk:
+            self.bytes_read += len(chunk)
+            now = time.perf_counter()
+            if (now - self._last_emit) >= 0.12 or self.bytes_read >= self.total_size:
+                self._last_emit = now
+                ratio = min(1.0, self.bytes_read / self.total_size)
+                current_p = self._start_p + (self._end_p - self._start_p) * ratio
+                self._notify(current_p, self._upload_message)
+        return chunk
 
 
 # --- Gestión de Memoria ---

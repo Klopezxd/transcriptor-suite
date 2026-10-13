@@ -1354,6 +1354,7 @@ li[role="option"][aria-selected="true"],
 }
 
 .output-textbox [data-testid="status-tracker"] .progress-level {
+    order: 1 !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
@@ -1390,10 +1391,12 @@ li[role="option"][aria-selected="true"],
     background: linear-gradient(90deg, #00FF87 0%, #00D4FF 100%) !important;
     border-radius: 999px !important;
     box-shadow: 0 0 12px rgba(0, 255, 135, 0.45) !important;
+    transition: width 0.22s ease-out !important;
 }
 
 .output-textbox [data-testid="status-tracker"] .meta-text,
 .output-textbox [data-testid="status-tracker"] .meta-text-center {
+    order: 2 !important;
     position: static !important;
     font-family: 'JetBrains Mono', monospace !important;
     font-size: clamp(0.85rem, 1.7vh, 1.0rem) !important;

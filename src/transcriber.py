@@ -14,10 +14,12 @@ from src.utils import (
     MissingTokenError,
     TranscriptionError,
     clear_gpu_vram,
+    make_progress_notifier,
     render_segments_text,
     resolve_hf_token,
     save_transcription_file,
     setup_logger,
+    smooth_progress_stage,
 )
 
 logger = setup_logger("whisperx_pipeline")
@@ -131,10 +133,7 @@ class WhisperXPipeline:
         if not input_path.exists():
             raise AudioProcessingError(f"No se encontró el archivo: {input_path}")
 
-        def notify(progress: float, message: str) -> None:
-            logger.info("[%d%%] %s", int(progress * 100), message)
-            if progress_callback:
-                progress_callback(progress, message)
+        notify = make_progress_notifier(logger, progress_callback)
 
         try:
             import whisperx
@@ -146,48 +145,74 @@ class WhisperXPipeline:
 
         try:
             # --- FASE 1: Carga y Extracción de Audio ---
-            notify(0.10, f"Cargando archivo multimedia: {input_path.name}")
-            audio = whisperx.load_audio(str(input_path))
+            with smooth_progress_stage(
+                notify,
+                start_p=0.05,
+                end_p=0.18,
+                message=f"Cargando archivo multimedia: {input_path.name}...",
+                tau_seconds=3.0,
+            ):
+                audio = whisperx.load_audio(str(input_path))
 
             # --- FASE 2: Transcripción ASR con WhisperX ---
-            notify(
-                0.25, f"Transcribiendo con modelo '{self.config.model_name}' ({compute_type})..."
-            )
-            model = whisperx.load_model(
-                self.config.model_name,
-                device=device,
-                compute_type=compute_type,
-                language=self.config.language,
-            )
-            raw_result = model.transcribe(audio, batch_size=self.config.batch_size)
-            detected_language = raw_result.get("language", "es")
-            del model
-            clear_gpu_vram()
+            asr_end_p = 0.52 if self.config.enable_diarization else 0.62
+            with smooth_progress_stage(
+                notify,
+                start_p=0.18,
+                end_p=asr_end_p,
+                message=(
+                    f"Transcribiendo con modelo '{self.config.model_name}' ({compute_type})..."
+                ),
+                tau_seconds=18.0,
+            ):
+                model = whisperx.load_model(
+                    self.config.model_name,
+                    device=device,
+                    compute_type=compute_type,
+                    language=self.config.language,
+                )
+                raw_result = model.transcribe(audio, batch_size=self.config.batch_size)
+                detected_language = raw_result.get("language", "es")
+                del model
+                clear_gpu_vram()
 
             # --- FASE 3: Alineación Fonética de Marcas de Tiempo ---
-            notify(0.55, "Alineando marcas de tiempo a nivel de palabra...")
-            align_model, metadata = whisperx.load_align_model(
-                language_code=detected_language, device=device
-            )
-            aligned_result = whisperx.align(
-                raw_result["segments"],
-                align_model,
-                metadata,
-                audio,
-                device,
-                return_char_alignments=False,
-            )
-            del align_model
-            clear_gpu_vram()
+            align_end_p = 0.72 if self.config.enable_diarization else 0.88
+            with smooth_progress_stage(
+                notify,
+                start_p=asr_end_p,
+                end_p=align_end_p,
+                message="Alineando marcas de tiempo a nivel de palabra...",
+                tau_seconds=8.0,
+            ):
+                align_model, metadata = whisperx.load_align_model(
+                    language_code=detected_language, device=device
+                )
+                aligned_result = whisperx.align(
+                    raw_result["segments"],
+                    align_model,
+                    metadata,
+                    audio,
+                    device,
+                    return_char_alignments=False,
+                )
+                del align_model
+                clear_gpu_vram()
 
             # --- FASE 4: Diarización de Hablantes (Opcional) ---
             segments: list[dict[str, Any]] = aligned_result["segments"]
             if self.config.enable_diarization:
-                notify(0.75, "Identificando interlocutores (Diarización con Pyannote)...")
-                segments = self._run_diarization(audio, aligned_result, device)
+                with smooth_progress_stage(
+                    notify,
+                    start_p=0.72,
+                    end_p=0.90,
+                    message="Identificando interlocutores (Diarización con Pyannote)...",
+                    tau_seconds=14.0,
+                ):
+                    segments = self._run_diarization(audio, aligned_result, device)
 
             # --- FASE 5: Generación y Escritura del Archivo Final ---
-            notify(0.90, "Generando archivo de transcripción...")
+            notify(0.94, "Generando archivo de transcripción...")
             formatted_text = render_segments_text(
                 segments=segments,
                 mode=self.config.timestamp_mode,

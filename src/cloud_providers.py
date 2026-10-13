@@ -15,12 +15,15 @@ import requests
 from src.config import TranscriptionConfig
 from src.utils import (
     AudioProcessingError,
+    ProgressFileReader,
     TranscriptionError,
+    make_progress_notifier,
     render_segments_text,
     resolve_assemblyai_api_key,
     resolve_deepgram_api_key,
     save_transcription_file,
     setup_logger,
+    smooth_progress_stage,
 )
 
 if TYPE_CHECKING:
@@ -61,20 +64,52 @@ class DeepgramPipeline:
             params["detect_language"] = "true"
         return params
 
-    def _send_audio_request(self, input_path: Path, params: dict[str, str]) -> dict[str, Any]:
+    def _send_audio_request(
+        self,
+        input_path: Path,
+        params: dict[str, str],
+        notify: Callable[[float, str], None],
+    ) -> dict[str, Any]:
         headers = {
             "Authorization": f"Token {self.api_key}",
             "Content-Type": "application/octet-stream",
         }
+        model_label = params.get("model", "nova-2")
+        file_size = input_path.stat().st_size
+
         try:
             with open(input_path, "rb") as audio_file:
-                response = requests.post(
-                    self.API_URL,
-                    params=params,
-                    headers=headers,
-                    data=audio_file,
-                    timeout=self.REQUEST_TIMEOUT_SEC,
+                reader = ProgressFileReader(
+                    file_obj=audio_file,
+                    total_size=file_size,
+                    notify=notify,
+                    start_p=0.10,
+                    end_p=0.52,
+                    upload_message=f"Subiendo audio a Deepgram ({model_label})...",
                 )
+
+                def _stage_message(current_p: float, _elapsed: float) -> str:
+                    if reader.bytes_read < reader.total_size:
+                        return f"Subiendo audio a Deepgram ({model_label})..."
+                    if current_p < 0.78:
+                        return f"Transcribiendo audio en Deepgram ({model_label})..."
+                    return "Alineando marcas temporales e interlocutores en Deepgram..."
+
+                with smooth_progress_stage(
+                    notify=notify,
+                    start_p=0.10,
+                    end_p=0.92,
+                    message=_stage_message,
+                    tau_seconds=6.5,
+                    interval_seconds=0.25,
+                ):
+                    response = requests.post(
+                        self.API_URL,
+                        params=params,
+                        headers=headers,
+                        data=reader,
+                        timeout=self.REQUEST_TIMEOUT_SEC,
+                    )
 
             if response.status_code == 401:
                 raise TranscriptionError(
@@ -162,18 +197,14 @@ class DeepgramPipeline:
         if not input_path.exists():
             raise AudioProcessingError(f"No se encontró el archivo: {input_path}")
 
-        def notify(p: float, msg: str) -> None:
-            logger.info("[%d%%] %s", int(p * 100), msg)
-            if progress_callback:
-                progress_callback(p, msg)
+        notify = make_progress_notifier(logger, progress_callback)
 
-        notify(0.10, f"Preparando archivo multimedia: {input_path.name}")
+        notify(0.05, f"Preparando archivo multimedia: {input_path.name}")
         params = self._build_query_params()
 
-        notify(0.30, f"Enviando audio a Deepgram ({params['model']})...")
-        data = self._send_audio_request(input_path, params)
+        data = self._send_audio_request(input_path, params, notify)
 
-        notify(0.85, "Procesando respuesta y formateando marcas temporales...")
+        notify(0.94, "Procesando respuesta y formateando marcas temporales...")
         try:
             channel = data["results"]["channels"][0]
             channel_alt = channel["alternatives"][0]
@@ -185,7 +216,7 @@ class DeepgramPipeline:
 
         segments = self._extract_segments(channel_alt)
 
-        notify(0.95, "Escribiendo archivo de transcripción...")
+        notify(0.98, "Escribiendo archivo de transcripción...")
         formatted_text = render_segments_text(
             segments=segments,
             mode=self.config.timestamp_mode,
@@ -215,8 +246,8 @@ class AssemblyAIPipeline:
 
     UPLOAD_URL = "https://api.assemblyai.com/v2/upload"
     TRANSCRIPT_URL = "https://api.assemblyai.com/v2/transcript"
-    UPLOAD_CHUNK_SIZE = 5_242_880
-    POLL_INTERVAL_SEC = 3
+    UPLOAD_CHUNK_SIZE = 262_144
+    POLL_INTERVAL_SEC = 2
     MAX_POLL_SECONDS = 3600
 
     def __init__(self, config: TranscriptionConfig) -> None:
@@ -229,19 +260,47 @@ class AssemblyAIPipeline:
             )
 
     @staticmethod
-    def _file_chunk_stream(file_path: Path, chunk_size: int) -> Iterator[bytes]:
+    def _file_chunk_stream(
+        file_path: Path,
+        chunk_size: int,
+        notify: Callable[[float, str], None],
+        start_p: float,
+        end_p: float,
+    ) -> Iterator[bytes]:
+        total_size = max(1, file_path.stat().st_size)
+        bytes_sent = 0
+        msg = f"Subiendo archivo a AssemblyAI: {file_path.name}..."
         with open(file_path, "rb") as f:
             while chunk := f.read(chunk_size):
+                bytes_sent += len(chunk)
+                ratio = min(1.0, bytes_sent / total_size)
+                notify(start_p + (end_p - start_p) * ratio, msg)
                 yield chunk
 
-    def _upload_media(self, input_path: Path, headers: dict[str, str]) -> str:
+    def _upload_media(
+        self,
+        input_path: Path,
+        headers: dict[str, str],
+        notify: Callable[[float, str], None],
+    ) -> str:
+        msg = f"Subiendo archivo a AssemblyAI: {input_path.name}..."
         try:
-            upload_res = requests.post(
-                self.UPLOAD_URL,
-                headers=headers,
-                data=self._file_chunk_stream(input_path, self.UPLOAD_CHUNK_SIZE),
-                timeout=600,
-            )
+            with smooth_progress_stage(
+                notify=notify,
+                start_p=0.08,
+                end_p=0.42,
+                message=msg,
+                tau_seconds=5.0,
+                interval_seconds=0.25,
+            ):
+                upload_res = requests.post(
+                    self.UPLOAD_URL,
+                    headers=headers,
+                    data=self._file_chunk_stream(
+                        input_path, self.UPLOAD_CHUNK_SIZE, notify, 0.08, 0.42
+                    ),
+                    timeout=600,
+                )
             if upload_res.status_code == 401:
                 raise TranscriptionError(
                     "Clave de API de AssemblyAI no autorizada (401). Verifica tu ASSEMBLYAI_API_KEY."
@@ -295,28 +354,35 @@ class AssemblyAIPipeline:
     ) -> dict[str, Any]:
         poll_url = f"{self.TRANSCRIPT_URL}/{transcript_id}"
         elapsed = 0
+        model_label = self.config.model_name or "best"
 
-        while elapsed < self.MAX_POLL_SECONDS:
-            time.sleep(self.POLL_INTERVAL_SEC)
-            elapsed += self.POLL_INTERVAL_SEC
-            progress_val = min(0.45 + (elapsed * 0.015), 0.90)
-            notify(progress_val, f"Transcribiendo en la nube con AssemblyAI ({elapsed}s)...")
+        with smooth_progress_stage(
+            notify=notify,
+            start_p=0.48,
+            end_p=0.92,
+            message=f"Transcribiendo en la nube con AssemblyAI ({model_label})...",
+            tau_seconds=10.0,
+            interval_seconds=0.25,
+        ):
+            while elapsed < self.MAX_POLL_SECONDS:
+                time.sleep(self.POLL_INTERVAL_SEC)
+                elapsed += self.POLL_INTERVAL_SEC
 
-            try:
-                poll_res = requests.get(poll_url, headers=headers, timeout=30)
-                if poll_res.status_code == 200:
-                    status_data: dict[str, Any] = poll_res.json()
-                    status = status_data.get("status")
+                try:
+                    poll_res = requests.get(poll_url, headers=headers, timeout=30)
+                    if poll_res.status_code == 200:
+                        status_data: dict[str, Any] = poll_res.json()
+                        status = status_data.get("status")
 
-                    if status == "completed":
-                        return status_data
-                    if status == "error":
-                        error_msg = status_data.get("error", "Error desconocido")
-                        raise TranscriptionError(
-                            f"AssemblyAI falló durante el procesamiento: {error_msg}"
-                        )
-            except requests.exceptions.RequestException as err:
-                logger.warning("Fallo temporal de sondeo: %s", err)
+                        if status == "completed":
+                            return status_data
+                        if status == "error":
+                            error_msg = status_data.get("error", "Error desconocido")
+                            raise TranscriptionError(
+                                f"AssemblyAI falló durante el procesamiento: {error_msg}"
+                            )
+                except requests.exceptions.RequestException as err:
+                    logger.warning("Fallo temporal de sondeo: %s", err)
 
         raise TranscriptionError(
             "Tiempo máximo de espera agotado para la transcripción en AssemblyAI."
@@ -397,27 +463,21 @@ class AssemblyAIPipeline:
         if not input_path.exists():
             raise AudioProcessingError(f"No se encontró el archivo: {input_path}")
 
-        def notify(p: float, msg: str) -> None:
-            logger.info("[%d%%] %s", int(p * 100), msg)
-            if progress_callback:
-                progress_callback(p, msg)
-
+        notify = make_progress_notifier(logger, progress_callback)
         headers = {"authorization": self.api_key or ""}
 
         # --- Paso 1: Subida de archivo ---
-        notify(0.15, f"Subiendo archivo a AssemblyAI: {input_path.name}...")
-        audio_url = self._upload_media(input_path, headers)
+        audio_url = self._upload_media(input_path, headers, notify)
 
         # --- Paso 2: Solicitud de transcripción ---
-        notify(0.35, f"Iniciando transcripción con modelo '{self.config.model_name or 'best'}'...")
+        notify(0.45, f"Iniciando transcripción con modelo '{self.config.model_name or 'best'}'...")
         transcript_id = self._submit_transcript_job(audio_url, headers)
 
         # --- Paso 3: Sondeo periódico (Polling) ---
-        notify(0.45, "Procesando en los servidores de AssemblyAI...")
         final_data = self._poll_completion(transcript_id, headers, notify)
 
         # --- Paso 4: Formateo y Persistencia ---
-        notify(0.92, "Formateando segmentos y hablantes...")
+        notify(0.95, "Formateando segmentos y hablantes...")
         detected_language = final_data.get("language_code", "es")
         segments = self._extract_segments(final_data)
 
