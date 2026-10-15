@@ -23,6 +23,7 @@ logger = setup_logger("whisperx_cli")
 
 def select_file_gui() -> str | None:
     """Abre un diálogo de Tkinter para seleccionar el archivo multimedia."""
+    root = None
     try:
         from tkinter import Tk, filedialog
 
@@ -36,11 +37,13 @@ def select_file_gui() -> str | None:
                 ("Todos los archivos", "*.*"),
             ],
         )
-        root.destroy()
         return selected_file if selected_file else None
     except Exception as e:
         logger.warning("No se pudo abrir el selector gráfico: %s", e)
         return None
+    finally:
+        if root is not None:
+            root.destroy()
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -144,22 +147,26 @@ def main() -> None:
             sys.exit(0)
 
     media_path = Path(input_file)
-    if not media_path.exists():
+    if not media_path.is_file():
         print(f"[X] Error: El archivo no existe en la ruta indicada: {media_path}")
         sys.exit(1)
 
     # 2. Construir configuración inmutable
-    config = TranscriptionConfig.create_default(
-        provider=args.provider,
-        model_name=args.model,
-        enable_diarization=args.diarize,
-        timestamp_mode=TimestampMode(args.timestamps),
-        hf_token=args.token,
-        api_key=args.api_key,
-        device=args.device,
-        compute_type=args.compute_type,
-        language=args.language,
-    )
+    try:
+        config = TranscriptionConfig.create_default(
+            provider=args.provider,
+            model_name=args.model,
+            enable_diarization=args.diarize,
+            timestamp_mode=TimestampMode(args.timestamps),
+            hf_token=args.token,
+            api_key=args.api_key,
+            device=args.device,
+            compute_type=args.compute_type,
+            language=args.language,
+        )
+    except ValueError as err:
+        logger.error("Configuración inválida: %s", err)
+        sys.exit(1)
 
     print("\n" + "=" * 55)
     print("  TRANSCRIPTOR SUITE (CLI)")

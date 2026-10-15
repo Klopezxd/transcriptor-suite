@@ -50,7 +50,7 @@
 > * **Purpose:** Shields your personal Deepgram and AssemblyAI API keys from public consumption when sharing the Space URL.
 > * **Behavior:**
 >   * Public visitors are restricted to free WhisperX (ZeroGPU) or supplying their own personal API keys.
->   * You can authenticate with your PIN (or through the private bookmark link `?pin=YOUR_PIN`) to automatically unlock your server-configured master keys without copying and pasting them.
+>   * Use the **Admin** button and your password to enable the API keys stored as Hugging Face Spaces secrets. URL authentication is disabled. After five failed attempts from the same client, further attempts are blocked for the remainder of a one-minute window.
 > * **Configuration Steps:** Set in Space Secrets (`Settings > Variables and secrets > New secret`) under the key `ADMIN_PIN`.
 >
 > ---

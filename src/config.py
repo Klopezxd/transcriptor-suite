@@ -3,7 +3,7 @@ Configuración centralizada y modelos de datos para WhisperX Transcriptor.
 Aplica principios de Clean Code con inmutabilidad y validación de tipos.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -80,9 +80,23 @@ class TranscriptionConfig:
     batch_size: int = 16
     enable_diarization: bool = False
     timestamp_mode: TimestampMode = TimestampMode.SIMPLE
-    hf_token: str | None = None
-    api_key: str | None = None
+    hf_token: str | None = field(default=None, repr=False)
+    api_key: str | None = field(default=None, repr=False)
     language: str | None = None
+
+    def __post_init__(self) -> None:
+        """Rechaza configuraciones inválidas antes de cargar modelos o consumir créditos."""
+        if self.provider not in {provider.value for provider in ProviderType}:
+            raise ValueError(f"Proveedor no soportado: {self.provider}")
+        if not isinstance(self.model_name, str) or not self.model_name.strip():
+            raise ValueError("El modelo no puede estar vacío.")
+        if self.device not in {"cpu", "cuda"}:
+            raise ValueError(f"Dispositivo no soportado: {self.device}")
+        if self.compute_type not in {item.value for item in ComputeType}:
+            raise ValueError(f"Tipo de cómputo no soportado: {self.compute_type}")
+        if type(self.batch_size) is not int or self.batch_size < 1:
+            raise ValueError("El tamaño de lote debe ser un entero positivo.")
+        object.__setattr__(self, "timestamp_mode", TimestampMode(self.timestamp_mode))
 
     @classmethod
     def create_default(
@@ -103,14 +117,14 @@ class TranscriptionConfig:
 
         # Solo verificar PyTorch CUDA si se utiliza WhisperX
         if provider == ProviderType.WHISPERX.value:
+            detected_device = device or "cpu"
+            detected_compute = compute_type or ComputeType.INT8.value
             try:
                 import torch
 
                 detected_device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-                detected_compute = compute_type or ComputeType.INT8.value
             except ImportError:
-                detected_device = "cpu"
-                detected_compute = ComputeType.INT8.value
+                pass
 
         resolved_model = model_name or get_default_model_for_provider(provider)
 
@@ -136,7 +150,10 @@ DEFAULT_PROVIDER_MODELS: dict[str, str] = {
 
 def get_default_model_for_provider(provider: str) -> str:
     """Retorna el identificador del modelo predeterminado para el proveedor indicado."""
-    return DEFAULT_PROVIDER_MODELS.get(provider, ModelName.LARGE_V3_TURBO.value)
+    try:
+        return DEFAULT_PROVIDER_MODELS[provider]
+    except KeyError as err:
+        raise ValueError(f"Proveedor no soportado: {provider}") from err
 
 
 TIMESTAMP_LABEL_MAP: dict[str, TimestampMode] = {

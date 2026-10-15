@@ -45,3 +45,10 @@ hf_cache/
 .vscode/
 .idea/
 *.swp
+
+# Herramientas de calidad
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.audit-temp/

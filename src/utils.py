@@ -11,6 +11,7 @@ import logging
 import math
 import os
 import sys
+import tempfile
 import threading
 import time
 from collections.abc import Callable, Iterable, Iterator
@@ -74,7 +75,7 @@ def make_progress_notifier(
     """
     last_logged_msg: str | None = None
     last_p: float = 0.0
-    lock = threading.Lock()
+    lock = threading.RLock()
 
     def notify(progress_val: float, message: str) -> None:
         nonlocal last_logged_msg, last_p
@@ -85,9 +86,9 @@ def make_progress_notifier(
             if message != last_logged_msg:
                 logger.info("[%d%%] %s", int(clamped * 100), message)
                 last_logged_msg = message
-        if progress_callback:
-            with contextlib.suppress(Exception):
-                progress_callback(clamped, message)
+            if progress_callback:
+                with contextlib.suppress(Exception):
+                    progress_callback(clamped, message)
 
     notify.current_progress = 0.0  # type: ignore[attr-defined]
     return notify
@@ -206,7 +207,7 @@ def format_timestamp(seconds: float | None) -> str:
     Returns:
         Cadena formateada en 'HH:MM:SS'.
     """
-    if seconds is None or seconds < 0:
+    if seconds is None or not math.isfinite(seconds) or seconds < 0:
         return "00:00:00"
     total_seconds = int(seconds)
     hours = total_seconds // 3600
@@ -282,10 +283,36 @@ def save_transcription_file(
     Persiste el texto transcrito en un archivo '<nombre>_TRANSCRIPCION.txt' en UTF-8.
     """
     target_dir = Path(output_dir) if output_dir else input_path.parent
-    target_dir.mkdir(parents=True, exist_ok=True)
-    output_file = target_dir / f"{input_path.stem}_TRANSCRIPCION.txt"
-    output_file.write_text(formatted_text, encoding="utf-8")
-    return output_file
+    temporary_path = None
+    try:
+        target_dir.mkdir(parents=True, exist_ok=True)
+        output_file = target_dir / f"{input_path.stem}_TRANSCRIPCION.txt"
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=target_dir, delete=False, suffix=".tmp"
+        ) as temporary_file:
+            temporary_path = Path(temporary_file.name)
+            temporary_file.write(formatted_text)
+        temporary_path.replace(output_file)
+        return output_file
+    except OSError as err:
+        raise TranscriptionError("No se pudo guardar el archivo de transcripción.") from err
+    finally:
+        if temporary_path is not None:
+            with contextlib.suppress(OSError):
+                temporary_path.unlink(missing_ok=True)
+
+
+def validate_media_path(media_path: str | Path) -> Path:
+    """Valida archivos locales antes de abrir conexiones o cargar modelos."""
+    input_path = Path(media_path)
+    try:
+        if not input_path.is_file():
+            raise AudioProcessingError(f"No se encontró un archivo válido: {input_path}")
+        if input_path.stat().st_size == 0:
+            raise AudioProcessingError("El archivo multimedia está vacío.")
+    except OSError as err:
+        raise AudioProcessingError(f"No se pudo acceder al archivo: {input_path}") from err
+    return input_path
 
 
 # --- Manejo Seguro de Secretos ---

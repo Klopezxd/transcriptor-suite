@@ -5,11 +5,13 @@ Desarrollada desde cero con arquitectura modular, diseño responsivo,
 patrón Aurora Boreal Nórdica y gestión limpia de credenciales.
 """
 
+import html
 import time
 from typing import Any
 
 import gradio as gr
 
+from src.auth import LoginAttemptLimiter, LoginRateLimitError
 from src.config import (
     PROVIDER_MODEL_CHOICES,
     TIMESTAMP_CHOICES,
@@ -33,6 +35,7 @@ from src.utils import (
 
 configure_utf8_console()
 logger = setup_logger("whisperx_app")
+admin_login_limiter = LoginAttemptLimiter()
 
 # Compatibilidad con ZeroGPU en Hugging Face Spaces
 try:
@@ -159,7 +162,7 @@ def _resolve_provider_credentials(
             )
         return None, resolved_api_key, None
 
-    return None, None, None
+    raise TranscriptionError(f"Proveedor no soportado: {provider}")
 
 
 def process_transcription(
@@ -185,16 +188,6 @@ def process_transcription(
     media_path = media_file.name if hasattr(media_file, "name") else str(media_file)
     selected_mode = TIMESTAMP_LABEL_MAP.get(timestamp_option, TimestampMode.SIMPLE)
 
-    resolved_hf_token, resolved_api_key, cred_error = _resolve_provider_credentials(
-        provider=provider,
-        enable_diarization=enable_diarization,
-        hf_token_input=hf_token_input,
-        deepgram_key_input=deepgram_key_input,
-        assemblyai_key_input=assemblyai_key_input,
-        is_admin_session=is_admin_session,
-    )
-    if cred_error is not None:
-        return cred_error
 
     def on_progress(p: float, msg: str) -> None:
         progress(p, desc=msg)
@@ -202,6 +195,17 @@ def process_transcription(
     start_time = time.perf_counter()
 
     try:
+        resolved_hf_token, resolved_api_key, cred_error = _resolve_provider_credentials(
+            provider=provider,
+            enable_diarization=enable_diarization,
+            hf_token_input=hf_token_input,
+            deepgram_key_input=deepgram_key_input,
+            assemblyai_key_input=assemblyai_key_input,
+            is_admin_session=is_admin_session,
+        )
+        if cred_error is not None:
+            return cred_error
+
         config = TranscriptionConfig.create_default(
             provider=provider,
             model_name=model_name,
@@ -234,7 +238,7 @@ def process_transcription(
             else "Completado"
         )
         status_html = _build_status_badges(
-            f'<span class="status-badge status-success">✓ {lang_info}</span>',
+            f'<span class="status-badge status-success">✓ {html.escape(lang_info)}</span>',
             time_span=time_badge_html,
         )
 
@@ -2231,8 +2235,17 @@ with gr.Blocks(**blocks_kwargs) as demo:
         show_progress="hidden",
     )
 
-    def process_admin_login(pin: str, current_provider: str, is_diarize: bool):
-        if verify_admin_pin(pin):
+    def process_admin_login(
+        pin: str, current_provider: str, is_diarize: bool, request: gr.Request = None
+    ):
+        client = getattr(getattr(request, "client", None), "host", None) or "unknown"
+        error_message = "✗ PIN incorrecto o no configurado en el servidor."
+        try:
+            authenticated = admin_login_limiter.authenticate(pin, client, verify_admin_pin)
+        except LoginRateLimitError as err:
+            authenticated = False
+            error_message = str(err)
+        if authenticated:
             return (
                 True,  # admin_state
                 gr.update(visible=False),  # modal_login
@@ -2247,7 +2260,10 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 "",  # limpia input_pin
             )
         else:
-            err_html = '<div style="color: #F87171; font-size: 0.76rem; margin-top: 6px;">✗ PIN incorrecto o no configurado en el servidor.</div>'
+            err_html = (
+                '<div style="color: #F87171; font-size: 0.76rem; margin-top: 6px;">'
+                f'{html.escape(error_message)}</div>'
+            )
             panel_vis = update_guest_api_panel(current_provider, is_diarize, False)
             return (
                 False,  # admin_state
@@ -2256,7 +2272,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 gr.update(visible=False),  # btn_logout
                 *panel_vis,
                 gr.update(value=err_html, visible=True),
-                pin,
+                "",
             )
 
     btn_submit_login.click(
@@ -2323,26 +2339,8 @@ with gr.Blocks(**blocks_kwargs) as demo:
         show_progress="hidden",
     )
 
-    # --- Autenticación silenciosa por URL (?pin=...) ---
-    def check_url_auth(request: gr.Request, current_provider: str, is_diarize: bool):
-        if request:
-            params = getattr(request, "query_params", {})
-            pin_val = None
-            if isinstance(params, dict) or hasattr(params, "get"):
-                pin_val = params.get("pin")
-
-            if pin_val and verify_admin_pin(pin_val):
-                return (
-                    True,  # admin_state
-                    gr.update(visible=False),
-                    gr.update(visible=True),
-                    gr.update(visible=False),
-                    gr.update(visible=False),
-                    gr.update(visible=False),
-                    gr.update(visible=False),
-                    gr.update(visible=False),
-                )
-
+    # La carga inicial siempre requiere autenticarse mediante el botón Admin.
+    def initialize_guest_session(current_provider: str, is_diarize: bool):
         panel_vis = update_guest_api_panel(current_provider, is_diarize, False)
         return (
             False,
@@ -2523,7 +2521,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
     }"""
 
     demo.load(
-        fn=check_url_auth,
+        fn=initialize_guest_session,
         inputs=[provider_dropdown, diarize_checkbox],
         outputs=[
             admin_state,

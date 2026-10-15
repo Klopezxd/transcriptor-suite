@@ -10,7 +10,6 @@ from typing import Any, Protocol
 
 from src.config import ProviderType, TranscriptionConfig
 from src.utils import (
-    AudioProcessingError,
     MissingTokenError,
     TranscriptionError,
     clear_gpu_vram,
@@ -20,6 +19,7 @@ from src.utils import (
     save_transcription_file,
     setup_logger,
     smooth_progress_stage,
+    validate_media_path,
 )
 
 logger = setup_logger("whisperx_pipeline")
@@ -79,6 +79,7 @@ class WhisperXPipeline:
         device: str,
     ) -> list[dict[str, Any]]:
         """Ejecuta el modelo de diarización Pyannote y asigna hablantes por palabra."""
+        diarize_model = None
         try:
             from whisperx.diarize import DiarizationPipeline, assign_word_speakers
 
@@ -91,11 +92,8 @@ class WhisperXPipeline:
             diarize_segments = diarize_model(audio)
             diarized_result = assign_word_speakers(diarize_segments, aligned_result)
             segments: list[dict[str, Any]] = diarized_result["segments"]
-            del diarize_model
-            clear_gpu_vram()
             return segments
         except Exception as diarize_err:
-            clear_gpu_vram()
             err_str = str(diarize_err).lower()
             if any(
                 term in err_str
@@ -111,6 +109,9 @@ class WhisperXPipeline:
             raise TranscriptionError(
                 f"Error durante la diarización: {diarize_err}"
             ) from diarize_err
+        finally:
+            diarize_model = None
+            clear_gpu_vram()
 
     def process(
         self,
@@ -129,9 +130,7 @@ class WhisperXPipeline:
         Returns:
             TranscriptionResult con los datos procesados y ruta del archivo generado.
         """
-        input_path = Path(media_path)
-        if not input_path.exists():
-            raise AudioProcessingError(f"No se encontró el archivo: {input_path}")
+        input_path = validate_media_path(media_path)
 
         notify = make_progress_notifier(logger, progress_callback)
 
@@ -143,6 +142,7 @@ class WhisperXPipeline:
         device = self.config.device
         compute_type = self.config.compute_type
 
+        model = align_model = audio = None
         try:
             # --- FASE 1: Carga y Extracción de Audio ---
             with smooth_progress_stage(
@@ -172,8 +172,8 @@ class WhisperXPipeline:
                     language=self.config.language,
                 )
                 raw_result = model.transcribe(audio, batch_size=self.config.batch_size)
-                detected_language = raw_result.get("language", "es")
-                del model
+                detected_language = raw_result.get("language") or self.config.language or "unknown"
+                model = None
                 clear_gpu_vram()
 
             # --- FASE 3: Alineación Fonética de Marcas de Tiempo ---
@@ -185,23 +185,26 @@ class WhisperXPipeline:
                 message="Alineando marcas de tiempo a nivel de palabra...",
                 tau_seconds=8.0,
             ):
-                align_model, metadata = whisperx.load_align_model(
-                    language_code=detected_language, device=device
-                )
-                aligned_result = whisperx.align(
-                    raw_result["segments"],
-                    align_model,
-                    metadata,
-                    audio,
-                    device,
-                    return_char_alignments=False,
-                )
-                del align_model
+                if raw_result["segments"]:
+                    align_model, metadata = whisperx.load_align_model(
+                        language_code=detected_language, device=device
+                    )
+                    aligned_result = whisperx.align(
+                        raw_result["segments"],
+                        align_model,
+                        metadata,
+                        audio,
+                        device,
+                        return_char_alignments=False,
+                    )
+                else:
+                    aligned_result = {"segments": []}
+                align_model = None
                 clear_gpu_vram()
 
             # --- FASE 4: Diarización de Hablantes (Opcional) ---
             segments: list[dict[str, Any]] = aligned_result["segments"]
-            if self.config.enable_diarization:
+            if self.config.enable_diarization and segments:
                 with smooth_progress_stage(
                     notify,
                     start_p=0.72,
@@ -234,11 +237,12 @@ class WhisperXPipeline:
             )
 
         except TranscriptionError:
-            clear_gpu_vram()
             raise
         except Exception as err:
-            clear_gpu_vram()
             raise TranscriptionError(f"Error durante el procesamiento: {err}") from err
+        finally:
+            model = align_model = audio = None
+            clear_gpu_vram()
 
 
 def create_transcription_pipeline(config: TranscriptionConfig) -> TranscriptionPipeline:
@@ -254,4 +258,6 @@ def create_transcription_pipeline(config: TranscriptionConfig) -> TranscriptionP
         from src.cloud_providers import AssemblyAIPipeline
 
         return AssemblyAIPipeline(config)
-    return WhisperXPipeline(config)
+    if config.provider == ProviderType.WHISPERX.value:
+        return WhisperXPipeline(config)
+    raise TranscriptionError(f"Proveedor no soportado: {config.provider}")

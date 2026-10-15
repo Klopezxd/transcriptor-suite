@@ -14,7 +14,6 @@ import requests
 
 from src.config import TranscriptionConfig
 from src.utils import (
-    AudioProcessingError,
     ProgressFileReader,
     TranscriptionError,
     make_progress_notifier,
@@ -24,12 +23,24 @@ from src.utils import (
     save_transcription_file,
     setup_logger,
     smooth_progress_stage,
+    validate_media_path,
 )
 
 if TYPE_CHECKING:
     from src.transcriber import TranscriptionResult
 
 logger = setup_logger("cloud_providers")
+
+
+def _response_json(response: requests.Response) -> dict[str, Any]:
+    """Normaliza respuestas JSON inválidas al contrato de errores del dominio."""
+    try:
+        data = response.json()
+    except ValueError as err:
+        raise TranscriptionError("El proveedor devolvió una respuesta JSON inválida.") from err
+    if not isinstance(data, dict):
+        raise TranscriptionError("El proveedor devolvió una estructura de respuesta inválida.")
+    return data
 
 
 class DeepgramPipeline:
@@ -120,7 +131,7 @@ class DeepgramPipeline:
                     f"Error de Deepgram (HTTP {response.status_code}): {response.text}"
                 )
 
-            return response.json()
+            return _response_json(response)
         except requests.exceptions.RequestException as req_err:
             raise TranscriptionError(f"Fallo de conexión con Deepgram: {req_err}") from req_err
 
@@ -193,9 +204,7 @@ class DeepgramPipeline:
     ) -> TranscriptionResult:
         from src.transcriber import TranscriptionResult
 
-        input_path = Path(media_path)
-        if not input_path.exists():
-            raise AudioProcessingError(f"No se encontró el archivo: {input_path}")
+        input_path = validate_media_path(media_path)
 
         notify = make_progress_notifier(logger, progress_callback)
 
@@ -208,8 +217,8 @@ class DeepgramPipeline:
         try:
             channel = data["results"]["channels"][0]
             channel_alt = channel["alternatives"][0]
-            detected_language = channel.get("detected_language", "es")
-        except (KeyError, IndexError) as err:
+            detected_language = channel.get("detected_language") or self.config.language or "unknown"
+        except (KeyError, IndexError, TypeError) as err:
             raise TranscriptionError(
                 "La respuesta de Deepgram no contiene transcripciones válidas."
             ) from err
@@ -310,7 +319,7 @@ class AssemblyAIPipeline:
                     f"Error al subir archivo a AssemblyAI (HTTP {upload_res.status_code}): {upload_res.text}"
                 )
 
-            audio_url = upload_res.json().get("upload_url")
+            audio_url = _response_json(upload_res).get("upload_url")
             if not audio_url:
                 raise TranscriptionError("AssemblyAI no retornó una URL de archivo válida.")
             return str(audio_url)
@@ -339,7 +348,7 @@ class AssemblyAIPipeline:
                 raise TranscriptionError(
                     f"Error al solicitar transcripción en AssemblyAI: {submit_res.text}"
                 )
-            transcript_id = submit_res.json().get("id")
+            transcript_id = _response_json(submit_res).get("id")
             if not transcript_id:
                 raise TranscriptionError("AssemblyAI no retornó un ID de transcripción válido.")
             return str(transcript_id)
@@ -353,7 +362,7 @@ class AssemblyAIPipeline:
         notify: Callable[[float, str], None],
     ) -> dict[str, Any]:
         poll_url = f"{self.TRANSCRIPT_URL}/{transcript_id}"
-        elapsed = 0
+        deadline = time.monotonic() + self.MAX_POLL_SECONDS
         model_label = self.config.model_name or "best"
 
         with smooth_progress_stage(
@@ -364,14 +373,21 @@ class AssemblyAIPipeline:
             tau_seconds=10.0,
             interval_seconds=0.25,
         ):
-            while elapsed < self.MAX_POLL_SECONDS:
-                time.sleep(self.POLL_INTERVAL_SEC)
-                elapsed += self.POLL_INTERVAL_SEC
+            while time.monotonic() < deadline:
+                remaining = deadline - time.monotonic()
+                time.sleep(min(self.POLL_INTERVAL_SEC, max(0.0, remaining)))
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    break
 
                 try:
-                    poll_res = requests.get(poll_url, headers=headers, timeout=30)
+                    poll_res = requests.get(poll_url, headers=headers, timeout=min(30, remaining))
+                    if poll_res.status_code not in {200, 408, 429} and poll_res.status_code < 500:
+                        raise TranscriptionError(
+                            f"Error de AssemblyAI durante el sondeo (HTTP {poll_res.status_code})."
+                        )
                     if poll_res.status_code == 200:
-                        status_data: dict[str, Any] = poll_res.json()
+                        status_data = _response_json(poll_res)
                         status = status_data.get("status")
 
                         if status == "completed":
@@ -380,6 +396,10 @@ class AssemblyAIPipeline:
                             error_msg = status_data.get("error", "Error desconocido")
                             raise TranscriptionError(
                                 f"AssemblyAI falló durante el procesamiento: {error_msg}"
+                            )
+                        if status not in {"queued", "processing"}:
+                            raise TranscriptionError(
+                                "AssemblyAI devolvió un estado de transcripción inválido."
                             )
                 except requests.exceptions.RequestException as err:
                     logger.warning("Fallo temporal de sondeo: %s", err)
@@ -411,6 +431,8 @@ class AssemblyAIPipeline:
             seg_end = float(words[0].get("end", 0)) / 1000.0
 
             for word_item in words:
+                if not current_words:
+                    seg_start = float(word_item.get("start", 0)) / 1000.0
                 w_text = word_item.get("text", "")
                 w_end = float(word_item.get("end", 0)) / 1000.0
                 current_words.append(w_text)
@@ -459,9 +481,7 @@ class AssemblyAIPipeline:
     ) -> TranscriptionResult:
         from src.transcriber import TranscriptionResult
 
-        input_path = Path(media_path)
-        if not input_path.exists():
-            raise AudioProcessingError(f"No se encontró el archivo: {input_path}")
+        input_path = validate_media_path(media_path)
 
         notify = make_progress_notifier(logger, progress_callback)
         headers = {"authorization": self.api_key or ""}
@@ -478,7 +498,7 @@ class AssemblyAIPipeline:
 
         # --- Paso 4: Formateo y Persistencia ---
         notify(0.95, "Formateando segmentos y hablantes...")
-        detected_language = final_data.get("language_code", "es")
+        detected_language = final_data.get("language_code") or self.config.language or "unknown"
         segments = self._extract_segments(final_data)
 
         formatted_text = render_segments_text(

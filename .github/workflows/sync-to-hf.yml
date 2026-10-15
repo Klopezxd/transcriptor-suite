@@ -5,8 +5,15 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
+  quality:
+    uses: ./.github/workflows/lint.yml
+
   sync-to-hub:
+    needs: quality
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code

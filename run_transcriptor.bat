@@ -2,6 +2,7 @@
 title Transcriptor Suite
 chcp 65001 >nul
 color 0B
+cd /d "%~dp0"
 
 echo ========================================================
 echo   Iniciando Transcriptor Suite (Entorno Conda)
@@ -15,6 +16,12 @@ if exist "%USERPROFILE%\miniconda3\Scripts\activate.bat" (
     call "%USERPROFILE%\anaconda3\Scripts\activate.bat" transcriptor
 ) else (
     call conda activate transcriptor 2>nul
+)
+
+if errorlevel 1 (
+    echo [ERROR] No se pudo activar el entorno Conda transcriptor.
+    pause
+    exit /b 1
 )
 
 :: 2. Ejecutar CLI (abrira el selector grafico de archivo automaticamente si no se pasa parametro)

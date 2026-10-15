@@ -53,7 +53,7 @@
 > * **Propósito:** Blindar tus claves de Deepgram y AssemblyAI para que visitantes o compañeros no puedan consumir tus créditos en la web pública.
 > * **Comportamiento:** 
 >   * Si un visitante accede a la web, solo puede usar WhisperX (gratuito en ZeroGPU) o ingresar su propia clave.
->   * Si tú accedes con tu PIN (o usando tu enlace privado `?pin=TU_PIN`), la aplicación desbloquea automáticamente tus claves maestras sin que tengas que copiarlas y pegarlas nunca.
+>   * Al ingresar tu contraseña mediante el botón **Admin**, la aplicación habilita las claves guardadas como secretos en Hugging Face Spaces. El acceso por URL está deshabilitado. Tras cinco intentos fallidos desde un mismo cliente, se bloquean los intentos restantes durante la ventana de un minuto.
 > * **Ubicación de Configuración:** En los secretos del Space (`Settings > Variables and secrets > New secret`) con el nombre `ADMIN_PIN`.
 >
 > ---
