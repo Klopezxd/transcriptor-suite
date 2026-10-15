@@ -343,8 +343,11 @@ def _resolve_secret(env_var: str, explicit_val: str | None = None) -> str | None
             with open(env_file, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
-                    if line.startswith(f"{env_var}=") and not line.startswith("#"):
-                        val = line.split("=", 1)[1].strip().strip("\"'")
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    key, _, raw_val = line.partition("=")
+                    if key.strip() == env_var:
+                        val = raw_val.strip().strip("\"'")
                         if val:
                             return val
         except OSError:

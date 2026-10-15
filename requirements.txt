@@ -1,7 +1,7 @@
 torch
 torchaudio
 git+https://github.com/m-bain/whisperX.git
-gradio>=4.0.0
+gradio>=6.0.0,<7.0.0
 spaces
 pyannote.audio
 requests

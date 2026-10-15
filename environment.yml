@@ -1,4 +1,4 @@
-name: whisperx
+name: transcriptor
 channels:
   - conda-forge
   - defaults
@@ -10,7 +10,7 @@ dependencies:
       - torch==2.8.0
       - torchaudio==2.8.0
       - whisperx
-      - gradio>=4.0.0
+      - gradio>=6.0.0,<7.0.0
       - pyannote.audio
       - requests
 

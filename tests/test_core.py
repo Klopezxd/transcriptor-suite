@@ -22,6 +22,7 @@ from src.utils import (
     make_progress_notifier,
     render_segments_text,
     resolve_deepgram_api_key,
+    resolve_hf_token,
     save_transcription_file,
     validate_media_path,
     verify_admin_pin,
@@ -137,6 +138,19 @@ class UtilityTests(unittest.TestCase):
         with patch.dict("os.environ", {"DEEPGRAM_API_KEY": " environment "}):
             self.assertEqual(resolve_deepgram_api_key(" explicit "), "explicit")
             self.assertEqual(resolve_deepgram_api_key(" "), "environment")
+
+    def test_env_file_parsing_with_whitespace_and_comments(self):
+        with (
+            patch.dict("os.environ", {}, clear=True),
+            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "builtins.open",
+                unittest.mock.mock_open(
+                    read_data="# Comentario\n  HF_TOKEN = mi-token-secreto  \n\n"
+                ),
+            ),
+        ):
+            self.assertEqual(resolve_hf_token(), "mi-token-secreto")
 
     def test_admin_pin(self):
         with patch("src.utils.resolve_admin_pin", return_value="secreto-á"):
