@@ -218,21 +218,24 @@ transcriptor-suite/
 ├── .env.example            # Plantilla de variables de entorno para desarrollo y pruebas locales.
 │
 ├── .github/workflows/
-│   └── sync-to-hf.yml      # Pipeline CI/CD: Detecta commits en main y actualiza automáticamente el
-│                           # Space de Hugging Face mediante el token HF_TOKEN (permiso Write).
+│   ├── lint.yml            # Control de calidad: verificación de sintaxis con Ruff y suite de 64 pruebas unitarias.
+│   └── sync-to-hf.yml      # Pipeline CI/CD: Valida calidad y sincroniza a Hugging Face Space si los tests pasan.
 │
-└── src/
-    ├── config.py           # Modelos de datos y configuraciones tipadas: ProviderType, WhisperModel,
-    │                       # DeepgramModel, AssemblyAIModel, PROVIDER_MODELS y TranscriptionConfig.
-    │
-    ├── transcriber.py      # Orquestador del pipeline: factoría create_transcription_pipeline,
-    │                       # gestión de VRAM, integración de Pyannote Audio y WhisperXPipeline.
-    │
-    ├── cloud_providers.py  # Conectores REST en la nube: DeepgramPipeline y AssemblyAIPipeline
-    │                       # con diarización nativa, polling asíncrono y sin consumo de GPU.
-    │
-    └── utils.py            # Utilidades: resolución jerárquica de API keys (argumento > os.getenv > .env),
-                            # formateo de marcas de tiempo (.srt, .vtt, .json) y limpieza de VRAM.
+├── src/
+│   ├── auth.py             # Control de acceso administrativo, limitador de intentos y aislamiento de IPs/sesiones.
+│   ├── config.py           # Modelos de datos y configuraciones tipadas: ProviderType, WhisperModel,
+│   │                       # DeepgramModel, AssemblyAIModel, PROVIDER_MODELS y TranscriptionConfig.
+│   │
+│   ├── transcriber.py      # Orquestador del pipeline: factoría create_transcription_pipeline,
+│   │                       # gestión de VRAM, integración de Pyannote Audio y WhisperXPipeline.
+│   │
+│   ├── cloud_providers.py  # Conectores REST en la nube: DeepgramPipeline y AssemblyAIPipeline
+│   │                       # con diarización nativa, polling asíncrono y sin consumo de GPU.
+│   │
+│   └── utils.py            # Utilidades: resolución jerárquica de API keys, escritura atómica,
+│                           # barra de progreso continua en tiempo real y limpieza de VRAM.
+│
+└── tests/                  # Suite integral de 64 pruebas unitarias automatizadas (dominio, CLI, auth y UI).
 ```
 
 ---

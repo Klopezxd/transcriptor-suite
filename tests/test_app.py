@@ -95,6 +95,29 @@ class AppTests(unittest.TestCase):
         self.assertIn("&lt;IMG", output[2])
         self.assertNotIn("<IMG", output[2])
 
+    def test_whisperx_execution_in_app(self):
+        result = SimpleNamespace(
+            formatted_text="Hola desde WhisperX",
+            detected_language="es",
+            output_path=Path("audio_TRANSCRIPCION.txt"),
+        )
+        pipeline = Mock(process=Mock(return_value=result))
+        with (
+            patch("app.create_transcription_pipeline", return_value=pipeline),
+            patch("app.execute_whisperx", return_value=result) as mock_exec,
+        ):
+            output = app.process_transcription(
+                "audio.wav",
+                ProviderType.WHISPERX.value,
+                "large-v3-turbo",
+                False,
+                "",
+                progress=Mock(),
+            )
+        mock_exec.assert_called_once()
+        self.assertEqual(output[0], "Hola desde WhisperX")
+        self.assertIn("ES", output[2])
+
     def test_login_success_failure_and_logout(self):
         with patch("app.verify_admin_pin", return_value=True):
             result = app.process_admin_login("pin", ProviderType.DEEPGRAM.value, False)

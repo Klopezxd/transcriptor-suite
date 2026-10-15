@@ -215,21 +215,24 @@ transcriptor-suite/
 ├── .env.example            # Environment variable template for local development and secrets testing.
 │
 ├── .github/workflows/
-│   └── sync-to-hf.yml      # CI/CD Workflow: Automatically syncs git commits on main to Hugging Face
-│                           # Space using secret HF_TOKEN (with Write permissions).
+│   ├── lint.yml            # Code Quality: Ruff linter check and 64 automated regression unit tests.
+│   └── sync-to-hf.yml      # CI/CD Workflow: Validates quality and syncs commits to Hugging Face Spaces.
 │
-└── src/
-    ├── config.py           # Strongly typed data models and enums: ProviderType, WhisperModel,
-    │                       # DeepgramModel, AssemblyAIModel, PROVIDER_MODELS, and TranscriptionConfig.
-    │
-    ├── transcriber.py      # Pipeline factory: create_transcription_pipeline, VRAM memory managers,
-    │                       # Pyannote Audio integration, and local WhisperXPipeline orchestrator.
-    │
-    ├── cloud_providers.py  # Lightweight cloud REST connectors: DeepgramPipeline & AssemblyAIPipeline
-    │                       # featuring word-level diarization, async polling, and ZERO GPU usage.
-    │
-    └── utils.py            # Utility helpers: hierarchical API key resolution (arg > os.getenv > .env),
-                            # subtitle formatters (.srt, .vtt, .json), and VRAM garbage collectors.
+├── src/
+│   ├── auth.py             # Admin access protection, attempt rate-limiter, and reverse-proxy IP isolation.
+│   ├── config.py           # Strongly typed data models and enums: ProviderType, WhisperModel,
+│   │                       # DeepgramModel, AssemblyAIModel, PROVIDER_MODELS, and TranscriptionConfig.
+│   │
+│   ├── transcriber.py      # Pipeline factory: create_transcription_pipeline, VRAM memory managers,
+│   │                       # Pyannote Audio integration, and local WhisperXPipeline orchestrator.
+│   │
+│   ├── cloud_providers.py  # Lightweight cloud REST connectors: DeepgramPipeline & AssemblyAIPipeline
+│   │                       # featuring word-level diarization, async polling, and ZERO GPU usage.
+│   │
+│   └── utils.py            # Utility helpers: hierarchical API key resolution, atomic file writes,
+│                           # real-time continuous progress notifier, and VRAM garbage collectors.
+│
+└── tests/                  # Comprehensive suite of 64 automated unit tests (domain, CLI, auth, and web UI).
 ```
 
 ---
