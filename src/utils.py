@@ -75,20 +75,25 @@ def make_progress_notifier(
     """
     last_logged_msg: str | None = None
     last_p: float = 0.0
-    lock = threading.RLock()
+    lock = threading.Lock()
 
     def notify(progress_val: float, message: str) -> None:
         nonlocal last_logged_msg, last_p
+        should_log = False
         with lock:
             clamped = min(1.0, max(last_p, progress_val))
             last_p = clamped
             notify.current_progress = clamped  # type: ignore[attr-defined]
             if message != last_logged_msg:
-                logger.info("[%d%%] %s", int(clamped * 100), message)
+                should_log = True
                 last_logged_msg = message
-            if progress_callback:
-                with contextlib.suppress(Exception):
-                    progress_callback(clamped, message)
+
+        if should_log:
+            logger.info("[%d%%] %s", int(clamped * 100), message)
+
+        if progress_callback:
+            with contextlib.suppress(Exception):
+                progress_callback(clamped, message)
 
     notify.current_progress = 0.0  # type: ignore[attr-defined]
     return notify

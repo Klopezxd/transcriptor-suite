@@ -6,7 +6,6 @@ Permite procesamiento por lotes o interactivo con selección gráfica de respald
 
 import argparse
 import sys
-from pathlib import Path
 
 from src.config import (
     ComputeType,
@@ -15,7 +14,13 @@ from src.config import (
     TranscriptionConfig,
 )
 from src.transcriber import create_transcription_pipeline
-from src.utils import TranscriptionError, configure_utf8_console, setup_logger
+from src.utils import (
+    AudioProcessingError,
+    TranscriptionError,
+    configure_utf8_console,
+    setup_logger,
+    validate_media_path,
+)
 
 configure_utf8_console()
 logger = setup_logger("whisperx_cli")
@@ -146,9 +151,10 @@ def main() -> None:
             print("[!] Operación cancelada: No se seleccionó ningún archivo.")
             sys.exit(0)
 
-    media_path = Path(input_file)
-    if not media_path.is_file():
-        print(f"[X] Error: El archivo no existe en la ruta indicada: {media_path}")
+    try:
+        media_path = validate_media_path(input_file)
+    except AudioProcessingError as err:
+        print(f"[X] Error: {err}")
         sys.exit(1)
 
     # 2. Construir configuración inmutable

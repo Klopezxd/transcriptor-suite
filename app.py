@@ -11,7 +11,11 @@ from typing import Any
 
 import gradio as gr
 
-from src.auth import LoginAttemptLimiter, LoginRateLimitError
+from src.auth import (
+    LoginAttemptLimiter,
+    LoginRateLimitError,
+    extract_client_identifier,
+)
 from src.config import (
     PROVIDER_MODEL_CHOICES,
     TIMESTAMP_CHOICES,
@@ -2238,7 +2242,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
     def process_admin_login(
         pin: str, current_provider: str, is_diarize: bool, request: gr.Request = None
     ):
-        client = getattr(getattr(request, "client", None), "host", None) or "unknown"
+        client = extract_client_identifier(request)
         error_message = "✗ PIN incorrecto o no configurado en el servidor."
         try:
             authenticated = admin_login_limiter.authenticate(pin, client, verify_admin_pin)

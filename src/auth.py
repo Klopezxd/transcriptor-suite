@@ -4,10 +4,48 @@ import threading
 import time
 from collections import OrderedDict
 from collections.abc import Callable
+from typing import Any
 
 
 class LoginRateLimitError(Exception):
     """El cliente debe esperar antes de volver a intentar autenticarse."""
+
+
+def extract_client_identifier(request: Any) -> str:
+    """
+    Identifica al cliente de forma robusta e independiente en entornos con reverse proxy
+    (Hugging Face Spaces, Cloudflare, Nginx) y sesiones locales de Gradio, evitando
+    que múltiples usuarios compartan la misma IP local de proxy (DoS colectivo).
+    """
+    if request is None:
+        return "unknown"
+
+    headers = getattr(request, "headers", None)
+    if headers and hasattr(headers, "get"):
+        cf_ip = headers.get("cf-connecting-ip")
+        if cf_ip and cf_ip.strip():
+            return cf_ip.strip()
+
+        x_forwarded = headers.get("x-forwarded-for")
+        if x_forwarded and x_forwarded.strip():
+            client_ip = x_forwarded.split(",")[0].strip()
+            if client_ip and client_ip not in {"127.0.0.1", "::1", "localhost"}:
+                return client_ip
+
+        x_real = headers.get("x-real-ip")
+        if x_real and x_real.strip() and x_real.strip() not in {"127.0.0.1", "::1", "localhost"}:
+            return x_real.strip()
+
+    session_hash = getattr(request, "session_hash", None)
+    if session_hash:
+        return f"session_{session_hash}"
+
+    client = getattr(request, "client", None)
+    host = getattr(client, "host", None)
+    if host and str(host).strip() not in {"127.0.0.1", "::1", "localhost"}:
+        return str(host).strip()
+
+    return "local_client"
 
 
 class LoginAttemptLimiter:
