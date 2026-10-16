@@ -77,19 +77,17 @@ def extract_audio_for_cloud(
     except Exception as err:
         logger.debug("Fallo en extracción directa de audio con ffmpeg: %s", err)
 
-    # Intento 2: Recodificación rápida a AAC mono ligero (-vn -ac 1 -c:a aac -b:a 64k)
+    # Intento 2: Recodificación de alta fidelidad a AAC (-vn -c:a aac -b:a 160k)
     cmd_fallback = [
         "ffmpeg",
         "-y",
         "-i",
         str(media_path),
         "-vn",
-        "-ac",
-        "1",
         "-c:a",
         "aac",
         "-b:a",
-        "64k",
+        "160k",
         str(temp_audio),
     ]
     try:
@@ -101,7 +99,7 @@ def extract_audio_for_cloud(
         )
         if res.returncode == 0 and temp_audio.is_file() and temp_audio.stat().st_size > 0:
             logger.info(
-                "Pista de audio convertida a AAC mono para %s (%d bytes)",
+                "Pista de audio convertida a AAC alta fidelidad para %s (%d bytes)",
                 media_path.name,
                 temp_audio.stat().st_size,
             )
