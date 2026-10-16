@@ -100,6 +100,14 @@ class ClientIdentifierTests(unittest.TestCase):
         request = SimpleNamespace(headers={}, client=SimpleNamespace(host="127.0.0.1"))
         self.assertEqual(extract_client_identifier(request), "local_client")
 
+    def test_ip_with_port_is_sanitized(self):
+        request = SimpleNamespace(headers={"x-forwarded-for": "198.51.100.55:44321, 10.0.0.1"})
+        self.assertEqual(extract_client_identifier(request), "198.51.100.55")
+
+    def test_ipv6_with_bracket_and_port(self):
+        request = SimpleNamespace(headers={"cf-connecting-ip": "[2001:db8::1]:8080"})
+        self.assertEqual(extract_client_identifier(request), "2001:db8::1")
+
 
 if __name__ == "__main__":
     unittest.main()

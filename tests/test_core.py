@@ -11,7 +11,12 @@ from unittest.mock import Mock, patch
 import requests
 
 from src.cloud_providers import AssemblyAIPipeline, DeepgramPipeline, _response_json
-from src.config import ProviderType, TimestampMode, TranscriptionConfig
+from src.config import (
+    ProviderType,
+    TimestampMode,
+    TranscriptionConfig,
+    normalize_provider_name,
+)
 from src.transcriber import WhisperXPipeline, create_transcription_pipeline
 from src.utils import (
     AudioProcessingError,
@@ -62,6 +67,27 @@ class ConfigTests(unittest.TestCase):
     def test_unknown_provider_default_is_rejected(self):
         with self.assertRaises(ValueError):
             TranscriptionConfig.create_default(provider="unknown")
+
+    def test_provider_aliases_are_normalized(self):
+        config_wx = TranscriptionConfig(provider="whisperx")
+        self.assertEqual(config_wx.provider, ProviderType.WHISPERX.value)
+
+        config_dg = TranscriptionConfig.create_default(provider="deepgram")
+        self.assertEqual(config_dg.provider, ProviderType.DEEPGRAM.value)
+
+        config_aai = TranscriptionConfig.create_default(provider="assemblyai")
+        self.assertEqual(config_aai.provider, ProviderType.ASSEMBLYAI.value)
+
+    def test_normalize_provider_name_function(self):
+        self.assertEqual(normalize_provider_name("whisperx"), ProviderType.WHISPERX.value)
+        self.assertEqual(normalize_provider_name("DEEPGRAM"), ProviderType.DEEPGRAM.value)
+        self.assertEqual(normalize_provider_name("  assemblyai  "), ProviderType.ASSEMBLYAI.value)
+        self.assertEqual(
+            normalize_provider_name(ProviderType.WHISPERX.value), ProviderType.WHISPERX.value
+        )
+        for invalid in ["", "   ", "google", "openai", None, 123]:
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                normalize_provider_name(invalid)  # type: ignore[arg-type]
 
     def test_secrets_not_in_repr(self):
         config = TranscriptionConfig(api_key="api-secret", hf_token="hf-secret")

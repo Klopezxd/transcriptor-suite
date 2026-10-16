@@ -12,6 +12,7 @@ from src.config import (
     ProviderType,
     TimestampMode,
     TranscriptionConfig,
+    normalize_provider_name,
 )
 from src.transcriber import create_transcription_pipeline
 from src.utils import (
@@ -68,10 +69,10 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "-p",
         "--provider",
-        type=str,
+        type=normalize_provider_name,
         default=ProviderType.WHISPERX.value,
         choices=[p.value for p in ProviderType],
-        help="Proveedor de inferencia: WhisperX (local/ZeroGPU), Deepgram o AssemblyAI.",
+        help="Proveedor de inferencia: 'whisperx', 'deepgram' o 'assemblyai'.",
     )
     parser.add_argument(
         "-m",

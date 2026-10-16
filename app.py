@@ -24,6 +24,7 @@ from src.config import (
     ProviderType,
     TimestampMode,
     TranscriptionConfig,
+    normalize_provider_name,
 )
 from src.transcriber import create_transcription_pipeline
 from src.utils import (
@@ -96,7 +97,12 @@ def _resolve_provider_credentials(
     Resuelve y valida las credenciales requeridas según el proveedor seleccionado.
     Retorna (hf_token, api_key, error_tuple_or_none).
     """
-    if provider == ProviderType.WHISPERX.value:
+    try:
+        canonical_provider = normalize_provider_name(provider)
+    except ValueError as err:
+        raise TranscriptionError(f"Proveedor no soportado: {provider}") from err
+
+    if canonical_provider == ProviderType.WHISPERX.value:
         resolved_hf_token = resolve_hf_token(hf_token_input)
         if enable_diarization and not resolved_hf_token:
             return (
@@ -116,7 +122,7 @@ def _resolve_provider_credentials(
             )
         return resolved_hf_token, None, None
 
-    if provider == ProviderType.DEEPGRAM.value:
+    if canonical_provider == ProviderType.DEEPGRAM.value:
         if deepgram_key_input and deepgram_key_input.strip():
             resolved_api_key = resolve_deepgram_api_key(deepgram_key_input)
         elif is_admin_session:
@@ -141,7 +147,7 @@ def _resolve_provider_credentials(
             )
         return None, resolved_api_key, None
 
-    if provider == ProviderType.ASSEMBLYAI.value:
+    if canonical_provider == ProviderType.ASSEMBLYAI.value:
         if assemblyai_key_input and assemblyai_key_input.strip():
             resolved_api_key = resolve_assemblyai_api_key(assemblyai_key_input)
         elif is_admin_session:
@@ -221,7 +227,7 @@ def process_transcription(
 
         pipeline = create_transcription_pipeline(config)
 
-        if provider == ProviderType.WHISPERX.value:
+        if config.provider == ProviderType.WHISPERX.value:
             result = execute_whisperx(pipeline, media_path, on_progress)
         else:
             result = pipeline.process(
@@ -246,12 +252,19 @@ def process_transcription(
             time_span=time_badge_html,
         )
 
+        output_label = (
+            f"📥 Descargar {result.output_path.name}"
+            if getattr(result, "output_path", None)
+            else EMPTY_DOWNLOAD_LABEL
+        )
+        output_val = str(result.output_path) if getattr(result, "output_path", None) else None
+
         return (
             result.formatted_text,
             gr.DownloadButton(
-                label=f"📥 Descargar {result.output_path.name}",
-                value=str(result.output_path),
-                interactive=True,
+                label=output_label,
+                value=output_val,
+                interactive=bool(output_val),
             ),
             status_html,
         )

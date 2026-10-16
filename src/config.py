@@ -86,8 +86,8 @@ class TranscriptionConfig:
 
     def __post_init__(self) -> None:
         """Rechaza configuraciones inválidas antes de cargar modelos o consumir créditos."""
-        if self.provider not in {provider.value for provider in ProviderType}:
-            raise ValueError(f"Proveedor no soportado: {self.provider}")
+        canonical_provider = normalize_provider_name(self.provider)
+        object.__setattr__(self, "provider", canonical_provider)
         if not isinstance(self.model_name, str) or not self.model_name.strip():
             raise ValueError("El modelo no puede estar vacío.")
         if self.device not in {"cpu", "cuda"}:
@@ -112,11 +112,12 @@ class TranscriptionConfig:
         language: str | None = None,
     ) -> "TranscriptionConfig":
         """Crea una configuración inmutable con selección automática de hardware y proveedor."""
+        canonical_provider = normalize_provider_name(provider)
         detected_device = "cpu"
         detected_compute = ComputeType.INT8.value
 
         # Solo verificar PyTorch CUDA si se utiliza WhisperX
-        if provider == ProviderType.WHISPERX.value:
+        if canonical_provider == ProviderType.WHISPERX.value:
             detected_device = device or "cpu"
             detected_compute = compute_type or ComputeType.INT8.value
             try:
@@ -126,10 +127,10 @@ class TranscriptionConfig:
             except ImportError:
                 pass
 
-        resolved_model = model_name or get_default_model_for_provider(provider)
+        resolved_model = model_name or get_default_model_for_provider(canonical_provider)
 
         return cls(
-            provider=provider,
+            provider=canonical_provider,
             model_name=resolved_model,
             device=detected_device,
             compute_type=detected_compute,
@@ -141,6 +142,25 @@ class TranscriptionConfig:
         )
 
 
+PROVIDER_ALIASES: dict[str, str] = {
+    "whisperx": ProviderType.WHISPERX.value,
+    "deepgram": ProviderType.DEEPGRAM.value,
+    "assemblyai": ProviderType.ASSEMBLYAI.value,
+    **{p.value.lower(): p.value for p in ProviderType},
+    **{p.value: p.value for p in ProviderType},
+}
+
+
+def normalize_provider_name(provider: str) -> str:
+    """Normaliza identificadores y alias de proveedores a su valor canónico de ProviderType."""
+    if not provider or not isinstance(provider, str):
+        raise ValueError(f"Proveedor no soportado: {provider}")
+    key = provider.strip().lower()
+    if key in PROVIDER_ALIASES:
+        return PROVIDER_ALIASES[key]
+    raise ValueError(f"Proveedor no soportado: {provider}")
+
+
 DEFAULT_PROVIDER_MODELS: dict[str, str] = {
     ProviderType.WHISPERX.value: ModelName.LARGE_V3_TURBO.value,
     ProviderType.DEEPGRAM.value: DeepgramModel.NOVA_2.value,
@@ -150,10 +170,8 @@ DEFAULT_PROVIDER_MODELS: dict[str, str] = {
 
 def get_default_model_for_provider(provider: str) -> str:
     """Retorna el identificador del modelo predeterminado para el proveedor indicado."""
-    try:
-        return DEFAULT_PROVIDER_MODELS[provider]
-    except KeyError as err:
-        raise ValueError(f"Proveedor no soportado: {provider}") from err
+    canonical = normalize_provider_name(provider)
+    return DEFAULT_PROVIDER_MODELS[canonical]
 
 
 TIMESTAMP_LABEL_MAP: dict[str, TimestampMode] = {

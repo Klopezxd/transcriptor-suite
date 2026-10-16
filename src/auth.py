@@ -11,6 +11,19 @@ class LoginRateLimitError(Exception):
     """El cliente debe esperar antes de volver a intentar autenticarse."""
 
 
+def _clean_ip(raw_ip: str | None) -> str:
+    if not raw_ip or not str(raw_ip).strip():
+        return ""
+    cleaned = str(raw_ip).strip()
+    # IPv6 entre corchetes con puerto: [2001:db8::1]:8080
+    if cleaned.startswith("[") and "]" in cleaned:
+        cleaned = cleaned[1 : cleaned.index("]")]
+    # IPv4 con puerto: 192.0.2.1:8080
+    elif ":" in cleaned and cleaned.count(":") == 1:
+        cleaned = cleaned.split(":", 1)[0]
+    return cleaned.strip()
+
+
 def extract_client_identifier(request: Any) -> str:
     """
     Identifica al cliente de forma robusta e independiente en entornos con reverse proxy
@@ -22,28 +35,28 @@ def extract_client_identifier(request: Any) -> str:
 
     headers = getattr(request, "headers", None)
     if headers and hasattr(headers, "get"):
-        cf_ip = headers.get("cf-connecting-ip")
-        if cf_ip and cf_ip.strip():
-            return cf_ip.strip()
+        cf_ip = _clean_ip(headers.get("cf-connecting-ip"))
+        if cf_ip and cf_ip not in {"127.0.0.1", "::1", "localhost"}:
+            return cf_ip
 
         x_forwarded = headers.get("x-forwarded-for")
         if x_forwarded and x_forwarded.strip():
-            client_ip = x_forwarded.split(",")[0].strip()
+            client_ip = _clean_ip(x_forwarded.split(",")[0])
             if client_ip and client_ip not in {"127.0.0.1", "::1", "localhost"}:
                 return client_ip
 
-        x_real = headers.get("x-real-ip")
-        if x_real and x_real.strip() and x_real.strip() not in {"127.0.0.1", "::1", "localhost"}:
-            return x_real.strip()
+        x_real = _clean_ip(headers.get("x-real-ip"))
+        if x_real and x_real not in {"127.0.0.1", "::1", "localhost"}:
+            return x_real
 
     session_hash = getattr(request, "session_hash", None)
     if session_hash:
         return f"session_{session_hash}"
 
     client = getattr(request, "client", None)
-    host = getattr(client, "host", None)
-    if host and str(host).strip() not in {"127.0.0.1", "::1", "localhost"}:
-        return str(host).strip()
+    host = _clean_ip(getattr(client, "host", None))
+    if host and host not in {"127.0.0.1", "::1", "localhost"}:
+        return host
 
     return "local_client"
 

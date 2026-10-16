@@ -76,6 +76,28 @@ class CliTests(unittest.TestCase):
             self.assertIsNone(cli.select_file_gui())
         root.destroy.assert_called_once()
 
+    def test_provider_argument_aliases(self):
+        for raw_provider, expected in [
+            ("whisperx", "WhisperX (ZeroGPU / Local)"),
+            ("deepgram", "Deepgram (Cloud API)"),
+            ("assemblyai", "AssemblyAI (Cloud API)"),
+            ("WhisperX (ZeroGPU / Local)", "WhisperX (ZeroGPU / Local)"),
+        ]:
+            with (
+                self.subTest(provider=raw_provider),
+                patch("sys.argv", ["cli", "-i", "audio.wav", "-p", raw_provider]),
+            ):
+                arguments = cli.parse_arguments()
+                self.assertEqual(arguments.provider, expected)
+
+    def test_invalid_provider_argument_fails(self):
+        with (
+            patch("sys.argv", ["cli", "-i", "audio.wav", "-p", "invalid_provider"]),
+            patch("sys.stderr.write"),
+            self.assertRaises(SystemExit),
+        ):
+            cli.parse_arguments()
+
 
 if __name__ == "__main__":
     unittest.main()
