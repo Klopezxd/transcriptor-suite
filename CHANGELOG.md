@@ -16,13 +16,14 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 * **Descarga Consolidada en Archivo Único (`.txt`):**
   * Nueva opción para descargar todas las transcripciones de un lote unificadas en un único archivo de texto plano con encabezados y separadores legibles por archivo.
   * Inclusión del archivo consolidado dentro del archivo comprimido `.zip` del lote.
-* **Visibilidad Contextual Dinámica de Descarga:**
-  * En transcripciones de un solo archivo, solo se muestra el botón de descarga directa individual, manteniendo oculto el botón consolidado.
-  * Los botones de descarga de lote (`.zip`) y consolidado (`.txt`) se activan y muestran exclusivamente cuando se procesan dos o más archivos.
-* **Extracción de Audio Lossless Previa a la Nube:**
-  * Extracción de pista de audio sin pérdida mediante FFmpeg (stream copy directo y fallback FLAC) para optimizar la transferencia a proveedores cloud (Deepgram y AssemblyAI) sin pérdida de fidelidad acústica.
+* **Iluminación Dinámica y Protección de Ejecución Accidental:**
+  * Al finalizar la transcripción, el botón **"⚡ Iniciar Transcripción"** se deshabilita automáticamente (`interactive=False`) con estilo atenuado y cursor bloqueado para evitar clics accidentales que consuman saldo de API, reactivándose únicamente tras hacer clic en **"🗑️ Limpiar"**.
+  * **Iluminación individual:** El botón de descarga para un solo archivo se ilumina en degradado Verde Aurora / Ice Cyan con resplandor pulsante.
+  * **Diferenciación cromática en lotes grupales:** En transcripciones multiarchivo, ambos botones se iluminan en colores contrastantes del sistema nórdico:
+    * `📦 Descargar Lote (.zip)` resalta en **Aurora Emerald / Verde Neón**.
+    * `📄 Descargar Consolidado (.txt)` resalta en **Violet Sky / Rosa Glaciar Neón**.
 * **Suite de Pruebas Automatizadas:**
-  * Ampliación de la cobertura a 87 pruebas unitarias de regresión abarcando dominio, CLI, UI y manejo de errores.
+  * Ampliación de la cobertura a 88 pruebas unitarias de regresión abarcando dominio, CLI, UI y manejo de errores.
 
 ---
 

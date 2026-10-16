@@ -86,7 +86,14 @@ def _build_status_badges(status_span: str, time_span: str = "") -> str:
 
 
 def _disabled_download_button() -> gr.DownloadButton:
-    return gr.DownloadButton(label=EMPTY_DOWNLOAD_LABEL, value=None, interactive=False, visible=True)
+    return gr.DownloadButton(
+        label=EMPTY_DOWNLOAD_LABEL,
+        value=None,
+        interactive=False,
+        visible=True,
+        variant="secondary",
+        elem_classes=["btn-secondary"],
+    )
 
 
 def _disabled_consolidated_button() -> gr.DownloadButton:
@@ -95,6 +102,26 @@ def _disabled_consolidated_button() -> gr.DownloadButton:
         value=None,
         interactive=False,
         visible=False,
+        variant="secondary",
+        elem_classes=["btn-secondary"],
+    )
+
+
+def _enabled_transcribe_button() -> gr.Button:
+    return gr.Button(
+        value="⚡ Iniciar Transcripción",
+        variant="primary",
+        interactive=True,
+        elem_classes=["btn-primary"],
+    )
+
+
+def _disabled_transcribe_button() -> gr.Button:
+    return gr.Button(
+        value="⚡ Iniciar Transcripción",
+        variant="secondary",
+        interactive=False,
+        elem_classes=["btn-primary", "btn-transcribe-disabled"],
     )
 
 
@@ -105,7 +132,11 @@ def _resolve_provider_credentials(
     deepgram_key_input: str,
     assemblyai_key_input: str,
     is_admin_session: bool,
-) -> tuple[str | None, str | None, tuple[str, Any, str] | None]:
+) -> tuple[
+    str | None,
+    str | None,
+    tuple[str, gr.DownloadButton, gr.DownloadButton, str, gr.Button] | None,
+]:
     """
     Resuelve y valida las credenciales requeridas según el proveedor seleccionado.
     Retorna (hf_token, api_key, error_tuple_or_none).
@@ -132,6 +163,7 @@ def _resolve_provider_credentials(
                     _build_status_badges(
                         '<span class="status-badge status-error">Token HF requerido</span>'
                     ),
+                    _enabled_transcribe_button(),
                 ),
             )
         return resolved_hf_token, None, None
@@ -158,6 +190,7 @@ def _resolve_provider_credentials(
                     _build_status_badges(
                         '<span class="status-badge status-error">API Key requerida</span>'
                     ),
+                    _enabled_transcribe_button(),
                 ),
             )
         return None, resolved_api_key, None
@@ -184,6 +217,7 @@ def _resolve_provider_credentials(
                     _build_status_badges(
                         '<span class="status-badge status-error">API Key requerida</span>'
                     ),
+                    _enabled_transcribe_button(),
                 ),
             )
         return None, resolved_api_key, None
@@ -210,6 +244,7 @@ def process_transcription(
             _disabled_download_button(),
             _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-warning">Sin archivo</span>'),
+            _enabled_transcribe_button(),
         )
 
     file_list = media_file if isinstance(media_file, list) else [media_file]
@@ -220,6 +255,7 @@ def process_transcription(
             _disabled_download_button(),
             _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-warning">Sin archivo</span>'),
+            _enabled_transcribe_button(),
         )
 
     selected_mode = TIMESTAMP_LABEL_MAP.get(timestamp_option, TimestampMode.SIMPLE)
@@ -290,6 +326,7 @@ def process_transcription(
                 _disabled_download_button(),
                 _disabled_consolidated_button(),
                 _build_status_badges('<span class="status-badge status-error">Fallo en lote</span>'),
+                _enabled_transcribe_button(),
             )
 
         elapsed_seconds = max(0.1, time.perf_counter() - start_time)
@@ -335,9 +372,12 @@ def process_transcription(
                     value=output_val,
                     interactive=bool(output_val),
                     visible=True,
+                    variant="primary",
+                    elem_classes=["btn-glow-single"],
                 ),
                 _disabled_consolidated_button(),
                 status_html,
+                _disabled_transcribe_button(),
             )
 
         # Flujo 2: Múltiples archivos en lote (Empaquetado ZIP y texto consolidado)
@@ -386,6 +426,10 @@ def process_transcription(
             cons_label = "📄 Descargar Consolidado (.txt)"
             cons_interactive = True
             cons_visible = True
+            zip_variant = "primary"
+            cons_variant = "primary"
+            zip_classes = ["btn-glow-zip"]
+            cons_classes = ["btn-glow-txt"]
         else:
             output_val = None
             output_label = EMPTY_DOWNLOAD_LABEL
@@ -393,6 +437,10 @@ def process_transcription(
             cons_label = "📄 Descargar Consolidado (.txt)"
             cons_interactive = False
             cons_visible = False
+            zip_variant = "secondary"
+            cons_variant = "secondary"
+            zip_classes = ["btn-secondary"]
+            cons_classes = ["btn-secondary"]
 
         if not failed_files:
             badge_label = f"✓ {len(results)} archivos procesados"
@@ -413,14 +461,19 @@ def process_transcription(
                 value=output_val,
                 interactive=bool(output_val),
                 visible=True,
+                variant=zip_variant,
+                elem_classes=zip_classes,
             ),
             gr.DownloadButton(
                 label=cons_label,
                 value=cons_val,
                 interactive=cons_interactive,
                 visible=cons_visible,
+                variant=cons_variant,
+                elem_classes=cons_classes,
             ),
             status_html,
+            _disabled_transcribe_button() if valid_output_paths else _enabled_transcribe_button(),
         )
 
     except TranscriptionError as e:
@@ -431,6 +484,7 @@ def process_transcription(
             _disabled_download_button(),
             _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-error">Error</span>'),
+            _enabled_transcribe_button(),
         )
     except Exception as e:
         clear_gpu_vram()
@@ -440,6 +494,7 @@ def process_transcription(
             _disabled_download_button(),
             _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-error">Error inesperado</span>'),
+            _enabled_transcribe_button(),
         )
 
 
@@ -1678,6 +1733,136 @@ li[role="option"][aria-selected="true"],
     box-shadow: 0 0 12px rgba(0, 255, 135, 0.15) !important;
 }
 
+/* ── BOTONES DE DESCARGA ILUMINADOS (GLOW DINÁMICO) ──────────────── */
+.btn-glow-single,
+.btn-glow-single button,
+.btn-glow-single a {
+    background: linear-gradient(135deg, #00FF87 0%, #00D4FF 100%) !important;
+    color: #050B1A !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: clamp(0.90rem, 1.8vh, 1.08rem) !important;
+    border: 1px solid rgba(0, 255, 135, 0.6) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 18px rgba(0, 255, 135, 0.45), 0 0 16px rgba(0, 212, 255, 0.35) !important;
+    animation: pulse-glow-single 2.5s infinite ease-in-out !important;
+    transition: all 0.25s ease !important;
+    cursor: pointer !important;
+}
+
+.btn-glow-single:hover,
+.btn-glow-single button:hover,
+.btn-glow-single a:hover {
+    background: linear-gradient(135deg, #00D4FF 0%, #00FF87 100%) !important;
+    color: #050B1A !important;
+    box-shadow: 0 6px 26px rgba(0, 255, 135, 0.7), 0 0 22px rgba(0, 212, 255, 0.55) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Lote Multiarchivo - Descargar Lote (.zip): Color Aurora Emerald / Verde Neón */
+.btn-glow-zip,
+.btn-glow-zip button,
+.btn-glow-zip a {
+    background: linear-gradient(135deg, #00FF87 0%, #00E5FF 100%) !important;
+    color: #050B1A !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: clamp(0.90rem, 1.8vh, 1.08rem) !important;
+    border: 1px solid rgba(0, 255, 135, 0.7) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 20px rgba(0, 255, 135, 0.5), 0 0 16px rgba(0, 229, 255, 0.35) !important;
+    animation: pulse-glow-zip 2.5s infinite ease-in-out !important;
+    transition: all 0.25s ease !important;
+    cursor: pointer !important;
+}
+
+.btn-glow-zip:hover,
+.btn-glow-zip button:hover,
+.btn-glow-zip a:hover {
+    background: linear-gradient(135deg, #00E5FF 0%, #00FF87 100%) !important;
+    color: #050B1A !important;
+    box-shadow: 0 6px 28px rgba(0, 255, 135, 0.75), 0 0 24px rgba(0, 229, 255, 0.55) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Lote Multiarchivo - Descargar Consolidado (.txt): Color Violet Sky / Glacier Pink Neón */
+.btn-glow-txt,
+.btn-glow-txt button,
+.btn-glow-txt a {
+    background: linear-gradient(135deg, #7B2FBE 0%, #FF1493 100%) !important;
+    color: #FAFBFC !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: clamp(0.90rem, 1.8vh, 1.08rem) !important;
+    border: 1px solid rgba(255, 20, 147, 0.7) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 20px rgba(255, 20, 147, 0.5), 0 0 18px rgba(123, 47, 190, 0.45) !important;
+    animation: pulse-glow-txt 2.5s infinite ease-in-out !important;
+    transition: all 0.25s ease !important;
+    cursor: pointer !important;
+}
+
+.btn-glow-txt:hover,
+.btn-glow-txt button:hover,
+.btn-glow-txt a:hover {
+    background: linear-gradient(135deg, #FF1493 0%, #7B2FBE 100%) !important;
+    color: #FAFBFC !important;
+    box-shadow: 0 6px 28px rgba(255, 20, 147, 0.75), 0 0 24px rgba(123, 47, 190, 0.6) !important;
+    transform: translateY(-2px) !important;
+}
+
+@keyframes pulse-glow-single {
+    0%, 100% {
+        box-shadow: 0 4px 18px rgba(0, 255, 135, 0.45), 0 0 14px rgba(0, 212, 255, 0.3);
+    }
+    50% {
+        box-shadow: 0 6px 26px rgba(0, 255, 135, 0.7), 0 0 22px rgba(0, 212, 255, 0.55);
+    }
+}
+
+@keyframes pulse-glow-zip {
+    0%, 100% {
+        box-shadow: 0 4px 18px rgba(0, 255, 135, 0.45), 0 0 14px rgba(0, 229, 255, 0.3);
+    }
+    50% {
+        box-shadow: 0 6px 28px rgba(0, 255, 135, 0.75), 0 0 22px rgba(0, 229, 255, 0.55);
+    }
+}
+
+@keyframes pulse-glow-txt {
+    0%, 100% {
+        box-shadow: 0 4px 18px rgba(255, 20, 147, 0.45), 0 0 14px rgba(123, 47, 190, 0.35);
+    }
+    50% {
+        box-shadow: 0 6px 28px rgba(255, 20, 147, 0.7), 0 0 24px rgba(123, 47, 190, 0.55);
+    }
+}
+
+/* Deshabilitado para botón Iniciar Transcripción */
+.btn-primary:disabled,
+.btn-primary[disabled],
+button:disabled.btn-primary,
+button[disabled].btn-primary,
+.btn-transcribe-disabled {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(250, 251, 252, 0.25) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+    opacity: 0.45 !important;
+    transform: none !important;
+    filter: grayscale(1) !important;
+}
+
+.btn-secondary:disabled,
+.btn-secondary[disabled],
+button:disabled.btn-secondary,
+button[disabled].btn-secondary {
+    opacity: 0.35 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+}
+
 /* ── STATUS BADGES & AVISOS ──────────────────────── */
 .status-badges-group {
     display: inline-flex;
@@ -2727,11 +2912,19 @@ with gr.Blocks(**blocks_kwargs) as demo:
             _disabled_download_button(),
             _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-warning">En espera</span>'),
+            _enabled_transcribe_button(),
         )
 
     btn_clear.click(
         fn=clear_all,
-        outputs=[media_input, output_textbox, btn_download, btn_download_consolidated, status_badge],
+        outputs=[
+            media_input,
+            output_textbox,
+            btn_download,
+            btn_download_consolidated,
+            status_badge,
+            btn_transcribe,
+        ],
         show_progress="hidden",
     )
 
@@ -2773,7 +2966,13 @@ with gr.Blocks(**blocks_kwargs) as demo:
             assemblyai_key_box,
             admin_state,
         ],
-        outputs=[output_textbox, btn_download, btn_download_consolidated, status_badge],
+        outputs=[
+            output_textbox,
+            btn_download,
+            btn_download_consolidated,
+            status_badge,
+            btn_transcribe,
+        ],
     )
 
 

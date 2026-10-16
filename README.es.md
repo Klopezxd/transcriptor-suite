@@ -219,7 +219,7 @@ transcriptor-suite/
 ├── .env.example            # Plantilla de variables de entorno para desarrollo y pruebas locales.
 │
 ├── .github/workflows/
-│   ├── lint.yml            # Control de calidad: verificación de sintaxis con Ruff y suite de 87 pruebas unitarias.
+│   ├── lint.yml            # Control de calidad: verificación de sintaxis con Ruff y suite de 88 pruebas unitarias.
 │   └── sync-to-hf.yml      # Pipeline CI/CD: Valida calidad y sincroniza a Hugging Face Space si los tests pasan.
 │
 ├── src/
@@ -236,7 +236,7 @@ transcriptor-suite/
 │   └── utils.py            # Utilidades: resolución jerárquica de API keys, escritura atómica de archivos y ZIP,
 │                           # barra de progreso continua en tiempo real y limpieza de VRAM.
 │
-└── tests/                  # Suite integral de 87 pruebas unitarias automatizadas (dominio, CLI, auth y UI).
+└── tests/                  # Suite integral de 88 pruebas unitarias automatizadas (dominio, CLI, auth y UI).
 ```
 
 ---
