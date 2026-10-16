@@ -72,9 +72,10 @@
 * **Word-Level Phoneme Alignment:** Incorporates **Wav2Vec2** acoustic models to achieve exact word-boundary timestamp alignment.
 * **Speaker Diarization:** Identifies and segments discrete speakers seamlessly using **Pyannote Audio 3.1**.
 * **Consumer GPU & ZeroGPU Ready:** Architected with `INT8` quantization and explicit VRAM garbage collection between pipeline stages, running efficiently on 4GB VRAM cards (e.g., NVIDIA GeForce GTX 1650) as well as **Hugging Face ZeroGPU** runners.
+* **Queued Multi-File Batching:** Upload or select multiple audio/video files simultaneously. Processed in an orderly sequential FIFO queue with real-time per-file progress tracking and automatic consolidated ZIP packaging.
 * **Dual Interface (Web + CLI):**
-  * **Web UI (Gradio):** Interactive browser application.
-  * **CLI (Terminal):** Fully featured command-line interface with interactive graphical file picker fallback.
+  * **Web UI (Gradio):** Interactive browser application with multi-file drag-and-drop and ZIP download.
+  * **CLI (Terminal):** Fully featured command-line interface supporting multiple file arguments with interactive graphical multi-file picker fallback.
 * **Production Engineering:** Explicit type hints, structured logging, decoupled domain logic, and secure environment-based credential handling.
 
 ---
@@ -205,17 +206,17 @@ If you need to audit or manage this repository in the future without a local clo
 transcriptor-suite/
 │
 ├── app.py                  # Gradio Web Interface: Nordic Aurora theme, academic statusbar v2.1.0,
-│                           # reactive model dropdowns, and isolated @spaces.GPU decorator execution.
+│                           # multi-file queued batch processing, and isolated @spaces.GPU decorator execution.
 │
-├── main.py                 # Terminal CLI entry point: direct parameter execution (--media, --model,
-│                           # --diarize) with interactive graphical file picker fallback.
+├── cli.py                  # Terminal CLI entry point: multi-file batch execution (--input, --model,
+│                           # --diarize) with interactive graphical multi-file picker fallback.
 │
 ├── requirements.txt        # Runtime dependencies (torch, whisperx, gradio, requests, pyannote).
 ├── CHANGELOG.md            # Formal versioning and release notes conforming to Keep a Changelog.
 ├── .env.example            # Environment variable template for local development and secrets testing.
 │
 ├── .github/workflows/
-│   ├── lint.yml            # Code Quality: Ruff linter check and 73 automated regression unit tests.
+│   ├── lint.yml            # Code Quality: Ruff linter check and 79 automated regression unit tests.
 │   └── sync-to-hf.yml      # CI/CD Workflow: Validates quality and syncs commits to Hugging Face Spaces.
 │
 ├── src/
@@ -229,10 +230,10 @@ transcriptor-suite/
 │   ├── cloud_providers.py  # Lightweight cloud REST connectors: DeepgramPipeline & AssemblyAIPipeline
 │   │                       # featuring word-level diarization, async polling, and ZERO GPU usage.
 │   │
-│   └── utils.py            # Utility helpers: hierarchical API key resolution, atomic file writes,
+│   └── utils.py            # Utility helpers: hierarchical API key resolution, atomic file & zip writes,
 │                           # real-time continuous progress notifier, and VRAM garbage collectors.
 │
-└── tests/                  # Comprehensive suite of 73 automated unit tests (domain, CLI, auth, and web UI).
+└── tests/                  # Comprehensive suite of 79 automated unit tests (domain, CLI, auth, and web UI).
 ```
 
 ---
@@ -334,11 +335,14 @@ Navigate to `http://127.0.0.1:7860` in any modern web browser.
 ### 3. Command Line Interface (CLI)
 
 ```bash
-# Interactive mode (opens file selection dialog if no -i argument is provided):
+# Interactive mode (opens multi-file selection dialog if no -i argument is provided):
 python cli.py
 
-# Direct processing with turbo model:
+# Direct processing of a single file with turbo model:
 python cli.py -i "lecture.mp4" -m large-v3-turbo
+
+# Batch transcription of multiple files:
+python cli.py -i "audio1.wav" "audio2.mp3" "video.mp4" -m large-v3-turbo
 
 # Enable multi-speaker diarization:
 python cli.py -i "interview.mp4" -d
@@ -351,7 +355,7 @@ python cli.py -i "meeting.wav" --timestamps range -o "./transcripts"
 
 | Flag | Type | Description | Default |
 |---|---|---|---|
-| `-i`, `--input` | String | Path to media file (launches GUI picker if omitted). | `None` |
+| `-i`, `--input` | List | Path to one or more media files (launches multi-file GUI picker if omitted). | `None` |
 | `-m`, `--model` | Choice | `large-v3-turbo`, `large-v3`, `medium`, `small`, `base` | `large-v3-turbo` |
 | `-d`, `--diarize` | Flag | Enables speaker diarization (requires token). | `False` |
 | `--timestamps` | Choice | Timestamp formatting: `simple`, `range`, `none` | `simple` |

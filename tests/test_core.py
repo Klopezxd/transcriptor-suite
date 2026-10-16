@@ -4,6 +4,7 @@ import io
 import logging
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
@@ -23,6 +24,7 @@ from src.utils import (
     MissingTokenError,
     ProgressFileReader,
     TranscriptionError,
+    create_zip_archive,
     format_timestamp,
     make_progress_notifier,
     render_segments_text,
@@ -203,6 +205,40 @@ class UtilityTests(unittest.TestCase):
         self.assertEqual(reader.bytes_read, 5)
         self.assertEqual(len(reader), 5)
         self.assertEqual(notify.call_args.args[0], 0.5)
+
+    def test_create_zip_archive_success(self):
+        with tempfile.TemporaryDirectory() as directory:
+            dir_path = Path(directory)
+            f1 = dir_path / "transcripcion_1.txt"
+            f2 = dir_path / "transcripcion_2.txt"
+            f1.write_text("texto 1", encoding="utf-8")
+            f2.write_text("texto 2", encoding="utf-8")
+
+            zip_output = dir_path / "salida" / "lote.zip"
+            result_zip = create_zip_archive([f1, f2], zip_output)
+            self.assertEqual(result_zip, zip_output)
+            self.assertTrue(zip_output.is_file())
+
+            with zipfile.ZipFile(zip_output, "r") as zf:
+                self.assertEqual(sorted(zf.namelist()), ["transcripcion_1.txt", "transcripcion_2.txt"])
+                self.assertEqual(zf.read("transcripcion_1.txt").decode("utf-8"), "texto 1")
+                self.assertEqual(zf.read("transcripcion_2.txt").decode("utf-8"), "texto 2")
+
+    def test_create_zip_archive_atomic_cleanup_on_error(self):
+        with tempfile.TemporaryDirectory() as directory:
+            dir_path = Path(directory)
+            f1 = dir_path / "test.txt"
+            f1.write_text("contenido", encoding="utf-8")
+            zip_output = dir_path / "fallo.zip"
+
+            with (
+                patch.object(Path, "replace", side_effect=PermissionError("acceso denegado")),
+                self.assertRaises(PermissionError),
+            ):
+                create_zip_archive([f1], zip_output)
+
+            self.assertFalse(zip_output.exists())
+            self.assertFalse(zip_output.with_suffix(".tmp.zip").exists())
 
 
 class CloudTests(unittest.TestCase):

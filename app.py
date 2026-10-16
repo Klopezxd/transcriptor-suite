@@ -7,6 +7,7 @@ patrón Aurora Boreal Nórdica y gestión limpia de credenciales.
 
 import html
 import time
+from pathlib import Path
 from typing import Any
 
 import gradio as gr
@@ -31,6 +32,7 @@ from src.utils import (
     TranscriptionError,
     clear_gpu_vram,
     configure_utf8_console,
+    create_zip_archive,
     resolve_assemblyai_api_key,
     resolve_deepgram_api_key,
     resolve_hf_token,
@@ -187,21 +189,24 @@ def process_transcription(
     is_admin_session: bool = False,
     progress=gr.Progress(),
 ):
-    """Procesa el archivo multimedia y retorna la transcripción, el botón de descarga y estadísticas."""
+    """Procesa uno o múltiples archivos multimedia en cola secuencial y retorna resultados consolidados."""
     if not media_file:
         return (
-            "⚠️ Por favor selecciona o arrastra un archivo de audio o video para comenzar.",
+            "⚠️ Por favor selecciona o arrastra al menos un archivo multimedia para comenzar.",
             _disabled_download_button(),
             _build_status_badges('<span class="status-badge status-warning">Sin archivo</span>'),
         )
 
-    media_path = media_file.name if hasattr(media_file, "name") else str(media_file)
+    file_list = media_file if isinstance(media_file, list) else [media_file]
+    file_list = [f for f in file_list if f]
+    if not file_list:
+        return (
+            "⚠️ Por favor selecciona o arrastra al menos un archivo multimedia para comenzar.",
+            _disabled_download_button(),
+            _build_status_badges('<span class="status-badge status-warning">Sin archivo</span>'),
+        )
+
     selected_mode = TIMESTAMP_LABEL_MAP.get(timestamp_option, TimestampMode.SIMPLE)
-
-
-    def on_progress(p: float, msg: str) -> None:
-        progress(p, desc=msg)
-
     start_time = time.perf_counter()
 
     try:
@@ -226,13 +231,48 @@ def process_transcription(
         )
 
         pipeline = create_transcription_pipeline(config)
+        total_files = len(file_list)
+        results: list[tuple[str, Any]] = []
+        failed_files: list[tuple[str, str]] = []
 
-        if config.provider == ProviderType.WHISPERX.value:
-            result = execute_whisperx(pipeline, media_path, on_progress)
-        else:
-            result = pipeline.process(
-                media_path=media_path,
-                progress_callback=on_progress,
+        def make_file_progress(current_idx: int, current_name: str):
+            def handler(sub_p: float, sub_msg: str) -> None:
+                overall_p = ((current_idx - 1) + sub_p) / total_files
+                desc = (
+                    f"[{current_idx}/{total_files}] {current_name}: {sub_msg}"
+                    if total_files > 1
+                    else sub_msg
+                )
+                progress(overall_p, desc=desc)
+
+            return handler
+
+        for idx, item in enumerate(file_list, start=1):
+            media_path = item.name if hasattr(item, "name") else str(item)
+            file_name = Path(media_path).name
+            on_progress = make_file_progress(idx, file_name)
+
+            try:
+                if config.provider == ProviderType.WHISPERX.value:
+                    res = execute_whisperx(pipeline, media_path, on_progress)
+                else:
+                    res = pipeline.process(
+                        media_path=media_path,
+                        progress_callback=on_progress,
+                    )
+                results.append((file_name, res))
+            except (TranscriptionError, Exception) as err:
+                logger.error("Error transcribiendo archivo %s: %s", file_name, err)
+                failed_files.append((file_name, str(err)))
+                clear_gpu_vram()
+
+        if not results:
+            err_details = "\n".join(f"• {fname}: {err}" for fname, err in failed_files)
+            clear_gpu_vram()
+            return (
+                f"❌ Falló el procesamiento del lote:\n\n{err_details}",
+                _disabled_download_button(),
+                _build_status_badges('<span class="status-badge status-error">Fallo en lote</span>'),
             )
 
         elapsed_seconds = max(0.1, time.perf_counter() - start_time)
@@ -242,26 +282,87 @@ def process_transcription(
             f"</span>"
         )
 
-        detected_lang = getattr(result, "detected_language", None)
-        lang_info = (
-            f"Idioma: {detected_lang.upper()}"
-            if detected_lang and str(detected_lang).strip().lower() not in {"unknown", "none"}
-            else "Completado"
-        )
+        # Flujo 1: Un solo archivo (Comportamiento directo sin banners extra)
+        if total_files == 1:
+            _, single_res = results[0]
+            detected_lang = getattr(single_res, "detected_language", None)
+            lang_info = (
+                f"Idioma: {detected_lang.upper()}"
+                if detected_lang and str(detected_lang).strip().lower() not in {"unknown", "none"}
+                else "Completado"
+            )
+            status_html = _build_status_badges(
+                f'<span class="status-badge status-success">✓ {html.escape(lang_info)}</span>',
+                time_span=time_badge_html,
+            )
+            output_label = (
+                f"📥 Descargar {single_res.output_path.name}"
+                if getattr(single_res, "output_path", None)
+                else EMPTY_DOWNLOAD_LABEL
+            )
+            output_val = str(single_res.output_path) if getattr(single_res, "output_path", None) else None
+
+            return (
+                single_res.formatted_text,
+                gr.DownloadButton(
+                    label=output_label,
+                    value=output_val,
+                    interactive=bool(output_val),
+                ),
+                status_html,
+            )
+
+        # Flujo 2: Múltiples archivos en lote (Empaquetado ZIP y texto consolidado)
+        blocks: list[str] = []
+        for file_name, res in results:
+            lang = getattr(res, "detected_language", None)
+            lang_tag = (
+                f" [Idioma: {lang.upper()}]"
+                if lang and str(lang).strip().lower() not in {"unknown", "none"}
+                else ""
+            )
+            header = f"{'=' * 60}\n📁 {file_name}{lang_tag}\n{'=' * 60}"
+            blocks.append(f"{header}\n{res.formatted_text}")
+
+        if failed_files:
+            err_lines = [f"{'=' * 60}\n⚠️ ARCHIVOS NO PROCESADOS (ERRORES)\n{'=' * 60}"]
+            for file_name, err_msg in failed_files:
+                err_lines.append(f"• {file_name}: {err_msg}")
+            blocks.append("\n".join(err_lines))
+
+        combined_text = "\n\n".join(blocks)
+
+        valid_output_paths = [
+            res.output_path
+            for _, res in results
+            if getattr(res, "output_path", None) and Path(res.output_path).is_file()
+        ]
+
+        if valid_output_paths:
+            batch_dir = valid_output_paths[0].parent
+            timestamp_str = time.strftime("%Y%m%d_%H%M%S")
+            zip_path = batch_dir / f"transcripciones_lote_{timestamp_str}.zip"
+            create_zip_archive(valid_output_paths, zip_path)
+            output_val = str(zip_path)
+            output_label = f"📥 Descargar {len(valid_output_paths)} Transcripciones (.zip)"
+        else:
+            output_val = None
+            output_label = EMPTY_DOWNLOAD_LABEL
+
+        if not failed_files:
+            badge_label = f"✓ {len(results)} archivos procesados"
+            badge_class = "status-success"
+        else:
+            badge_label = f"✓ {len(results)}/{total_files} procesados ({len(failed_files)} con error)"
+            badge_class = "status-warning"
+
         status_html = _build_status_badges(
-            f'<span class="status-badge status-success">✓ {html.escape(lang_info)}</span>',
+            f'<span class="status-badge {badge_class}">{html.escape(badge_label)}</span>',
             time_span=time_badge_html,
         )
 
-        output_label = (
-            f"📥 Descargar {result.output_path.name}"
-            if getattr(result, "output_path", None)
-            else EMPTY_DOWNLOAD_LABEL
-        )
-        output_val = str(result.output_path) if getattr(result, "output_path", None) else None
-
         return (
-            result.formatted_text,
+            combined_text,
             gr.DownloadButton(
                 label=output_label,
                 value=output_val,
@@ -1926,17 +2027,17 @@ with gr.Blocks(**blocks_kwargs) as demo:
                     """
                 )
                 media_input = gr.File(
-                    label="Arrastra o selecciona tu archivo multimedia",
+                    label="Arrastra o selecciona tus archivos multimedia",
                     show_label=False,
                     file_types=["audio", "video"],
-                    file_count="single",
+                    file_count="multiple",
                     container=False,
                     elem_classes=["file-upload-zone"],
                 )
                 gr.HTML(
                     """
                     <div class="file-hint">
-                        Formatos soportados: MP3, WAV, M4A, MP4, MKV, FLAC, OGG, WEBM, MOV, AAC.
+                        Formatos soportados: MP3, WAV, M4A, MP4, MKV, FLAC, OGG, WEBM, MOV, AAC (Soporta múltiples archivos en cola).
                     </div>
                     """
                 )

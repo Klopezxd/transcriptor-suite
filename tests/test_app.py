@@ -1,5 +1,6 @@
 """Regresiones de eventos web y aislamiento de credenciales por sesión."""
 
+import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -163,6 +164,89 @@ class AppTests(unittest.TestCase):
         self.assertEqual(result[1], "")
         self.assertFalse(result[2].interactive)
         self.assertEqual(len(result), 4)
+
+    def test_batch_transcription_multiple_files_creates_zip(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            out1 = tmp_path / "audio1_TRANSCRIPCION.txt"
+            out2 = tmp_path / "audio2_TRANSCRIPCION.txt"
+            out1.write_text("Texto 1", encoding="utf-8")
+            out2.write_text("Texto 2", encoding="utf-8")
+
+            result1 = SimpleNamespace(
+                formatted_text="Texto 1",
+                detected_language="es",
+                output_path=out1,
+            )
+            result2 = SimpleNamespace(
+                formatted_text="Texto 2",
+                detected_language="en",
+                output_path=out2,
+            )
+            pipeline = Mock()
+            pipeline.process.side_effect = [result1, result2]
+
+            with (
+                patch("app.create_transcription_pipeline", return_value=pipeline),
+                patch("app.create_zip_archive", return_value=tmp_path / "lote.zip") as mock_zip,
+            ):
+                output = app.process_transcription(
+                    ["audio1.wav", "audio2.wav"],
+                    ProviderType.DEEPGRAM.value,
+                    "nova-2",
+                    False,
+                    "",
+                    deepgram_key_input="personal",
+                    progress=Mock(),
+                )
+
+            self.assertEqual(pipeline.process.call_count, 2)
+            self.assertIn("📁 audio1.wav [Idioma: ES]", output[0])
+            self.assertIn("📁 audio2.wav [Idioma: EN]", output[0])
+            self.assertIn("Texto 1", output[0])
+            self.assertIn("Texto 2", output[0])
+            mock_zip.assert_called_once()
+            self.assertTrue(output[1].interactive)
+            val = output[1].value
+            val_path = val.get("path", "") if isinstance(val, dict) else str(val)
+            self.assertTrue(val_path.endswith(".zip"))
+            self.assertIn("2 archivos procesados", output[2])
+
+    def test_batch_transcription_partial_failure_continues(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            out2 = tmp_path / "audio2_TRANSCRIPCION.txt"
+            out2.write_text("Texto 2", encoding="utf-8")
+
+            result2 = SimpleNamespace(
+                formatted_text="Texto 2",
+                detected_language="es",
+                output_path=out2,
+            )
+            pipeline = Mock()
+            pipeline.process.side_effect = [RuntimeError("Archivo corrupto"), result2]
+
+            with (
+                patch("app.create_transcription_pipeline", return_value=pipeline),
+                patch("app.create_zip_archive", return_value=tmp_path / "lote.zip") as mock_zip,
+            ):
+                output = app.process_transcription(
+                    ["bad.wav", "good.wav"],
+                    ProviderType.DEEPGRAM.value,
+                    "nova-2",
+                    False,
+                    "",
+                    deepgram_key_input="personal",
+                    progress=Mock(),
+                )
+
+            self.assertIn("⚠️ ARCHIVOS NO PROCESADOS (ERRORES)", output[0])
+            self.assertIn("• bad.wav: Archivo corrupto", output[0])
+            self.assertIn("📁 good.wav [Idioma: ES]", output[0])
+            self.assertIn("Texto 2", output[0])
+            mock_zip.assert_called_once()
+            self.assertTrue(output[1].interactive)
+            self.assertIn("1/2 procesados", output[2])
 
 
 if __name__ == "__main__":

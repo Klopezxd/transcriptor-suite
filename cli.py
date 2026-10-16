@@ -27,8 +27,8 @@ configure_utf8_console()
 logger = setup_logger("whisperx_cli")
 
 
-def select_file_gui() -> str | None:
-    """Abre un diálogo de Tkinter para seleccionar el archivo multimedia."""
+def select_file_gui() -> list[str]:
+    """Abre un diálogo de Tkinter para seleccionar uno o varios archivos multimedia."""
     root = None
     try:
         from tkinter import Tk, filedialog
@@ -36,17 +36,17 @@ def select_file_gui() -> str | None:
         root = Tk()
         root.withdraw()
         root.attributes("-topmost", True)
-        selected_file = filedialog.askopenfilename(
-            title="Selecciona el archivo de audio o video",
+        selected_files = filedialog.askopenfilenames(
+            title="Selecciona uno o más archivos de audio o video",
             filetypes=[
                 ("Archivos Multimedia", "*.mp4 *.mkv *.avi *.mov *.mp3 *.wav *.m4a *.flac"),
                 ("Todos los archivos", "*.*"),
             ],
         )
-        return selected_file if selected_file else None
+        return list(selected_files) if selected_files else []
     except Exception as e:
         logger.warning("No se pudo abrir el selector gráfico: %s", e)
-        return None
+        return []
     finally:
         if root is not None:
             root.destroy()
@@ -62,9 +62,10 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "-i",
         "--input",
+        nargs="*",
         type=str,
         default=None,
-        help="Ruta al archivo multimedia. Si se omite, se abrirá un diálogo de selección.",
+        help="Ruta(s) a los archivos multimedia. Si se omite, se abrirá un diálogo de selección.",
     )
     parser.add_argument(
         "-p",
@@ -140,23 +141,26 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def main() -> None:
-    """Función principal del CLI."""
+    """Función principal del CLI con soporte para procesamiento individual o por lotes."""
     args = parse_arguments()
 
-    # 1. Determinar archivo de entrada
-    input_file = args.input
-    if not input_file:
-        print("\n[*] No se indicó un archivo por línea de comandos. Abriendo selector gráfico...")
-        input_file = select_file_gui()
-        if not input_file:
+    # 1. Determinar archivos de entrada
+    raw_inputs = args.input
+    if not raw_inputs:
+        print("\n[*] No se indicó ningún archivo por línea de comandos. Abriendo selector gráfico...")
+        raw_inputs = select_file_gui()
+        if not raw_inputs:
             print("[!] Operación cancelada: No se seleccionó ningún archivo.")
             sys.exit(0)
 
-    try:
-        media_path = validate_media_path(input_file)
-    except AudioProcessingError as err:
-        print(f"[X] Error: {err}")
-        sys.exit(1)
+    # Validar archivos multimedia
+    valid_paths = []
+    for item in raw_inputs:
+        try:
+            valid_paths.append(validate_media_path(item))
+        except AudioProcessingError as err:
+            print(f"[X] Error: {err}")
+            sys.exit(1)
 
     # 2. Construir configuración inmutable
     try:
@@ -175,10 +179,14 @@ def main() -> None:
         logger.error("Configuración inválida: %s", err)
         sys.exit(1)
 
+    total_files = len(valid_paths)
     print("\n" + "=" * 55)
     print("  TRANSCRIPTOR SUITE (CLI)")
     print("=" * 55)
-    print(f" * Archivo:       {media_path.name}")
+    if total_files == 1:
+        print(f" * Archivo:       {valid_paths[0].name}")
+    else:
+        print(f" * Archivos:      {total_files} multimedia en cola")
     print(f" * Proveedor:     {config.provider}")
     print(f" * Modelo:        {config.model_name}")
     if config.provider == ProviderType.WHISPERX.value:
@@ -189,17 +197,41 @@ def main() -> None:
 
     try:
         pipeline = create_transcription_pipeline(config)
-        result = pipeline.process(
-            media_path=media_path,
-            output_dir=args.output_dir,
-        )
-        print("\n" + "=" * 55)
-        print("  Transcripción completada con éxito.")
-        print(f"  Guardado en: {result.output_path}")
-        print("=" * 55 + "\n")
-    except TranscriptionError as err:
-        logger.error("Fallo en la transcripción: %s", err)
-        sys.exit(1)
+        successful_results = []
+        failed_count = 0
+
+        for idx, media_path in enumerate(valid_paths, start=1):
+            if total_files > 1:
+                print(f"[{idx}/{total_files}] Procesando: {media_path.name}...")
+            try:
+                result = pipeline.process(
+                    media_path=media_path,
+                    output_dir=args.output_dir,
+                )
+                successful_results.append(result)
+                if total_files == 1:
+                    print("\n" + "=" * 55)
+                    print("  Transcripción completada con éxito.")
+                    print(f"  Guardado en: {result.output_path}")
+                    print("=" * 55 + "\n")
+                else:
+                    out_name = result.output_path.name if result.output_path else "OK"
+                    print(f"  ✓ Completado: {out_name}\n")
+            except TranscriptionError as err:
+                logger.error("Fallo en la transcripción de %s: %s", media_path.name, err)
+                failed_count += 1
+                if total_files == 1:
+                    sys.exit(1)
+
+        if total_files > 1:
+            print("=" * 55)
+            print(
+                f"  Resumen: {len(successful_results)} exitosos, {failed_count} fallidos de {total_files} archivos."
+            )
+            print("=" * 55 + "\n")
+            if failed_count > 0 and not successful_results:
+                sys.exit(1)
+
     except KeyboardInterrupt:
         print("\n[!] Proceso interrumpido por el usuario.")
         sys.exit(130)

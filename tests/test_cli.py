@@ -14,14 +14,19 @@ class CliTests(unittest.TestCase):
     def test_argument_parsing(self):
         with patch("sys.argv", ["cli", "-i", "audio.wav", "--timestamps", "range", "-d"]):
             arguments = cli.parse_arguments()
-        self.assertEqual(arguments.input, "audio.wav")
+        self.assertEqual(arguments.input, ["audio.wav"])
         self.assertEqual(arguments.timestamps, "range")
         self.assertTrue(arguments.diarize)
+
+    def test_multi_file_argument_parsing(self):
+        with patch("sys.argv", ["cli", "-i", "audio1.wav", "audio2.mp3"]):
+            arguments = cli.parse_arguments()
+        self.assertEqual(arguments.input, ["audio1.wav", "audio2.mp3"])
 
     def test_cancelled_selection_exits_successfully(self):
         with (
             patch("sys.argv", ["cli"]),
-            patch("cli.select_file_gui", return_value=None),
+            patch("cli.select_file_gui", return_value=[]),
             patch("builtins.print"),
             self.assertRaises(SystemExit) as error,
         ):
@@ -64,16 +69,35 @@ class CliTests(unittest.TestCase):
                             cli.main()
                         self.assertEqual(error.exception.code, code)
 
+    def test_batch_cli_processing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            media1 = Path(directory) / "audio1.wav"
+            media2 = Path(directory) / "audio2.wav"
+            media1.write_bytes(b"audio1")
+            media2.write_bytes(b"audio2")
+            pipeline = Mock()
+            pipeline.process.side_effect = [
+                SimpleNamespace(output_path=media1.with_suffix(".txt")),
+                SimpleNamespace(output_path=media2.with_suffix(".txt")),
+            ]
+            with (
+                patch("sys.argv", ["cli", "-i", str(media1), str(media2)]),
+                patch("cli.create_transcription_pipeline", return_value=pipeline),
+                patch("builtins.print"),
+            ):
+                cli.main()
+            self.assertEqual(pipeline.process.call_count, 2)
+
     def test_gui_window_is_destroyed_on_dialog_failure(self):
         root = Mock()
         tkinter = SimpleNamespace(
             Tk=Mock(return_value=root),
             filedialog=SimpleNamespace(
-                askopenfilename=Mock(side_effect=RuntimeError("dialog failed"))
+                askopenfilenames=Mock(side_effect=RuntimeError("dialog failed"))
             ),
         )
         with patch.dict("sys.modules", {"tkinter": tkinter}):
-            self.assertIsNone(cli.select_file_gui())
+            self.assertEqual(cli.select_file_gui(), [])
         root.destroy.assert_called_once()
 
     def test_provider_argument_aliases(self):

@@ -75,9 +75,10 @@
 * **Alineación Fonética Precisa:** Integra modelos **Wav2Vec2** para alinear fonéticamente marcas de tiempo exactas por palabra.
 * **Diarización de Hablantes:** Identifica y segmenta interlocutores automáticamente mediante **Pyannote Audio 3.1**.
 * **Optimización de Memoria (4GB VRAM & ZeroGPU):** Diseñado con cuantización `INT8` y recolección forzada de memoria entre fases, permitiendo ejecución fluida tanto en GPUs de consumo (ej. NVIDIA GTX 1650 con 4GB VRAM) como en **Hugging Face ZeroGPU**.
+* **Procesamiento por Lotes en Cola (Multiarchivo):** Carga o selecciona múltiples archivos de audio/video a la vez. Se procesan ordenadamente en cola secuencial FIFO para proteger la VRAM, con reporte de avance por archivo y empaquetado automático de resultados en un archivo ZIP descargable.
 * **Doble Interfaz (Web + CLI):**
-  * **Web UI (Gradio):** Interfaz para navegador con controles de parámetros en tiempo real.
-  * **CLI (Terminal):** Soporte completo de argumentos por consola (`argparse`) con selector gráfico interactivo de respaldo.
+  * **Web UI (Gradio):** Interfaz para navegador con soporte de arrastre de múltiples archivos, avance ponderado y descarga en ZIP.
+  * **CLI (Terminal):** Soporte completo de argumentos por consola (`argparse`) con soporte multiarchivo y selector gráfico múltiple de respaldo.
 * **Ingeniería de Software:** Tipado estricto (Type Hints), logging estructurado, pipeline desacoplado y gestión segura de credenciales vía variables de entorno.
 
 ---
@@ -208,17 +209,17 @@ Si en el futuro revisas este repositorio desde GitHub o Hugging Face sin tener l
 transcriptor-suite/
 │
 ├── app.py                  # Interfaz Web Gradio: Tema Aurora Boreal Nórdica, barra de estado v2.1.0,
-│                           # selección reactiva de modelos y aislamiento de decorador @spaces.GPU.
+│                           # procesamiento multiarchivo por cola secuencial y aislamiento de decorador @spaces.GPU.
 │
-├── main.py                 # Punto de entrada de consola (CLI): ejecución directa por argumentos
-│                           # (--media, --model, --diarize) y selector gráfico interactivo de respaldo.
+├── cli.py                  # Punto de entrada de consola (CLI): ejecución directa por lotes (--input, --model,
+│                           # --diarize) y selector gráfico interactivo múltiple de respaldo.
 │
 ├── requirements.txt        # Dependencias esenciales del entorno (torch, whisperx, gradio, requests, pyannote).
 ├── CHANGELOG.md            # Historial formal de cambios siguiendo el estándar Keep a Changelog.
 ├── .env.example            # Plantilla de variables de entorno para desarrollo y pruebas locales.
 │
 ├── .github/workflows/
-│   ├── lint.yml            # Control de calidad: verificación de sintaxis con Ruff y suite de 73 pruebas unitarias.
+│   ├── lint.yml            # Control de calidad: verificación de sintaxis con Ruff y suite de 79 pruebas unitarias.
 │   └── sync-to-hf.yml      # Pipeline CI/CD: Valida calidad y sincroniza a Hugging Face Space si los tests pasan.
 │
 ├── src/
@@ -232,10 +233,10 @@ transcriptor-suite/
 │   ├── cloud_providers.py  # Conectores REST en la nube: DeepgramPipeline y AssemblyAIPipeline
 │   │                       # con diarización nativa, polling asíncrono y sin consumo de GPU.
 │   │
-│   └── utils.py            # Utilidades: resolución jerárquica de API keys, escritura atómica,
+│   └── utils.py            # Utilidades: resolución jerárquica de API keys, escritura atómica de archivos y ZIP,
 │                           # barra de progreso continua en tiempo real y limpieza de VRAM.
 │
-└── tests/                  # Suite integral de 73 pruebas unitarias automatizadas (dominio, CLI, auth y UI).
+└── tests/                  # Suite integral de 79 pruebas unitarias automatizadas (dominio, CLI, auth y UI).
 ```
 
 ---
@@ -351,11 +352,14 @@ Abre tu navegador en `http://127.0.0.1:7860` para usar la interfaz visual.
 ### 3. Interfaz de Línea de Comandos (CLI)
 
 ```bash
-# Modo interactivo (abre ventana gráfica para elegir el archivo si no pasas -i):
+# Modo interactivo (abre ventana gráfica de selección múltiple si no pasas -i):
 python cli.py
 
-# Transcripción directa con modelo turbo:
+# Transcripción directa de un solo archivo con modelo turbo:
 python cli.py -i "video_clase.mp4" -m large-v3-turbo
+
+# Transcripción por lotes de múltiples archivos:
+python cli.py -i "audio1.wav" "audio2.mp3" "video.mp4" -m large-v3-turbo
 
 # Transcripción con Diarización (identificación de personas):
 python cli.py -i "reunion.mp4" -d
@@ -368,13 +372,13 @@ python cli.py -i "conferencia.wav" --timestamps range -o "./transcripciones"
 
 | Flag | Tipo | Descripción | Por defecto |
 |---|---|---|---|
-| `-i`, `--input` | String | Ruta al archivo multimedia. Si se omite, abre selector gráfico. | `None` |
+| `-i`, `--input` | Lista | Ruta a uno o varios archivos multimedia. Si se omite, abre selector gráfico múltiple. | `None` |
 | `-m`, `--model` | Choice | `large-v3-turbo`, `large-v3`, `medium`, `small`, `base` | `large-v3-turbo` |
 | `-d`, `--diarize` | Flag | Activa la identificación de hablantes (requiere token). | `False` |
 | `--timestamps` | Choice | Formato de tiempo: `simple`, `range`, `none` | `simple` |
 | `-t`, `--token` | String | Token explícito de Hugging Face. | Variable `HF_TOKEN` |
 | `--compute-type` | Choice | Cuantización: `int8` (recomendado 4GB), `float16`, `float32` | `int8` |
-| `-o`, `--output-dir` | String | Directorio destino para el `.txt`. | Mismo del archivo |
+| `-o`, `--output-dir` | String | Directorio destino para los archivos de transcripción. | Directorio de origen |
 
 ---
 

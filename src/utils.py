@@ -14,6 +14,7 @@ import sys
 import tempfile
 import threading
 import time
+import zipfile
 from collections.abc import Callable, Iterable, Iterator
 from pathlib import Path
 from typing import Any, BinaryIO
@@ -398,3 +399,30 @@ def verify_admin_pin(entered_pin: str | None) -> bool:
         str(entered_pin).strip().encode("utf-8"),
         str(master_pin).strip().encode("utf-8"),
     )
+
+
+def create_zip_archive(files: list[Path], output_zip_path: Path) -> Path:
+    """
+    Empaqueta una lista de archivos existentes en un archivo ZIP de forma atómica.
+
+    Args:
+        files: Lista de rutas Path a los archivos a incluir.
+        output_zip_path: Ruta destino para el archivo .zip.
+
+    Returns:
+        Path del archivo ZIP generado.
+    """
+    output_zip_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_zip = output_zip_path.with_suffix(".tmp.zip")
+    try:
+        with zipfile.ZipFile(temp_zip, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for file_path in files:
+                if file_path.is_file():
+                    zf.write(file_path, arcname=file_path.name)
+        temp_zip.replace(output_zip_path)
+        return output_zip_path
+    finally:
+        if temp_zip.exists():
+            with contextlib.suppress(OSError):
+                temp_zip.unlink(missing_ok=True)
+
