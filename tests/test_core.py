@@ -477,6 +477,20 @@ class CloudTests(unittest.TestCase):
             self.assertEqual(path, video_file)
             self.assertFalse(is_temp)
 
+    def test_extract_audio_for_cloud_video_flac_fallback(self):
+        video_file = Path("test.mkv")
+        mock_fail = Mock(returncode=1)
+        mock_succ = Mock(returncode=0)
+        with (
+            patch("subprocess.run", side_effect=[mock_fail, mock_succ]),
+            patch("pathlib.Path.is_file", return_value=True),
+            patch("pathlib.Path.stat", return_value=SimpleNamespace(st_size=2048)),
+        ):
+            path, is_temp = extract_audio_for_cloud(video_file)
+            self.assertTrue(is_temp)
+            self.assertTrue(str(path).endswith(".flac"))
+            path.unlink(missing_ok=True)
+
 
 class WhisperTests(unittest.TestCase):
     def setUp(self):

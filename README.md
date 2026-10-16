@@ -216,7 +216,7 @@ transcriptor-suite/
 ├── .env.example            # Environment variable template for local development and secrets testing.
 │
 ├── .github/workflows/
-│   ├── lint.yml            # Code Quality: Ruff linter check and 83 automated regression unit tests.
+│   ├── lint.yml            # Code Quality: Ruff linter check and 84 automated regression unit tests.
 │   └── sync-to-hf.yml      # CI/CD Workflow: Validates quality and syncs commits to Hugging Face Spaces.
 │
 ├── src/
@@ -233,7 +233,7 @@ transcriptor-suite/
 │   └── utils.py            # Utility helpers: hierarchical API key resolution, atomic file & zip writes,
 │                           # real-time continuous progress notifier, and VRAM garbage collectors.
 │
-└── tests/                  # Comprehensive suite of 83 automated unit tests (domain, CLI, auth, and web UI).
+└── tests/                  # Comprehensive suite of 84 automated unit tests (domain, CLI, auth, and web UI).
 ```
 
 ---

@@ -57,7 +57,7 @@ def extract_audio_for_cloud(
     if notify:
         notify(0.04, f"Extrayendo pista de audio de {media_path.name} para optimizar subida...")
 
-    # Intento 1: Copia de stream directo sin recodificar (-vn -c:a copy)
+    # Intento 1: Copia de stream directo sin recodificar (-vn -c:a copy) - 100% Lossless
     cmd_copy = ["ffmpeg", "-y", "-i", str(media_path), "-vn", "-c:a", "copy", str(temp_audio)]
     try:
         res = subprocess.run(
@@ -68,7 +68,7 @@ def extract_audio_for_cloud(
         )
         if res.returncode == 0 and temp_audio.is_file() and temp_audio.stat().st_size > 0:
             logger.info(
-                "Pista de audio extraída de %s a %s (%d bytes)",
+                "Pista de audio extraída sin pérdida (stream copy) de %s a %s (%d bytes)",
                 media_path.name,
                 temp_audio.name,
                 temp_audio.stat().st_size,
@@ -77,7 +77,11 @@ def extract_audio_for_cloud(
     except Exception as err:
         logger.debug("Fallo en extracción directa de audio con ffmpeg: %s", err)
 
-    # Intento 2: Recodificación de alta fidelidad a AAC (-vn -c:a aac -b:a 160k)
+    if temp_audio.exists():
+        temp_audio.unlink(missing_ok=True)
+
+    # Intento 2: Fallback Lossless garantizado con FLAC (Free Lossless Audio Codec)
+    temp_flac = temp_audio.with_suffix(".flac")
     cmd_fallback = [
         "ffmpeg",
         "-y",
@@ -85,10 +89,8 @@ def extract_audio_for_cloud(
         str(media_path),
         "-vn",
         "-c:a",
-        "aac",
-        "-b:a",
-        "160k",
-        str(temp_audio),
+        "flac",
+        str(temp_flac),
     ]
     try:
         res = subprocess.run(
@@ -97,13 +99,13 @@ def extract_audio_for_cloud(
             stderr=subprocess.DEVNULL,
             check=False,
         )
-        if res.returncode == 0 and temp_audio.is_file() and temp_audio.stat().st_size > 0:
+        if res.returncode == 0 and temp_flac.is_file() and temp_flac.stat().st_size > 0:
             logger.info(
-                "Pista de audio convertida a AAC alta fidelidad para %s (%d bytes)",
+                "Pista de audio convertida a FLAC (Lossless) para %s (%d bytes)",
                 media_path.name,
-                temp_audio.stat().st_size,
+                temp_flac.stat().st_size,
             )
-            return temp_audio, True
+            return temp_flac, True
     except Exception as err:
         logger.warning(
             "No se pudo extraer audio del video %s: %s. Se subirá el archivo original.",
@@ -111,8 +113,8 @@ def extract_audio_for_cloud(
             err,
         )
 
-    if temp_audio.exists():
-        temp_audio.unlink(missing_ok=True)
+    if temp_flac.exists():
+        temp_flac.unlink(missing_ok=True)
     return media_path, False
 
 
