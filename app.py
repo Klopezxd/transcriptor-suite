@@ -242,9 +242,10 @@ def process_transcription(
             f"</span>"
         )
 
+        detected_lang = getattr(result, "detected_language", None)
         lang_info = (
-            f"Idioma: {result.detected_language.upper()}"
-            if getattr(result, "detected_language", None)
+            f"Idioma: {detected_lang.upper()}"
+            if detected_lang and str(detected_lang).strip().lower() not in {"unknown", "none"}
             else "Completado"
         )
         status_html = _build_status_badges(

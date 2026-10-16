@@ -95,6 +95,26 @@ class AppTests(unittest.TestCase):
         self.assertIn("&lt;IMG", output[2])
         self.assertNotIn("<IMG", output[2])
 
+    def test_unknown_language_shows_completado_badge(self):
+        result = SimpleNamespace(
+            formatted_text="Texto",
+            detected_language="unknown",
+            output_path=Path("audio_TRANSCRIPCION.txt"),
+        )
+        pipeline = Mock(process=Mock(return_value=result))
+        with patch("app.create_transcription_pipeline", return_value=pipeline):
+            output = app.process_transcription(
+                "audio.wav",
+                ProviderType.DEEPGRAM.value,
+                "nova-2",
+                False,
+                "",
+                deepgram_key_input="personal",
+                progress=Mock(),
+            )
+        self.assertIn("Completado", output[2])
+        self.assertNotIn("UNKNOWN", output[2])
+
     def test_whisperx_execution_in_app(self):
         result = SimpleNamespace(
             formatted_text="Hola desde WhisperX",
