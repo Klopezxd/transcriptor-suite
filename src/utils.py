@@ -347,7 +347,16 @@ def _resolve_secret(env_var: str, explicit_val: str | None = None) -> str | None
                         continue
                     key, _, raw_val = line.partition("=")
                     if key.strip() == env_var:
-                        val = raw_val.strip().strip("\"'")
+                        val = raw_val.strip()
+                        if val.startswith(('"', "'")):
+                            quote_char = val[0]
+                            closing_idx = val.find(quote_char, 1)
+                            val = val[1:closing_idx] if closing_idx != -1 else val.strip("\"'")
+                        else:
+                            if " #" in val:
+                                val = val.split(" #", 1)[0].rstrip()
+                            elif "\t#" in val:
+                                val = val.split("\t#", 1)[0].rstrip()
                         if val:
                             return val
         except OSError:

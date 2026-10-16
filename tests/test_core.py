@@ -166,17 +166,20 @@ class UtilityTests(unittest.TestCase):
             self.assertEqual(resolve_deepgram_api_key(" "), "environment")
 
     def test_env_file_parsing_with_whitespace_and_comments(self):
+        env_content = (
+            "# Archivo de configuración\n"
+            "  HF_TOKEN = \"mi-token-con-comillas\" # comentario inline\n"
+            "DEEPGRAM_API_KEY = mi-token-sin-comillas # comentario inline\n"
+            "ASSEMBLYAI_API_KEY = 'mi-token-single' \n"
+            "IGNORAR_SIN_VALOR = \n"
+        )
         with (
             patch.dict("os.environ", {}, clear=True),
             patch("pathlib.Path.exists", return_value=True),
-            patch(
-                "builtins.open",
-                unittest.mock.mock_open(
-                    read_data="# Comentario\n  HF_TOKEN = mi-token-secreto  \n\n"
-                ),
-            ),
+            patch("builtins.open", unittest.mock.mock_open(read_data=env_content)),
         ):
-            self.assertEqual(resolve_hf_token(), "mi-token-secreto")
+            self.assertEqual(resolve_hf_token(), "mi-token-con-comillas")
+            self.assertEqual(resolve_deepgram_api_key(), "mi-token-sin-comillas")
 
     def test_admin_pin(self):
         with patch("src.utils.resolve_admin_pin", return_value="secreto-á"):
@@ -444,6 +447,41 @@ class WhisperTests(unittest.TestCase):
             ):
                 WhisperXPipeline(self.config).process(media)
             cleanup.assert_called_once()
+
+    def test_whisper_diarization_execution_and_gated_error(self):
+        config = TranscriptionConfig(
+            provider=ProviderType.WHISPERX.value,
+            model_name="base",
+            device="cpu",
+            enable_diarization=True,
+            hf_token="test_hf_token",
+        )
+        pipeline = WhisperXPipeline(config)
+        aligned_result = {"segments": [{"text": "Hola", "start": 0, "end": 1}]}
+
+        diarize_pipeline_mock = Mock(return_value=[])
+        diarize_module = SimpleNamespace(
+            DiarizationPipeline=Mock(return_value=diarize_pipeline_mock),
+            assign_word_speakers=Mock(
+                return_value={"segments": [{"text": "Hola", "speaker": "SPEAKER_00"}]}
+            ),
+        )
+        with patch.dict("sys.modules", {"whisperx.diarize": diarize_module}):
+            segments = pipeline._run_diarization(audio=None, aligned_result=aligned_result, device="cpu")
+            self.assertEqual(segments[0]["speaker"], "SPEAKER_00")
+
+        diarize_module_error = SimpleNamespace(
+            DiarizationPipeline=Mock(
+                side_effect=RuntimeError("401 Client Error: Repository is gated")
+            ),
+            assign_word_speakers=Mock(),
+        )
+        with (
+            patch.dict("sys.modules", {"whisperx.diarize": diarize_module_error}),
+            self.assertRaises(TranscriptionError) as err,
+        ):
+            pipeline._run_diarization(audio=None, aligned_result=aligned_result, device="cpu")
+        self.assertIn("pyannote/speaker-diarization-3.1", str(err.exception))
 
 
 if __name__ == "__main__":
