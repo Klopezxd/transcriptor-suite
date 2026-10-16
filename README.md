@@ -72,10 +72,10 @@
 * **Word-Level Phoneme Alignment:** Incorporates **Wav2Vec2** acoustic models to achieve exact word-boundary timestamp alignment.
 * **Speaker Diarization:** Identifies and segments discrete speakers seamlessly using **Pyannote Audio 3.1**.
 * **Consumer GPU & ZeroGPU Ready:** Architected with `INT8` quantization and explicit VRAM garbage collection between pipeline stages, running efficiently on 4GB VRAM cards (e.g., NVIDIA GeForce GTX 1650) as well as **Hugging Face ZeroGPU** runners.
-* **Queued Multi-File Batching:** Upload or select multiple audio/video files simultaneously. Processed in an orderly sequential FIFO queue with real-time per-file progress tracking and automatic consolidated ZIP packaging.
+* **Queued Multi-File Batching:** Upload or select multiple audio/video files simultaneously. Processed in an orderly sequential FIFO queue with real-time per-file progress tracking, automatic ZIP packaging, and an optional consolidated single-file (`.txt`) download with distinct file dividers.
 * **Dual Interface (Web + CLI):**
-  * **Web UI (Gradio):** Interactive browser application with multi-file drag-and-drop and ZIP download.
-  * **CLI (Terminal):** Fully featured command-line interface supporting multiple file arguments with interactive graphical multi-file picker fallback.
+  * **Web UI (Gradio):** Interactive browser application with multi-file drag-and-drop, individual downloads for single files, and dual ZIP + consolidated `.txt` buttons automatically activated exclusively for multi-file batches.
+  * **CLI (Terminal):** Fully featured command-line interface supporting multiple file arguments with interactive graphical multi-file picker fallback and automatic generation of consolidated batch transcripts.
 * **Production Engineering:** Explicit type hints, structured logging, decoupled domain logic, and secure environment-based credential handling.
 
 ---
@@ -216,7 +216,7 @@ transcriptor-suite/
 ├── .env.example            # Environment variable template for local development and secrets testing.
 │
 ├── .github/workflows/
-│   ├── lint.yml            # Code Quality: Ruff linter check and 84 automated regression unit tests.
+│   ├── lint.yml            # Code Quality: Ruff linter check and 87 automated regression unit tests.
 │   └── sync-to-hf.yml      # CI/CD Workflow: Validates quality and syncs commits to Hugging Face Spaces.
 │
 ├── src/
@@ -233,7 +233,7 @@ transcriptor-suite/
 │   └── utils.py            # Utility helpers: hierarchical API key resolution, atomic file & zip writes,
 │                           # real-time continuous progress notifier, and VRAM garbage collectors.
 │
-└── tests/                  # Comprehensive suite of 84 automated unit tests (domain, CLI, auth, and web UI).
+└── tests/                  # Comprehensive suite of 87 automated unit tests (domain, CLI, auth, and web UI).
 ```
 
 ---

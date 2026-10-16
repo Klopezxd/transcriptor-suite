@@ -75,10 +75,10 @@
 * **Alineación Fonética Precisa:** Integra modelos **Wav2Vec2** para alinear fonéticamente marcas de tiempo exactas por palabra.
 * **Diarización de Hablantes:** Identifica y segmenta interlocutores automáticamente mediante **Pyannote Audio 3.1**.
 * **Optimización de Memoria (4GB VRAM & ZeroGPU):** Diseñado con cuantización `INT8` y recolección forzada de memoria entre fases, permitiendo ejecución fluida tanto en GPUs de consumo (ej. NVIDIA GTX 1650 con 4GB VRAM) como en **Hugging Face ZeroGPU**.
-* **Procesamiento por Lotes en Cola (Multiarchivo):** Carga o selecciona múltiples archivos de audio/video a la vez. Se procesan ordenadamente en cola secuencial FIFO para proteger la VRAM, con reporte de avance por archivo y empaquetado automático de resultados en un archivo ZIP descargable.
+* **Procesamiento por Lotes en Cola (Multiarchivo):** Carga o selecciona múltiples archivos de audio/video a la vez. Se procesan ordenadamente en cola secuencial FIFO para proteger la VRAM, con reporte de avance por archivo, empaquetado automático de resultados en un archivo ZIP descargable y la opción de descargar todas las transcripciones unificadas en un archivo de texto consolidado (`.txt`) con divisores claros.
 * **Doble Interfaz (Web + CLI):**
-  * **Web UI (Gradio):** Interfaz para navegador con soporte de arrastre de múltiples archivos, avance ponderado y descarga en ZIP.
-  * **CLI (Terminal):** Soporte completo de argumentos por consola (`argparse`) con soporte multiarchivo y selector gráfico múltiple de respaldo.
+  * **Web UI (Gradio):** Interfaz para navegador con soporte de arrastre de múltiples archivos, avance ponderado, descarga individual para archivo único y botones dobles de descarga (ZIP y archivo consolidado `.txt`) que se muestran contextual y exclusivamente cuando se procesan lotes multiarchivo.
+  * **CLI (Terminal):** Soporte completo de argumentos por consola (`argparse`) con soporte multiarchivo, selector gráfico múltiple de respaldo y generación automática de la transcripción consolidada del lote.
 * **Ingeniería de Software:** Tipado estricto (Type Hints), logging estructurado, pipeline desacoplado y gestión segura de credenciales vía variables de entorno.
 
 ---
@@ -219,7 +219,7 @@ transcriptor-suite/
 ├── .env.example            # Plantilla de variables de entorno para desarrollo y pruebas locales.
 │
 ├── .github/workflows/
-│   ├── lint.yml            # Control de calidad: verificación de sintaxis con Ruff y suite de 84 pruebas unitarias.
+│   ├── lint.yml            # Control de calidad: verificación de sintaxis con Ruff y suite de 87 pruebas unitarias.
 │   └── sync-to-hf.yml      # Pipeline CI/CD: Valida calidad y sincroniza a Hugging Face Space si los tests pasan.
 │
 ├── src/
@@ -236,7 +236,7 @@ transcriptor-suite/
 │   └── utils.py            # Utilidades: resolución jerárquica de API keys, escritura atómica de archivos y ZIP,
 │                           # barra de progreso continua en tiempo real y limpieza de VRAM.
 │
-└── tests/                  # Suite integral de 84 pruebas unitarias automatizadas (dominio, CLI, auth y UI).
+└── tests/                  # Suite integral de 87 pruebas unitarias automatizadas (dominio, CLI, auth y UI).
 ```
 
 ---

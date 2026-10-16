@@ -77,8 +77,14 @@ class CliTests(unittest.TestCase):
             media2.write_bytes(b"audio2")
             pipeline = Mock()
             pipeline.process.side_effect = [
-                SimpleNamespace(output_path=media1.with_suffix(".txt")),
-                SimpleNamespace(output_path=media2.with_suffix(".txt")),
+                SimpleNamespace(
+                    output_path=media1.with_suffix(".txt"),
+                    formatted_text="Transcripción audio 1",
+                ),
+                SimpleNamespace(
+                    output_path=media2.with_suffix(".txt"),
+                    formatted_text="Transcripción audio 2",
+                ),
             ]
             with (
                 patch("sys.argv", ["cli", "-i", str(media1), str(media2)]),
@@ -87,6 +93,13 @@ class CliTests(unittest.TestCase):
             ):
                 cli.main()
             self.assertEqual(pipeline.process.call_count, 2)
+            consolidated = list(Path(directory).glob("transcripcion_consolidada_lote_*.txt"))
+            self.assertEqual(len(consolidated), 1)
+            content = consolidated[0].read_text(encoding="utf-8")
+            self.assertIn("ARCHIVO: audio1.wav", content)
+            self.assertIn("ARCHIVO: audio2.wav", content)
+            self.assertIn("Transcripción audio 1", content)
+            self.assertIn("Transcripción audio 2", content)
 
     def test_gui_window_is_destroyed_on_dialog_failure(self):
         root = Mock()

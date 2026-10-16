@@ -328,6 +328,45 @@ def save_transcription_file(
                 temporary_path.unlink(missing_ok=True)
 
 
+def save_consolidated_batch_file(
+    content: str,
+    output_dir: str | Path,
+    timestamp_str: str | None = None,
+) -> Path:
+    """
+    Persiste de forma atómica el texto unificado de un lote multiarchivo en un archivo .txt único.
+
+    Args:
+        content: Texto consolidado con separadores por archivo.
+        output_dir: Carpeta destino.
+        timestamp_str: Marca de tiempo opcional para el nombre del archivo.
+
+    Returns:
+        Ruta Path del archivo consolidado generado.
+    """
+    ts = timestamp_str or time.strftime("%Y%m%d_%H%M%S")
+    target_dir = Path(output_dir)
+    target_dir.mkdir(parents=True, exist_ok=True)
+    output_file = target_dir / f"transcripcion_consolidada_lote_{ts}.txt"
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=target_dir, delete=False, suffix=".tmp"
+        ) as temporary_file:
+            temporary_path = Path(temporary_file.name)
+            temporary_file.write(content)
+        temporary_path.replace(output_file)
+        return output_file
+    except OSError as err:
+        raise TranscriptionError(
+            "No se pudo guardar el archivo de transcripción consolidada."
+        ) from err
+    finally:
+        if temporary_path is not None:
+            with contextlib.suppress(OSError):
+                temporary_path.unlink(missing_ok=True)
+
+
 def validate_media_path(media_path: str | Path) -> Path:
     """Valida archivos locales antes de abrir conexiones o cargar modelos."""
     input_path = Path(media_path)

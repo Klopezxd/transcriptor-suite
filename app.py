@@ -37,6 +37,7 @@ from src.utils import (
     resolve_assemblyai_api_key,
     resolve_deepgram_api_key,
     resolve_hf_token,
+    save_consolidated_batch_file,
     setup_logger,
     verify_admin_pin,
 )
@@ -85,7 +86,16 @@ def _build_status_badges(status_span: str, time_span: str = "") -> str:
 
 
 def _disabled_download_button() -> gr.DownloadButton:
-    return gr.DownloadButton(label=EMPTY_DOWNLOAD_LABEL, value=None, interactive=False)
+    return gr.DownloadButton(label=EMPTY_DOWNLOAD_LABEL, value=None, interactive=False, visible=True)
+
+
+def _disabled_consolidated_button() -> gr.DownloadButton:
+    return gr.DownloadButton(
+        label="📄 Descargar Consolidado (.txt)",
+        value=None,
+        interactive=False,
+        visible=False,
+    )
 
 
 def _resolve_provider_credentials(
@@ -118,6 +128,7 @@ def _resolve_provider_credentials(
                     "2. Acepta los términos en: https://huggingface.co/pyannote/segmentation-3.0\n"
                     "3. Ingresa tu token con permisos de lectura en el campo de Hugging Face.",
                     _disabled_download_button(),
+                    _disabled_consolidated_button(),
                     _build_status_badges(
                         '<span class="status-badge status-error">Token HF requerido</span>'
                     ),
@@ -143,6 +154,7 @@ def _resolve_provider_credentials(
                     "• Si eres administrador, inicia sesión para utilizar las claves del servidor.\n"
                     "• O selecciona 'WhisperX (ZeroGPU / Local)' para transcribir de forma 100% gratuita.",
                     _disabled_download_button(),
+                    _disabled_consolidated_button(),
                     _build_status_badges(
                         '<span class="status-badge status-error">API Key requerida</span>'
                     ),
@@ -168,6 +180,7 @@ def _resolve_provider_credentials(
                     "• Si eres administrador, inicia sesión para utilizar las claves del servidor.\n"
                     "• O selecciona 'WhisperX (ZeroGPU / Local)' para transcribir de forma 100% gratuita.",
                     _disabled_download_button(),
+                    _disabled_consolidated_button(),
                     _build_status_badges(
                         '<span class="status-badge status-error">API Key requerida</span>'
                     ),
@@ -195,6 +208,7 @@ def process_transcription(
         return (
             "⚠️ Por favor selecciona o arrastra al menos un archivo multimedia para comenzar.",
             _disabled_download_button(),
+            _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-warning">Sin archivo</span>'),
         )
 
@@ -204,6 +218,7 @@ def process_transcription(
         return (
             "⚠️ Por favor selecciona o arrastra al menos un archivo multimedia para comenzar.",
             _disabled_download_button(),
+            _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-warning">Sin archivo</span>'),
         )
 
@@ -273,6 +288,7 @@ def process_transcription(
             return (
                 f"❌ Falló el procesamiento del lote:\n\n{err_details}",
                 _disabled_download_button(),
+                _disabled_consolidated_button(),
                 _build_status_badges('<span class="status-badge status-error">Fallo en lote</span>'),
             )
 
@@ -318,7 +334,9 @@ def process_transcription(
                     label=output_label,
                     value=output_val,
                     interactive=bool(output_val),
+                    visible=True,
                 ),
+                _disabled_consolidated_button(),
                 status_html,
             )
 
@@ -351,13 +369,30 @@ def process_transcription(
         if valid_output_paths:
             batch_dir = valid_output_paths[0].parent
             timestamp_str = time.strftime("%Y%m%d_%H%M%S")
+            consolidated_file = save_consolidated_batch_file(
+                content=combined_text,
+                output_dir=batch_dir,
+                timestamp_str=timestamp_str,
+            )
+            zip_files = list(valid_output_paths)
+            if consolidated_file.is_file():
+                zip_files.append(consolidated_file)
             zip_path = batch_dir / f"transcripciones_lote_{timestamp_str}.zip"
-            create_zip_archive(valid_output_paths, zip_path)
+            create_zip_archive(zip_files, zip_path)
+
             output_val = str(zip_path)
-            output_label = f"📥 Descargar {len(valid_output_paths)} Transcripciones (.zip)"
+            output_label = f"📦 Descargar Lote ({len(valid_output_paths)} archivos) (.zip)"
+            cons_val = str(consolidated_file)
+            cons_label = "📄 Descargar Consolidado (.txt)"
+            cons_interactive = True
+            cons_visible = True
         else:
             output_val = None
             output_label = EMPTY_DOWNLOAD_LABEL
+            cons_val = None
+            cons_label = "📄 Descargar Consolidado (.txt)"
+            cons_interactive = False
+            cons_visible = False
 
         if not failed_files:
             badge_label = f"✓ {len(results)} archivos procesados"
@@ -377,6 +412,13 @@ def process_transcription(
                 label=output_label,
                 value=output_val,
                 interactive=bool(output_val),
+                visible=True,
+            ),
+            gr.DownloadButton(
+                label=cons_label,
+                value=cons_val,
+                interactive=cons_interactive,
+                visible=cons_visible,
             ),
             status_html,
         )
@@ -387,6 +429,7 @@ def process_transcription(
         return (
             f"❌ Error de transcripción:\n{e}",
             _disabled_download_button(),
+            _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-error">Error</span>'),
         )
     except Exception as e:
@@ -395,6 +438,7 @@ def process_transcription(
         return (
             f"❌ Ocurrió un error inesperado durante el procesamiento:\n{e}",
             _disabled_download_button(),
+            _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-error">Error inesperado</span>'),
         )
 
@@ -2201,6 +2245,15 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         elem_classes=["btn-secondary"],
                         scale=2,
                     )
+                    btn_download_consolidated = gr.DownloadButton(
+                        label="📄 Descargar Consolidado (.txt)",
+                        value=None,
+                        interactive=False,
+                        visible=False,
+                        variant="secondary",
+                        elem_classes=["btn-secondary"],
+                        scale=2,
+                    )
                     btn_copy = gr.Button(
                         "📋 Copiar texto",
                         variant="secondary",
@@ -2672,12 +2725,13 @@ with gr.Blocks(**blocks_kwargs) as demo:
             None,
             "",
             _disabled_download_button(),
+            _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-warning">En espera</span>'),
         )
 
     btn_clear.click(
         fn=clear_all,
-        outputs=[media_input, output_textbox, btn_download, status_badge],
+        outputs=[media_input, output_textbox, btn_download, btn_download_consolidated, status_badge],
         show_progress="hidden",
     )
 
@@ -2719,7 +2773,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             assemblyai_key_box,
             admin_state,
         ],
-        outputs=[output_textbox, btn_download, status_badge],
+        outputs=[output_textbox, btn_download, btn_download_consolidated, status_badge],
     )
 
 

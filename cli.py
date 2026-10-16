@@ -6,6 +6,7 @@ Permite procesamiento por lotes o interactivo con selección gráfica de respald
 
 import argparse
 import sys
+from pathlib import Path
 
 from src.config import (
     ComputeType,
@@ -19,6 +20,7 @@ from src.utils import (
     AudioProcessingError,
     TranscriptionError,
     configure_utf8_console,
+    save_consolidated_batch_file,
     setup_logger,
     validate_media_path,
 )
@@ -208,7 +210,7 @@ def main() -> None:
                     media_path=media_path,
                     output_dir=args.output_dir,
                 )
-                successful_results.append(result)
+                successful_results.append((result, media_path))
                 if total_files == 1:
                     print("\n" + "=" * 55)
                     print("  Transcripción completada con éxito.")
@@ -224,6 +226,25 @@ def main() -> None:
                     sys.exit(1)
 
         if total_files > 1:
+            if successful_results:
+                first_res, _ = successful_results[0]
+                batch_dir = (
+                    first_res.output_path.parent
+                    if first_res.output_path
+                    else Path(args.output_dir or "transcripciones")
+                )
+                combined_chunks = []
+                for res, path_item in successful_results:
+                    separator = f"{'=' * 60}\nARCHIVO: {path_item.name}\n{'=' * 60}\n\n"
+                    combined_chunks.append(f"{separator}{res.formatted_text.strip()}\n\n")
+
+                combined_text = "".join(combined_chunks).strip() + "\n"
+                consolidated_path = save_consolidated_batch_file(
+                    content=combined_text,
+                    output_dir=batch_dir,
+                )
+                print(f"  Archivo consolidado: {consolidated_path.name}")
+
             print("=" * 55)
             print(
                 f"  Resumen: {len(successful_results)} exitosos, {failed_count} fallidos de {total_files} archivos."

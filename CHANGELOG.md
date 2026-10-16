@@ -7,6 +7,25 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [2.2.0] - 2026-10-16
+
+### Agregado
+* **Transcripción por Lotes Multiarchivo (FIFO Queue):**
+  * Soporte para seleccionar o arrastrar múltiples archivos de audio y video en la interfaz Web y CLI.
+  * Procesamiento secuencial ordenado para preservar la VRAM y prevenir desbordamientos de memoria en GPUs de consumo y ZeroGPU.
+* **Descarga Consolidada en Archivo Único (`.txt`):**
+  * Nueva opción para descargar todas las transcripciones de un lote unificadas en un único archivo de texto plano con encabezados y separadores legibles por archivo.
+  * Inclusión del archivo consolidado dentro del archivo comprimido `.zip` del lote.
+* **Visibilidad Contextual Dinámica de Descarga:**
+  * En transcripciones de un solo archivo, solo se muestra el botón de descarga directa individual, manteniendo oculto el botón consolidado.
+  * Los botones de descarga de lote (`.zip`) y consolidado (`.txt`) se activan y muestran exclusivamente cuando se procesan dos o más archivos.
+* **Extracción de Audio Lossless Previa a la Nube:**
+  * Extracción de pista de audio sin pérdida mediante FFmpeg (stream copy directo y fallback FLAC) para optimizar la transferencia a proveedores cloud (Deepgram y AssemblyAI) sin pérdida de fidelidad acústica.
+* **Suite de Pruebas Automatizadas:**
+  * Ampliación de la cobertura a 87 pruebas unitarias de regresión abarcando dominio, CLI, UI y manejo de errores.
+
+---
+
 ## [2.1.0] - 2026-10-09
 
 ### Agregado

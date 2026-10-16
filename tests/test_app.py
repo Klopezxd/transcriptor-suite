@@ -70,11 +70,15 @@ class AppTests(unittest.TestCase):
         with patch("app.create_transcription_pipeline") as factory:
             result = app.process_transcription(None, "", "", False, "")
         factory.assert_not_called()
-        self.assertEqual(len(result), 3)
+        self.assertEqual(len(result), 4)
+        self.assertFalse(result[1].interactive)
+        self.assertFalse(result[2].visible)
 
     def test_unknown_provider_returns_controlled_error(self):
         result = app.process_transcription("audio.wav", "unknown", "model", False, "")
+        self.assertEqual(len(result), 4)
         self.assertIn("Error de transcripción", result[0])
+        self.assertFalse(result[2].visible)
 
     def test_provider_response_is_escaped_in_html(self):
         result = SimpleNamespace(
@@ -93,8 +97,11 @@ class AppTests(unittest.TestCase):
                 deepgram_key_input="personal",
                 progress=Mock(),
             )
-        self.assertIn("&lt;IMG", output[2])
-        self.assertNotIn("<IMG", output[2])
+        self.assertEqual(len(output), 4)
+        self.assertIn("&lt;IMG", output[3])
+        self.assertNotIn("<IMG", output[3])
+        self.assertTrue(output[1].visible)
+        self.assertFalse(output[2].visible)
 
     def test_unknown_language_shows_completado_badge(self):
         result = SimpleNamespace(
@@ -113,8 +120,10 @@ class AppTests(unittest.TestCase):
                 deepgram_key_input="personal",
                 progress=Mock(),
             )
-        self.assertIn("Completado", output[2])
-        self.assertNotIn("UNKNOWN", output[2])
+        self.assertEqual(len(output), 4)
+        self.assertIn("Completado", output[3])
+        self.assertNotIn("UNKNOWN", output[3])
+        self.assertFalse(output[2].visible)
 
     def test_whisperx_execution_in_app(self):
         result = SimpleNamespace(
@@ -136,8 +145,11 @@ class AppTests(unittest.TestCase):
                 progress=Mock(),
             )
         mock_exec.assert_called_once()
+        self.assertEqual(len(output), 4)
         self.assertEqual(output[0], "Hola desde WhisperX")
-        self.assertIn("ES", output[2])
+        self.assertIn("ES", output[3])
+        self.assertTrue(output[1].visible)
+        self.assertFalse(output[2].visible)
 
     def test_login_success_failure_and_logout(self):
         with patch("app.verify_admin_pin", return_value=True):
@@ -163,7 +175,9 @@ class AppTests(unittest.TestCase):
         self.assertIsNone(result[0])
         self.assertEqual(result[1], "")
         self.assertFalse(result[2].interactive)
-        self.assertEqual(len(result), 4)
+        self.assertFalse(result[3].visible)
+        self.assertFalse(result[3].interactive)
+        self.assertEqual(len(result), 5)
 
     def test_batch_transcription_multiple_files_creates_zip(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -200,6 +214,7 @@ class AppTests(unittest.TestCase):
                     progress=Mock(),
                 )
 
+            self.assertEqual(len(output), 4)
             self.assertEqual(pipeline.process.call_count, 2)
             self.assertIn("📁 audio1.wav [Idioma: ES]", output[0])
             self.assertIn("📁 audio2.wav [Idioma: EN]", output[0])
@@ -207,10 +222,20 @@ class AppTests(unittest.TestCase):
             self.assertIn("Texto 2", output[0])
             mock_zip.assert_called_once()
             self.assertTrue(output[1].interactive)
+            self.assertTrue(output[1].visible)
             val = output[1].value
             val_path = val.get("path", "") if isinstance(val, dict) else str(val)
             self.assertTrue(val_path.endswith(".zip"))
-            self.assertIn("2 archivos procesados", output[2])
+
+            # Validar que el botón de descarga consolidada se active exclusivamente en lote
+            self.assertTrue(output[2].interactive)
+            self.assertTrue(output[2].visible)
+            cons_val = output[2].value
+            cons_path = cons_val.get("path", "") if isinstance(cons_val, dict) else str(cons_val)
+            self.assertTrue(cons_path.endswith(".txt"))
+            self.assertIn("transcripcion_consolidada_lote_", cons_path)
+
+            self.assertIn("2 archivos procesados", output[3])
 
     def test_batch_transcription_partial_failure_continues(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -240,13 +265,41 @@ class AppTests(unittest.TestCase):
                     progress=Mock(),
                 )
 
+            self.assertEqual(len(output), 4)
             self.assertIn("⚠️ ARCHIVOS NO PROCESADOS (ERRORES)", output[0])
             self.assertIn("• bad.wav: Archivo corrupto", output[0])
             self.assertIn("📁 good.wav [Idioma: ES]", output[0])
             self.assertIn("Texto 2", output[0])
             mock_zip.assert_called_once()
             self.assertTrue(output[1].interactive)
-            self.assertIn("1/2 procesados", output[2])
+            self.assertTrue(output[1].visible)
+            self.assertTrue(output[2].interactive)
+            self.assertTrue(output[2].visible)
+            self.assertIn("1/2 procesados", output[3])
+
+    def test_single_file_transcription_hides_consolidated_button(self):
+        result = SimpleNamespace(
+            formatted_text="Texto individual",
+            detected_language="es",
+            output_path=Path("audio_TRANSCRIPCION.txt"),
+        )
+        pipeline = Mock(process=Mock(return_value=result))
+        with patch("app.create_transcription_pipeline", return_value=pipeline):
+            output = app.process_transcription(
+                ["audio_solo.wav"],
+                ProviderType.DEEPGRAM.value,
+                "nova-2",
+                False,
+                "",
+                deepgram_key_input="personal",
+                progress=Mock(),
+            )
+        self.assertEqual(len(output), 4)
+        self.assertTrue(output[1].visible)
+        self.assertTrue(output[1].interactive)
+        # El botón de lote consolidado DEBE estar oculto para un solo archivo
+        self.assertFalse(output[2].visible)
+        self.assertFalse(output[2].interactive)
 
 
 if __name__ == "__main__":

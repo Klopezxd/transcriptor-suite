@@ -36,6 +36,7 @@ from src.utils import (
     render_segments_text,
     resolve_deepgram_api_key,
     resolve_hf_token,
+    save_consolidated_batch_file,
     save_transcription_file,
     validate_media_path,
     verify_admin_pin,
@@ -180,6 +181,24 @@ class UtilityTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             output = save_transcription_file("áéñ", Path("audio.wav"), Path(directory) / "nested")
             self.assertEqual(output.read_text(encoding="utf-8"), "áéñ")
+
+    def test_save_consolidated_batch_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            out_file = save_consolidated_batch_file(
+                "texto consolidado", directory, timestamp_str="20261016_120000"
+            )
+            self.assertTrue(out_file.is_file())
+            self.assertEqual(out_file.name, "transcripcion_consolidada_lote_20261016_120000.txt")
+            self.assertEqual(out_file.read_text(encoding="utf-8"), "texto consolidado")
+
+    def test_save_consolidated_batch_file_atomic_failure_cleanup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with (
+                patch.object(Path, "replace", side_effect=PermissionError),
+                self.assertRaises(TranscriptionError),
+            ):
+                save_consolidated_batch_file("texto", directory)
+            self.assertEqual(list(Path(directory).glob("*.tmp")), [])
 
     def test_secret_priority(self):
         with patch.dict("os.environ", {"DEEPGRAM_API_KEY": " environment "}):
