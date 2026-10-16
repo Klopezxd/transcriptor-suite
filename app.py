@@ -33,6 +33,7 @@ from src.utils import (
     clear_gpu_vram,
     configure_utf8_console,
     create_zip_archive,
+    format_duration_human,
     resolve_assemblyai_api_key,
     resolve_deepgram_api_key,
     resolve_hf_token,
@@ -276,11 +277,20 @@ def process_transcription(
             )
 
         elapsed_seconds = max(0.1, time.perf_counter() - start_time)
-        time_badge_html = (
-            f'<span class="status-badge status-time">'
-            f"⏱️ Transcrito en {elapsed_seconds:.1f} segundos"
-            f"</span>"
-        )
+        formatted_duration = format_duration_human(elapsed_seconds)
+        if total_files > 1:
+            avg_duration = format_duration_human(elapsed_seconds / total_files)
+            time_badge_html = (
+                f'<span class="status-badge status-time">'
+                f"⏱️ Transcrito en {formatted_duration} (~{avg_duration}/archivo)"
+                f"</span>"
+            )
+        else:
+            time_badge_html = (
+                f'<span class="status-badge status-time">'
+                f"⏱️ Transcrito en {formatted_duration}"
+                f"</span>"
+            )
 
         # Flujo 1: Un solo archivo (Comportamiento directo sin banners extra)
         if total_files == 1:

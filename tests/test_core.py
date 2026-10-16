@@ -11,7 +11,12 @@ from unittest.mock import Mock, patch
 
 import requests
 
-from src.cloud_providers import AssemblyAIPipeline, DeepgramPipeline, _response_json
+from src.cloud_providers import (
+    AssemblyAIPipeline,
+    DeepgramPipeline,
+    _response_json,
+    extract_audio_for_cloud,
+)
 from src.config import (
     ProviderType,
     TimestampMode,
@@ -25,6 +30,7 @@ from src.utils import (
     ProgressFileReader,
     TranscriptionError,
     create_zip_archive,
+    format_duration_human,
     format_timestamp,
     make_progress_notifier,
     render_segments_text,
@@ -121,6 +127,19 @@ class UtilityTests(unittest.TestCase):
         ]:
             with self.subTest(value=value):
                 self.assertEqual(format_timestamp(value), expected)
+
+    def test_format_duration_human(self):
+        for value, expected in [
+            (None, "0.0s"),
+            (-5, "0.0s"),
+            (float("nan"), "0.0s"),
+            (12.34, "12.3 segundos"),
+            (59.9, "59.9 segundos"),
+            (60.0, "1 min 0 s (60.0s)"),
+            (713.5, "11 min 53 s (713.5s)"),
+        ]:
+            with self.subTest(value=value):
+                self.assertEqual(format_duration_human(value), expected)
 
     def test_render_modes_and_speaker(self):
         segments = [{"text": " Hola ", "start": 1, "end": 3, "speaker": "A"}]
@@ -430,6 +449,33 @@ class CloudTests(unittest.TestCase):
             ):
                 pipeline.process(self.directory.name)
             post.assert_not_called()
+
+    def test_extract_audio_for_cloud_skips_audio_files(self):
+        audio_file = Path("test.mp3")
+        path, is_temp = extract_audio_for_cloud(audio_file)
+        self.assertEqual(path, audio_file)
+        self.assertFalse(is_temp)
+
+    def test_extract_audio_for_cloud_video_success(self):
+        video_file = Path("test.mp4")
+        mock_proc = Mock(returncode=0)
+        with (
+            patch("subprocess.run", return_value=mock_proc),
+            patch("pathlib.Path.is_file", return_value=True),
+            patch("pathlib.Path.stat", return_value=SimpleNamespace(st_size=1024)),
+        ):
+            path, is_temp = extract_audio_for_cloud(video_file)
+            self.assertTrue(is_temp)
+            self.assertTrue(str(path).endswith(".m4a"))
+            path.unlink(missing_ok=True)
+
+    def test_extract_audio_for_cloud_video_fallback_on_failure(self):
+        video_file = Path("test.mp4")
+        mock_proc = Mock(returncode=1)
+        with patch("subprocess.run", return_value=mock_proc):
+            path, is_temp = extract_audio_for_cloud(video_file)
+            self.assertEqual(path, video_file)
+            self.assertFalse(is_temp)
 
 
 class WhisperTests(unittest.TestCase):

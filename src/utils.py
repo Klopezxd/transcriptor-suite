@@ -222,6 +222,26 @@ def format_timestamp(seconds: float | None) -> str:
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
 
+def format_duration_human(seconds: float | None) -> str:
+    """
+    Convierte una duración en segundos a una representación humana legible (minutos y segundos).
+
+    Args:
+        seconds: Tiempo transcurrido en segundos.
+
+    Returns:
+        Cadena con formato 'X min Y s (Z.Zs)' o 'Z.Zs'.
+    """
+    if seconds is None or not math.isfinite(seconds) or seconds < 0:
+        return "0.0s"
+    if seconds < 60:
+        return f"{seconds:.1f} segundos"
+    total_secs = int(seconds)
+    mins = total_secs // 60
+    rem_secs = total_secs % 60
+    return f"{mins} min {rem_secs} s ({seconds:.1f}s)"
+
+
 def format_segment(
     text: str,
     start: float,

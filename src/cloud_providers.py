@@ -5,6 +5,9 @@ Integra Deepgram (Nova-2/Nova-3) y AssemblyAI (Universal-1/Nano) con llamadas RE
 
 from __future__ import annotations
 
+import os
+import subprocess
+import tempfile
 import time
 from collections.abc import Callable, Iterator
 from pathlib import Path
@@ -30,6 +33,89 @@ if TYPE_CHECKING:
     from src.transcriber import TranscriptionResult
 
 logger = setup_logger("cloud_providers")
+
+VIDEO_EXTENSIONS = {".mp4", ".mkv", ".mov", ".avi", ".flv", ".wmv", ".m4v"}
+
+
+def extract_audio_for_cloud(
+    media_path: Path, notify: Callable[[float, str], None] | None = None
+) -> tuple[Path, bool]:
+    """
+    Si el archivo es un video, extrae la pista de audio con ffmpeg a un archivo temporal ligero
+    para reducir drásticamente el peso de subida por red a las APIs de nube (Deepgram / AssemblyAI).
+
+    Returns:
+        (ruta_audio, es_temporal): tuple con el Path a subir y un booleano indicando si debe eliminarse al finalizar.
+    """
+    if media_path.suffix.lower() not in VIDEO_EXTENSIONS:
+        return media_path, False
+
+    fd, temp_file_str = tempfile.mkstemp(suffix=".m4a", prefix="cloud_audio_")
+    os.close(fd)
+    temp_audio = Path(temp_file_str)
+
+    if notify:
+        notify(0.04, f"Extrayendo pista de audio de {media_path.name} para optimizar subida...")
+
+    # Intento 1: Copia de stream directo sin recodificar (-vn -c:a copy)
+    cmd_copy = ["ffmpeg", "-y", "-i", str(media_path), "-vn", "-c:a", "copy", str(temp_audio)]
+    try:
+        res = subprocess.run(
+            cmd_copy,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        if res.returncode == 0 and temp_audio.is_file() and temp_audio.stat().st_size > 0:
+            logger.info(
+                "Pista de audio extraída de %s a %s (%d bytes)",
+                media_path.name,
+                temp_audio.name,
+                temp_audio.stat().st_size,
+            )
+            return temp_audio, True
+    except Exception as err:
+        logger.debug("Fallo en extracción directa de audio con ffmpeg: %s", err)
+
+    # Intento 2: Recodificación rápida a AAC mono ligero (-vn -ac 1 -c:a aac -b:a 64k)
+    cmd_fallback = [
+        "ffmpeg",
+        "-y",
+        "-i",
+        str(media_path),
+        "-vn",
+        "-ac",
+        "1",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "64k",
+        str(temp_audio),
+    ]
+    try:
+        res = subprocess.run(
+            cmd_fallback,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        if res.returncode == 0 and temp_audio.is_file() and temp_audio.stat().st_size > 0:
+            logger.info(
+                "Pista de audio convertida a AAC mono para %s (%d bytes)",
+                media_path.name,
+                temp_audio.stat().st_size,
+            )
+            return temp_audio, True
+    except Exception as err:
+        logger.warning(
+            "No se pudo extraer audio del video %s: %s. Se subirá el archivo original.",
+            media_path.name,
+            err,
+        )
+
+    if temp_audio.exists():
+        temp_audio.unlink(missing_ok=True)
+    return media_path, False
 
 
 def _response_json(response: requests.Response) -> dict[str, Any]:
@@ -211,7 +297,12 @@ class DeepgramPipeline:
         notify(0.05, f"Preparando archivo multimedia: {input_path.name}")
         params = self._build_query_params()
 
-        data = self._send_audio_request(input_path, params, notify)
+        payload_path, is_temp = extract_audio_for_cloud(input_path, notify)
+        try:
+            data = self._send_audio_request(payload_path, params, notify)
+        finally:
+            if is_temp and payload_path.exists():
+                payload_path.unlink(missing_ok=True)
 
         notify(0.94, "Procesando respuesta y formateando marcas temporales...")
         try:
@@ -487,14 +578,19 @@ class AssemblyAIPipeline:
         headers = {"authorization": self.api_key or ""}
 
         # --- Paso 1: Subida de archivo ---
-        audio_url = self._upload_media(input_path, headers, notify)
+        payload_path, is_temp = extract_audio_for_cloud(input_path, notify)
+        try:
+            audio_url = self._upload_media(payload_path, headers, notify)
 
-        # --- Paso 2: Solicitud de transcripción ---
-        notify(0.45, f"Iniciando transcripción con modelo '{self.config.model_name or 'best'}'...")
-        transcript_id = self._submit_transcript_job(audio_url, headers)
+            # --- Paso 2: Solicitud de transcripción ---
+            notify(0.45, f"Iniciando transcripción con modelo '{self.config.model_name or 'best'}'...")
+            transcript_id = self._submit_transcript_job(audio_url, headers)
 
-        # --- Paso 3: Sondeo periódico (Polling) ---
-        final_data = self._poll_completion(transcript_id, headers, notify)
+            # --- Paso 3: Sondeo periódico (Polling) ---
+            final_data = self._poll_completion(transcript_id, headers, notify)
+        finally:
+            if is_temp and payload_path.exists():
+                payload_path.unlink(missing_ok=True)
 
         # --- Paso 4: Formateo y Persistencia ---
         notify(0.95, "Formateando segmentos y hablantes...")
