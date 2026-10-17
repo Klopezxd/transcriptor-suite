@@ -70,14 +70,15 @@ class AppTests(unittest.TestCase):
         with patch("app.create_transcription_pipeline") as factory:
             result = app.process_transcription(None, "", "", False, "")
         factory.assert_not_called()
-        self.assertEqual(len(result), 5)
+        self.assertEqual(len(result), 6)
         self.assertFalse(result[1].interactive)
         self.assertFalse(result[2].visible)
         self.assertTrue(result[4].interactive)
+        self.assertEqual(result[5], {"cached_results": {}})
 
     def test_unknown_provider_returns_controlled_error(self):
         result = app.process_transcription("audio.wav", "unknown", "model", False, "")
-        self.assertEqual(len(result), 5)
+        self.assertEqual(len(result), 6)
         self.assertIn("Error de transcripción", result[0])
         self.assertFalse(result[2].visible)
         self.assertTrue(result[4].interactive)
@@ -99,7 +100,7 @@ class AppTests(unittest.TestCase):
                 deepgram_key_input="personal",
                 progress=Mock(),
             )
-        self.assertEqual(len(output), 5)
+        self.assertEqual(len(output), 6)
         self.assertIn("&lt;IMG", output[3])
         self.assertNotIn("<IMG", output[3])
         self.assertTrue(output[1].visible)
@@ -124,7 +125,7 @@ class AppTests(unittest.TestCase):
                 deepgram_key_input="personal",
                 progress=Mock(),
             )
-        self.assertEqual(len(output), 5)
+        self.assertEqual(len(output), 6)
         self.assertIn("Completado", output[3])
         self.assertNotIn("UNKNOWN", output[3])
         self.assertFalse(output[2].visible)
@@ -150,7 +151,7 @@ class AppTests(unittest.TestCase):
                 progress=Mock(),
             )
         mock_exec.assert_called_once()
-        self.assertEqual(len(output), 5)
+        self.assertEqual(len(output), 6)
         self.assertEqual(output[0], "Hola desde WhisperX")
         self.assertIn("ES", output[3])
         self.assertTrue(output[1].visible)
@@ -185,8 +186,9 @@ class AppTests(unittest.TestCase):
         self.assertEqual(result[2].elem_classes, ["btn-secondary"])
         self.assertFalse(result[3].visible)
         self.assertFalse(result[3].interactive)
-        self.assertEqual(len(result), 6)
+        self.assertEqual(len(result), 7)
         self.assertTrue(result[5].interactive)
+        self.assertEqual(result[6], {"cached_results": {}})
 
     def test_batch_transcription_multiple_files_creates_zip(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -223,7 +225,7 @@ class AppTests(unittest.TestCase):
                     progress=Mock(),
                 )
 
-            self.assertEqual(len(output), 5)
+            self.assertEqual(len(output), 6)
             self.assertEqual(pipeline.process.call_count, 2)
             self.assertIn("📁 audio1.wav [Idioma: ES]", output[0])
             self.assertIn("📁 audio2.wav [Idioma: EN]", output[0])
@@ -251,6 +253,8 @@ class AppTests(unittest.TestCase):
             self.assertIn("2 archivos procesados", output[3])
             # Botón Iniciar Transcripción deshabilitado tras finalizar
             self.assertFalse(output[4].interactive)
+            self.assertIn("cached_results", output[5])
+            self.assertEqual(len(output[5]["cached_results"]), 2)
 
     def test_batch_transcription_partial_failure_continues(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -280,7 +284,7 @@ class AppTests(unittest.TestCase):
                     progress=Mock(),
                 )
 
-            self.assertEqual(len(output), 5)
+            self.assertEqual(len(output), 6)
             self.assertIn("⚠️ ARCHIVOS NO PROCESADOS (ERRORES)", output[0])
             self.assertIn("• bad.wav: Archivo corrupto", output[0])
             self.assertIn("📁 good.wav [Idioma: ES]", output[0])
@@ -312,7 +316,7 @@ class AppTests(unittest.TestCase):
                 deepgram_key_input="personal",
                 progress=Mock(),
             )
-        self.assertEqual(len(output), 5)
+        self.assertEqual(len(output), 6)
         self.assertTrue(output[1].visible)
         self.assertTrue(output[1].interactive)
         self.assertEqual(output[1].elem_classes, ["btn-glow-single"])
@@ -345,6 +349,132 @@ class AppTests(unittest.TestCase):
         # Usuario presiona Limpiar: Iniciar Transcripción reactivado
         clear_res = app.clear_all()
         self.assertTrue(clear_res[5].interactive)
+        self.assertEqual(clear_res[6], {"cached_results": {}})
+
+    def test_differential_batch_transcription_skips_cached_files(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            file1 = tmp_path / "clase1.mp3"
+            file2 = tmp_path / "clase2.mp3"
+            file1.write_bytes(b"dummy audio 1")
+            file2.write_bytes(b"dummy audio 2")
+
+            out1 = tmp_path / "clase1_TRANSCRIPCION.txt"
+            out2 = tmp_path / "clase2_TRANSCRIPCION.txt"
+            out1.write_text("Transcripcion clase 1", encoding="utf-8")
+            out2.write_text("Transcripcion clase 2", encoding="utf-8")
+
+            res1 = SimpleNamespace(
+                formatted_text="Transcripcion clase 1",
+                detected_language="es",
+                output_path=out1,
+            )
+            res2 = SimpleNamespace(
+                formatted_text="Transcripcion clase 2",
+                detected_language="es",
+                output_path=out2,
+            )
+
+            # Paso 1: Transcribir solo file1
+            pipe1 = Mock()
+            pipe1.process.return_value = res1
+            with (
+                patch("app.create_transcription_pipeline", return_value=pipe1),
+                patch("app.create_zip_archive"),
+            ):
+                output1 = app.process_transcription(
+                    [str(file1)],
+                    ProviderType.DEEPGRAM.value,
+                    "nova-2",
+                    False,
+                    "",
+                    deepgram_key_input="personal",
+                    batch_cache=None,
+                    progress=Mock(),
+                )
+
+            session_cache = output1[5]
+            self.assertEqual(pipe1.process.call_count, 1)
+            self.assertEqual(len(session_cache["cached_results"]), 1)
+
+            # Paso 2: Usuario añade file2 (file1 + file2) pasando el session_cache
+            pipe2 = Mock()
+            pipe2.process.return_value = res2
+            with (
+                patch("app.create_transcription_pipeline", return_value=pipe2),
+                patch("app.create_zip_archive"),
+            ):
+                output2 = app.process_transcription(
+                    [str(file1), str(file2)],
+                    ProviderType.DEEPGRAM.value,
+                    "nova-2",
+                    False,
+                    "",
+                    deepgram_key_input="personal",
+                    batch_cache=session_cache,
+                    progress=Mock(),
+                )
+
+            # Solo se debió procesar file2, file1 provino de caché
+            self.assertEqual(pipe2.process.call_count, 1)
+            self.assertIn("Transcripcion clase 1", output2[0])
+            self.assertIn("Transcripcion clase 2", output2[0])
+            # Badge refleja 1 nuevo y 1 en caché
+            self.assertIn("1 nuevos, 1 en caché", output2[3])
+            # Ambos archivos quedan en el caché actualizado
+            updated_cache = output2[5]
+            self.assertEqual(len(updated_cache["cached_results"]), 2)
+
+    def test_on_media_files_changed_reactivates_when_new_file_added(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            f1 = tmp_path / "audio1.wav"
+            f2 = tmp_path / "audio2.wav"
+            f3 = tmp_path / "audio3.wav"
+            f1.write_bytes(b"audio1")
+            f2.write_bytes(b"audio2")
+            f3.write_bytes(b"audio3")
+
+            out1 = tmp_path / "audio1_TRANSCRIPCION.txt"
+            out1.write_text("Transcripcion 1", encoding="utf-8")
+
+            # Sin archivos seleccionados y sin caché -> Botón habilitado estándar
+            btn = app.on_media_files_changed(None, None)
+            self.assertTrue(btn.interactive)
+            self.assertEqual(btn.value, "⚡ Iniciar Transcripción")
+
+            # 1 archivo y sin caché previo -> Botón activo estándar
+            btn = app.on_media_files_changed([str(f1)], None)
+            self.assertTrue(btn.interactive)
+            self.assertEqual(btn.value, "⚡ Iniciar Transcripción")
+
+            # Simular caché con f1 ya procesado y archivo en disco
+            _, fp1 = app._get_file_fingerprint(str(f1))
+            mock_cache = {
+                "cached_results": {
+                    fp1: (
+                        f1.name,
+                        SimpleNamespace(output_path=out1),
+                    )
+                }
+            }
+            # Si solo está f1 y ya está en caché -> Botón desactivado
+            btn = app.on_media_files_changed([str(f1)], mock_cache)
+            self.assertFalse(btn.interactive)
+
+            # Si se quitan los archivos pero persiste caché de sesión -> Botón desactivado
+            btn_empty = app.on_media_files_changed(None, mock_cache)
+            self.assertFalse(btn_empty.interactive)
+
+            # Si se agrega f2 -> Botón se reactiva indicando 1 archivo nuevo
+            btn = app.on_media_files_changed([str(f1), str(f2)], mock_cache)
+            self.assertTrue(btn.interactive)
+            self.assertEqual(btn.value, "⚡ Transcribir 1 archivo nuevo")
+
+            # Si se agregan f2 y f3 -> Botón indica 2 archivos nuevos
+            btn = app.on_media_files_changed([str(f1), str(f2), str(f3)], mock_cache)
+            self.assertTrue(btn.interactive)
+            self.assertEqual(btn.value, "⚡ Transcribir 2 archivos nuevos")
 
 
 if __name__ == "__main__":

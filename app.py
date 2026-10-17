@@ -107,22 +107,75 @@ def _disabled_consolidated_button() -> gr.DownloadButton:
     )
 
 
-def _enabled_transcribe_button() -> gr.Button:
+def _enabled_transcribe_button(value: str = "⚡ Iniciar Transcripción") -> gr.Button:
     return gr.Button(
-        value="⚡ Iniciar Transcripción",
+        value=value,
         variant="primary",
         interactive=True,
         elem_classes=["btn-primary"],
     )
 
 
-def _disabled_transcribe_button() -> gr.Button:
+def _disabled_transcribe_button(value: str = "⚡ Iniciar Transcripción") -> gr.Button:
     return gr.Button(
-        value="⚡ Iniciar Transcripción",
+        value=value,
         variant="secondary",
         interactive=False,
         elem_classes=["btn-primary", "btn-transcribe-disabled"],
     )
+
+
+def _get_file_fingerprint(item: Any) -> tuple[str, str]:
+    """Retorna (nombre_archivo, huella_unica) basada en el nombre base y tamaño en bytes."""
+    media_path = item.name if hasattr(item, "name") else str(item)
+    p = Path(media_path)
+    file_name = p.name
+    try:
+        size = p.stat().st_size
+    except OSError:
+        size = 0
+    return file_name, f"{file_name}_{size}"
+
+
+def on_media_files_changed(media_files, batch_cache: dict | None = None) -> gr.Button:
+    """
+    Detecta si se agregaron archivos nuevos a la cola y reactiva el botón de transcripción
+    mostrando cuántos archivos nuevos están pendientes de transcribir.
+    """
+    cache = batch_cache if isinstance(batch_cache, dict) else {}
+    cached_results = cache.get("cached_results", {})
+
+    file_list = media_files if isinstance(media_files, list) else ([media_files] if media_files else [])
+    file_list = [f for f in file_list if f]
+
+    if not file_list:
+        if cached_results:
+            return _disabled_transcribe_button()
+        return _enabled_transcribe_button("⚡ Iniciar Transcripción")
+
+    new_files_count = 0
+    for item in file_list:
+        _, fp = _get_file_fingerprint(item)
+        cached_entry = cached_results.get(fp)
+        if not cached_entry or not (
+            getattr(cached_entry[1], "output_path", None)
+            and Path(cached_entry[1].output_path).is_file()
+        ):
+            new_files_count += 1
+
+    if new_files_count > 0:
+        if cached_results:
+            label = (
+                f"⚡ Transcribir {new_files_count} archivo nuevo"
+                if new_files_count == 1
+                else f"⚡ Transcribir {new_files_count} archivos nuevos"
+            )
+        else:
+            label = "⚡ Iniciar Transcripción"
+        return _enabled_transcribe_button(label)
+    else:
+        # Todos los archivos en el componente ya están transcritos
+        return _disabled_transcribe_button()
 
 
 def _resolve_provider_credentials(
@@ -235,9 +288,14 @@ def process_transcription(
     deepgram_key_input: str = "",
     assemblyai_key_input: str = "",
     is_admin_session: bool = False,
+    batch_cache: dict | None = None,
     progress=gr.Progress(),
 ):
-    """Procesa uno o múltiples archivos multimedia en cola secuencial y retorna resultados consolidados."""
+    """Procesa uno o múltiples archivos multimedia en cola secuencial con caché diferencial por sesión."""
+    current_cache = dict(batch_cache) if isinstance(batch_cache, dict) else {}
+    cached_results = dict(current_cache.get("cached_results", {}))
+    current_cache["cached_results"] = cached_results
+
     if not media_file:
         return (
             "⚠️ Por favor selecciona o arrastra al menos un archivo multimedia para comenzar.",
@@ -245,6 +303,7 @@ def process_transcription(
             _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-warning">Sin archivo</span>'),
             _enabled_transcribe_button(),
+            current_cache,
         )
 
     file_list = media_file if isinstance(media_file, list) else [media_file]
@@ -256,6 +315,7 @@ def process_transcription(
             _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-warning">Sin archivo</span>'),
             _enabled_transcribe_button(),
+            current_cache,
         )
 
     selected_mode = TIMESTAMP_LABEL_MAP.get(timestamp_option, TimestampMode.SIMPLE)
@@ -271,7 +331,7 @@ def process_transcription(
             is_admin_session=is_admin_session,
         )
         if cred_error is not None:
-            return cred_error
+            return (*cred_error, current_cache)
 
         config = TranscriptionConfig.create_default(
             provider=provider,
@@ -282,41 +342,60 @@ def process_transcription(
             api_key=resolved_api_key,
         )
 
-        pipeline = create_transcription_pipeline(config)
         total_files = len(file_list)
-        results: list[tuple[str, Any]] = []
+        pending_items = []
+        for item in file_list:
+            file_name, fp = _get_file_fingerprint(item)
+            cached_entry = cached_results.get(fp)
+            if (
+                cached_entry
+                and getattr(cached_entry[1], "output_path", None)
+                and Path(cached_entry[1].output_path).is_file()
+            ):
+                continue
+            pending_items.append((item, file_name, fp))
+
         failed_files: list[tuple[str, str]] = []
+        if pending_items:
+            pipeline = create_transcription_pipeline(config)
+            pending_count = len(pending_items)
 
-        def make_file_progress(current_idx: int, current_name: str):
-            def handler(sub_p: float, sub_msg: str) -> None:
-                overall_p = ((current_idx - 1) + sub_p) / total_files
-                desc = (
-                    f"[{current_idx}/{total_files}] {current_name}: {sub_msg}"
-                    if total_files > 1
-                    else sub_msg
-                )
-                progress(overall_p, desc=desc)
-
-            return handler
-
-        for idx, item in enumerate(file_list, start=1):
-            media_path = item.name if hasattr(item, "name") else str(item)
-            file_name = Path(media_path).name
-            on_progress = make_file_progress(idx, file_name)
-
-            try:
-                if config.provider == ProviderType.WHISPERX.value:
-                    res = execute_whisperx(pipeline, media_path, on_progress)
-                else:
-                    res = pipeline.process(
-                        media_path=media_path,
-                        progress_callback=on_progress,
+            def make_file_progress(current_idx: int, current_name: str):
+                def handler(sub_p: float, sub_msg: str) -> None:
+                    overall_p = ((current_idx - 1) + sub_p) / pending_count
+                    desc = (
+                        f"[{current_idx}/{pending_count} nuevos] {current_name}: {sub_msg}"
+                        if pending_count > 1
+                        else f"{current_name}: {sub_msg}"
                     )
-                results.append((file_name, res))
-            except (TranscriptionError, Exception) as err:
-                logger.error("Error transcribiendo archivo %s: %s", file_name, err)
-                failed_files.append((file_name, str(err)))
-                clear_gpu_vram()
+                    progress(overall_p, desc=desc)
+
+                return handler
+
+            for idx, (item, file_name, fp) in enumerate(pending_items, start=1):
+                media_path = item.name if hasattr(item, "name") else str(item)
+                on_progress = make_file_progress(idx, file_name)
+
+                try:
+                    if config.provider == ProviderType.WHISPERX.value:
+                        res = execute_whisperx(pipeline, media_path, on_progress)
+                    else:
+                        res = pipeline.process(
+                            media_path=media_path,
+                            progress_callback=on_progress,
+                        )
+                    cached_results[fp] = (file_name, res)
+                except (TranscriptionError, Exception) as err:
+                    logger.error("Error transcribiendo archivo %s: %s", file_name, err)
+                    failed_files.append((file_name, str(err)))
+                    clear_gpu_vram()
+
+        # Reconstruir lista ordenada de resultados correspondientes a file_list
+        results: list[tuple[str, Any]] = []
+        for item in file_list:
+            file_name, fp = _get_file_fingerprint(item)
+            if fp in cached_results:
+                results.append((file_name, cached_results[fp][1]))
 
         if not results:
             err_details = "\n".join(f"• {fname}: {err}" for fname, err in failed_files)
@@ -327,15 +406,15 @@ def process_transcription(
                 _disabled_consolidated_button(),
                 _build_status_badges('<span class="status-badge status-error">Fallo en lote</span>'),
                 _enabled_transcribe_button(),
+                current_cache,
             )
 
         elapsed_seconds = max(0.1, time.perf_counter() - start_time)
         formatted_duration = format_duration_human(elapsed_seconds)
         if total_files > 1:
-            avg_duration = format_duration_human(elapsed_seconds / total_files)
             time_badge_html = (
                 f'<span class="status-badge status-time">'
-                f"⏱️ Transcrito en {formatted_duration} (~{avg_duration}/archivo)"
+                f"⏱️ Procesado en {formatted_duration}"
                 f"</span>"
             )
         else:
@@ -378,6 +457,7 @@ def process_transcription(
                 _disabled_consolidated_button(),
                 status_html,
                 _disabled_transcribe_button(),
+                current_cache,
             )
 
         # Flujo 2: Múltiples archivos en lote (Empaquetado ZIP y texto consolidado)
@@ -442,8 +522,12 @@ def process_transcription(
             zip_classes = ["btn-secondary"]
             cons_classes = ["btn-secondary"]
 
+        cached_count = len(file_list) - len(pending_items)
         if not failed_files:
-            badge_label = f"✓ {len(results)} archivos procesados"
+            if cached_count > 0 and len(pending_items) > 0:
+                badge_label = f"✓ {len(results)} listos ({len(pending_items)} nuevos, {cached_count} en caché)"
+            else:
+                badge_label = f"✓ {len(results)} archivos procesados"
             badge_class = "status-success"
         else:
             badge_label = f"✓ {len(results)}/{total_files} procesados ({len(failed_files)} con error)"
@@ -474,6 +558,7 @@ def process_transcription(
             ),
             status_html,
             _disabled_transcribe_button() if valid_output_paths else _enabled_transcribe_button(),
+            current_cache,
         )
 
     except TranscriptionError as e:
@@ -485,6 +570,7 @@ def process_transcription(
             _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-error">Error</span>'),
             _enabled_transcribe_button(),
+            current_cache,
         )
     except Exception as e:
         clear_gpu_vram()
@@ -495,6 +581,7 @@ def process_transcription(
             _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-error">Error inesperado</span>'),
             _enabled_transcribe_button(),
+            current_cache,
         )
 
 
@@ -2170,6 +2257,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
     gr.HTML(f"<style>{custom_css}</style>")
 
     admin_state = gr.State(value=False)
+    batch_cache_state = gr.State(value={"cached_results": {}})
 
     # ── 1. BARRA SUPERIOR CON LOGIN ADMIN COMPACTO A LA DERECHA ─
     with gr.Row(elem_classes=["app-navbar"]):
@@ -2913,6 +3001,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             _disabled_consolidated_button(),
             _build_status_badges('<span class="status-badge status-warning">En espera</span>'),
             _enabled_transcribe_button(),
+            {"cached_results": {}},
         )
 
     btn_clear.click(
@@ -2924,7 +3013,16 @@ with gr.Blocks(**blocks_kwargs) as demo:
             btn_download_consolidated,
             status_badge,
             btn_transcribe,
+            batch_cache_state,
         ],
+        show_progress="hidden",
+    )
+
+    # --- Detección de archivos multimedia añadidos para reactivar transcripción diferencial ---
+    media_input.change(
+        fn=on_media_files_changed,
+        inputs=[media_input, batch_cache_state],
+        outputs=[btn_transcribe],
         show_progress="hidden",
     )
 
@@ -2965,6 +3063,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             deepgram_key_box,
             assemblyai_key_box,
             admin_state,
+            batch_cache_state,
         ],
         outputs=[
             output_textbox,
@@ -2972,6 +3071,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             btn_download_consolidated,
             status_badge,
             btn_transcribe,
+            batch_cache_state,
         ],
     )
 

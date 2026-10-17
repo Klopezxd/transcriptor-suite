@@ -5,6 +5,18 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [2.3.0] - 2026-10-16
+
+### Agregado
+* **Procesamiento Diferencial Inteligente con Caché de Sesión (`gr.State`):**
+  * Soporte para añadir archivos multimedia adicionales a la cola tras una transcripción completada sin re-procesar los archivos previos.
+  * Huella digital $O(1)$ por archivo (`nombre_tamaño`) para verificar la existencia del resultado en caché y en disco, omitiendo llamadas a la API o al modelo local (ahorro del 100% de créditos de API y ciclos de GPU).
+  * Reactivación dinámica del botón de transcripción vía `media_input.change`: muestra en tiempo real `⚡ Transcribir N archivo(s) nuevo(s)` únicamente cuando hay archivos nuevos pendientes.
+  * Reensamblaje transparente de los resultados en el orden original de la cola, actualizando la caja de texto, regenerando el archivo consolidado `.txt` y el archivo comprimido `.zip` con todos los elementos de la sesión.
+  * Limpieza total y reseteo del estado de caché al hacer clic en **"🗑️ Limpiar"**.
+* **Suite de Pruebas Automatizadas:**
+  * Ampliación a 90 pruebas unitarias con cobertura específica para caché diferencial de sesión y reactivación dinámica de UI.
+
 ---
 
 ## [2.2.0] - 2026-10-16
