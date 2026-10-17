@@ -1388,10 +1388,13 @@ li[role="option"][aria-selected="true"],
 }
 
 .file-upload-zone button.boundedheight:hover,
-.file-upload-zone [aria-label*="upload"]:hover {
+.file-upload-zone [aria-label*="upload"]:hover,
+.file-upload-zone.drag-over-active,
+.upload-card.drag-over-active,
+.upload-card:has(.drag-over-active) {
     border-color: var(--aurora-green) !important;
-    background: rgba(0, 255, 135, 0.05) !important;
-    box-shadow: 0 0 14px rgba(0, 255, 135, 0.16) !important;
+    background: rgba(0, 255, 135, 0.08) !important;
+    box-shadow: 0 0 18px rgba(0, 255, 135, 0.35) !important;
 }
 
 /* Reemplazo limpio del texto nativo sin overflow (solo en el dropzone vacío) */
@@ -2971,6 +2974,53 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 }
             };
             watchDpiChange();
+
+            // 3. Soporte de Arrastrar y Soltar (Drag & Drop) continuo en la tarjeta de archivos incluso cuando ya hay archivos cargados
+            const getUploadInput = (zone) => {
+                if (!zone) return null;
+                return zone.querySelector('input[type="file"]') || document.querySelector('.file-upload-zone input[type="file"]');
+            };
+
+            const isFileInputTarget = (e) => {
+                return e.target && e.target.closest ? e.target.closest('.file-upload-zone, .upload-card') : null;
+            };
+
+            document.addEventListener('dragover', (e) => {
+                const zone = isFileInputTarget(e);
+                if (zone && e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.dataTransfer.dropEffect = 'copy';
+                    zone.classList.add('drag-over-active');
+                }
+            }, true);
+
+            document.addEventListener('dragleave', (e) => {
+                const zone = isFileInputTarget(e);
+                if (zone && (!e.relatedTarget || !zone.contains(e.relatedTarget))) {
+                    zone.classList.remove('drag-over-active');
+                }
+            }, true);
+
+            document.addEventListener('drop', (e) => {
+                const zone = isFileInputTarget(e);
+                if (zone) {
+                    zone.classList.remove('drag-over-active');
+                    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const fileInput = getUploadInput(zone);
+                        if (fileInput) {
+                            const dt = new DataTransfer();
+                            for (let i = 0; i < e.dataTransfer.files.length; i++) {
+                                dt.items.add(e.dataTransfer.files[i]);
+                            }
+                            fileInput.files = dt.files;
+                            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    }
+                }
+            }, true);
         }
         return args;
     }"""
