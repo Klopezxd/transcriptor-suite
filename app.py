@@ -1444,7 +1444,7 @@ li[role="option"][aria-selected="true"],
     margin: 0 !important;
 }
 
-/* Estado con archivo cargado: tarjeta limpia de archivo + botón X compacto en la esquina derecha */
+/* Estado con archivo cargado: tarjeta limpia de archivo + botones de acción reubicados en esquina superior derecha */
 .file-upload-zone .file-preview-holder {
     background: rgba(6, 14, 29, 0.82) !important;
     border: 1px solid rgba(0, 255, 135, 0.35) !important;
@@ -1453,13 +1453,15 @@ li[role="option"][aria-selected="true"],
     width: 100% !important;
     flex: 1 1 0% !important;
     min-height: 44px !important;
+    max-height: 180px !important;
     height: 100% !important;
     margin: 0 !important;
-    padding: 6px 44px 6px 14px !important;
+    padding: 8px 76px 8px 14px !important;
     display: flex !important;
     align-items: center !important;
     box-sizing: border-box !important;
-    overflow: hidden !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
 }
 
 .file-upload-zone table.file-preview,
@@ -1472,6 +1474,7 @@ li[role="option"][aria-selected="true"],
     padding: 0 !important;
     border: none !important;
     background: transparent !important;
+    gap: 4px !important;
 }
 
 .file-upload-zone tr.file {
@@ -1481,7 +1484,7 @@ li[role="option"][aria-selected="true"],
     width: 100% !important;
     height: auto !important;
     gap: 12px !important;
-    padding: 0 !important;
+    padding: 2px 0 !important;
     margin: 0 !important;
     border: none !important;
     background: transparent !important;
@@ -1514,12 +1517,13 @@ li[role="option"][aria-selected="true"],
     border: none !important;
 }
 
+/* Reubicación limpia de los botones Gradio ([↑] y [X]) en la esquina superior derecha sin solaparse */
 .file-upload-zone .icon-button-wrapper {
     position: absolute !important;
-    top: 50% !important;
-    right: 10px !important;
-    transform: translateY(-50%) !important;
-    z-index: 15 !important;
+    top: 8px !important;
+    right: 8px !important;
+    transform: none !important;
+    z-index: 20 !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -1528,13 +1532,17 @@ li[role="option"][aria-selected="true"],
     width: auto !important;
     height: auto !important;
     display: flex !important;
+    flex-direction: row !important;
     align-items: center !important;
-    justify-content: center !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
 }
 
 .file-upload-zone button.icon-button,
 .file-upload-zone [aria-label="Clear"],
-.file-upload-zone [title="Clear"] {
+.file-upload-zone [title="Clear"],
+.file-upload-zone [aria-label="Upload"],
+.file-upload-zone [title="Upload"] {
     width: 26px !important;
     height: 26px !important;
     min-width: 26px !important;
@@ -1556,13 +1564,85 @@ li[role="option"][aria-selected="true"],
     transition: all 0.2s ease !important;
 }
 
-.file-upload-zone button.icon-button:hover,
-.file-upload-zone [aria-label="Clear"]:hover,
-.file-upload-zone [title="Clear"]:hover {
+.file-upload-zone [aria-label*="Clear"]:hover,
+.file-upload-zone [title*="Clear"]:hover,
+.file-upload-zone .icon-button-wrapper button:last-child:hover {
     background: rgba(239, 68, 68, 0.22) !important;
     border-color: rgba(239, 68, 68, 0.6) !important;
     color: #F87171 !important;
     box-shadow: 0 0 10px rgba(239, 68, 68, 0.28) !important;
+}
+
+.file-upload-zone [aria-label*="Upload"]:hover,
+.file-upload-zone [title*="Upload"]:hover,
+.file-upload-zone .icon-button-wrapper button:first-child:hover {
+    background: rgba(0, 212, 255, 0.18) !important;
+    border-color: rgba(0, 212, 255, 0.6) !important;
+    color: #00D4FF !important;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.28) !important;
+}
+
+/* Overlay de subida de archivos multimedia con indicador visual en tiempo real */
+.upload-loading-overlay {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 44px !important;
+    background: rgba(5, 11, 26, 0.94) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1.5px solid var(--aurora-green) !important;
+    border-radius: 10px !important;
+    z-index: 50 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 8px 14px !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 0 20px rgba(0, 255, 135, 0.3) !important;
+    animation: fadeInOverlay 0.2s ease-out !important;
+}
+
+.upload-spinner {
+    width: 22px !important;
+    height: 22px !important;
+    border: 2.5px solid rgba(0, 212, 255, 0.25) !important;
+    border-top-color: var(--aurora-green) !important;
+    border-right-color: var(--ice-cyan) !important;
+    border-radius: 50% !important;
+    animation: spin-pulse 0.8s linear infinite !important;
+}
+
+.upload-loading-text {
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: clamp(0.85rem, 1.7vh, 1.0rem) !important;
+    font-weight: 700 !important;
+    color: var(--frost-white) !important;
+    text-align: center !important;
+    max-width: 90% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.upload-loading-subtext {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: clamp(0.72rem, 1.35vh, 0.84rem) !important;
+    color: #00D4FF !important;
+    text-align: center !important;
+}
+
+@keyframes spin-pulse {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .file-upload-zone button.icon-button > div {
@@ -2975,7 +3055,72 @@ with gr.Blocks(**blocks_kwargs) as demo:
             };
             watchDpiChange();
 
-            // 3. Soporte de Arrastrar y Soltar (Drag & Drop) continuo en la tarjeta de archivos incluso cuando ya hay archivos cargados
+            // 3. Indicador de Carga y Soporte de Arrastrar y Soltar (Drag & Drop) continuo
+            const showUploadOverlay = (zone, count, mbText) => {
+                const targetZone = zone || document.querySelector('.file-upload-zone');
+                if (!targetZone) return;
+                let overlay = targetZone.querySelector('.upload-loading-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.className = 'upload-loading-overlay';
+                    const fileText = count === 1 ? 'archivo multimedia' : `${count} archivos multimedia`;
+                    overlay.innerHTML = `
+                        <div class="upload-spinner"></div>
+                        <div class="upload-loading-text">Subiendo ${fileText}...</div>
+                        <div class="upload-loading-subtext">${mbText ? mbText + ' · ' : ''}Transfiriendo al servidor</div>
+                    `;
+                    targetZone.appendChild(overlay);
+                }
+            };
+
+            const hideUploadOverlay = () => {
+                document.querySelectorAll('.upload-loading-overlay').forEach((el) => el.remove());
+            };
+
+            const handleFilesUploadStart = (zone, files) => {
+                if (!files || files.length === 0) return;
+                let totalBytes = 0;
+                for (let i = 0; i < files.length; i++) {
+                    totalBytes += files[i].size || 0;
+                }
+                const mb = totalBytes > 0 ? `${(totalBytes / (1024 * 1024)).toFixed(1)} MB` : '';
+                showUploadOverlay(zone, files.length, mb);
+
+                // Auto-cleanup de seguridad tras 2 minutos si la red tarda o hay error
+                setTimeout(() => hideUploadOverlay(), 120000);
+            };
+
+            // Hook a fetch para ocultar el overlay inmediatamente al finalizar el upload en Gradio
+            if (!window.__transcriptorHookedFetch && window.fetch) {
+                window.__transcriptorHookedFetch = true;
+                const origFetch = window.fetch;
+                window.fetch = async function(...args) {
+                    const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
+                    if (url.includes('/upload')) {
+                        try {
+                            const res = await origFetch.apply(this, args);
+                            setTimeout(() => hideUploadOverlay(), 400);
+                            return res;
+                        } catch (err) {
+                            hideUploadOverlay();
+                            throw err;
+                        }
+                    }
+                    return origFetch.apply(this, args);
+                };
+            }
+
+            // Detectar selección de archivos vía botón [ ↑ ]
+            document.addEventListener('change', (e) => {
+                const target = e.target;
+                if (target && target.type === 'file' && target.closest('.file-upload-zone, .upload-card')) {
+                    const zone = target.closest('.file-upload-zone, .upload-card');
+                    if (target.files && target.files.length > 0) {
+                        handleFilesUploadStart(zone, target.files);
+                    }
+                }
+            }, true);
+
             const getUploadInput = (zone) => {
                 if (!zone) return null;
                 return zone.querySelector('input[type="file"]') || document.querySelector('.file-upload-zone input[type="file"]');
@@ -3011,6 +3156,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         e.stopPropagation();
                         const fileInput = getUploadInput(zone);
                         if (fileInput) {
+                            handleFilesUploadStart(zone, e.dataTransfer.files);
                             const dt = new DataTransfer();
                             for (let i = 0; i < e.dataTransfer.files.length; i++) {
                                 dt.items.add(e.dataTransfer.files[i]);
