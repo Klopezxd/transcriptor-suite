@@ -2473,7 +2473,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         ],
                         value=ProviderType.DEEPGRAM.value,
                         label="Proveedor de Transcripción",
-                        filterable=False,
+                        allow_custom_value=True,
                         min_width=100,
                         scale=1,
                     )
@@ -2481,7 +2481,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         choices=PROVIDER_MODEL_CHOICES[ProviderType.DEEPGRAM.value],
                         value=DeepgramModel.NOVA_2.value,
                         label="Modelo de Transcripción",
-                        filterable=False,
+                        allow_custom_value=True,
                         min_width=100,
                         scale=1,
                     )
@@ -2497,7 +2497,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         choices=TIMESTAMP_CHOICES,
                         value=TIMESTAMP_CHOICES[0],
                         label="Formato de Marcas de Tiempo",
-                        filterable=False,
+                        allow_custom_value=True,
                         min_width=100,
                         scale=1,
                     )
@@ -2639,6 +2639,9 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 gr.update(visible=False),
             )
 
+        if selected_provider not in PROVIDER_MODEL_CHOICES:
+            selected_provider = ProviderType.DEEPGRAM.value
+
         is_wx = selected_provider == ProviderType.WHISPERX.value
         is_dg = selected_provider == ProviderType.DEEPGRAM.value
         is_aai = selected_provider == ProviderType.ASSEMBLYAI.value
@@ -2658,12 +2661,14 @@ with gr.Blocks(**blocks_kwargs) as demo:
 
     def on_provider_selected(selected_provider: str, is_diarize: bool, is_admin: bool):
         """Actualiza modelos disponibles, panel de claves y descripción."""
+        if selected_provider not in PROVIDER_MODEL_CHOICES:
+            selected_provider = ProviderType.DEEPGRAM.value
         choices = PROVIDER_MODEL_CHOICES.get(selected_provider, [])
         default_val = choices[0][1] if choices else ""
         panel_vis = update_guest_api_panel(selected_provider, is_diarize, is_admin)
 
         return (
-            gr.update(choices=choices, value=default_val, filterable=False),
+            gr.update(choices=choices, value=default_val),
             gr.update(value=PROVIDER_INFO_HTML.get(selected_provider, "")),
             *panel_vis,
         )
@@ -2878,8 +2883,12 @@ with gr.Blocks(**blocks_kwargs) as demo:
     )
 
     # La carga inicial siempre requiere autenticarse mediante el botón Admin.
-    def initialize_guest_session(current_provider: str, is_diarize: bool):
-        panel_vis = update_guest_api_panel(current_provider, is_diarize, False)
+    def initialize_guest_session(
+        current_provider: str = ProviderType.DEEPGRAM.value, is_diarize: bool = False
+    ):
+        if current_provider not in PROVIDER_MODEL_CHOICES:
+            current_provider = ProviderType.DEEPGRAM.value
+        panel_vis = update_guest_api_panel(current_provider, bool(is_diarize), False)
         return (
             False,
             gr.update(visible=True),
@@ -2887,7 +2896,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             *panel_vis,
         )
 
-    _ui_enhancements_js = """(...args) => {
+    _ui_enhancements_js = """() => {
         if (!window.__transcriptorUiEnhancements) {
             window.__transcriptorUiEnhancements = true;
 
@@ -3168,12 +3177,11 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 }
             }, true);
         }
-        return args;
     }"""
 
     demo.load(
         fn=initialize_guest_session,
-        inputs=[provider_dropdown, diarize_checkbox],
+        inputs=None,
         outputs=[
             admin_state,
             btn_open_login,
