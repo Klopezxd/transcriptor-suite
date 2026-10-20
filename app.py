@@ -699,10 +699,11 @@ main.contain {
     .gradio-container .column.upload-card {
         flex: 1 1 0% !important;
         min-height: 0 !important;
+        height: 100% !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         z-index: 5 !important;
     }
 
@@ -723,20 +724,78 @@ main.contain {
         z-index: 40 !important;
     }
 
-    /* En modo Admin (cuando Credenciales de API está oculto), dar más aire natural a Motor y Opciones */
-    .left-column:not(:has(.keys-card:not(.hide))) .options-card,
-    .gradio-container .column.left-column:not(:has(.keys-card:not(.hide))) .options-card {
+    /* En modo Admin (cuando Credenciales de API está oculto), dar más aire natural a Motor y Opciones y expandir Archivo Multimedia a pantalla completa */
+    body.admin-mode .left-column,
+    .left-column.admin-mode,
+    .left-column:has(.keys-card.hide),
+    .left-column:has(.keys-card[style*="display: none"]),
+    .left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        height: 100% !important;
+        min-height: 100% !important;
+    }
+
+    body.admin-mode .options-card,
+    .left-column.admin-mode .options-card,
+    .left-column:has(.keys-card.hide) .options-card,
+    .left-column:has(.keys-card[style*="display: none"]) .options-card,
+    .left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .options-card,
+    .gradio-container .column.left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .options-card {
         padding: clamp(12px, 2vh, 24px) clamp(16px, 1.7vw, 26px) !important;
         gap: clamp(8px, 1.6vh, 18px) !important;
+        flex: 0 0 auto !important;
     }
 
+    body.admin-mode .upload-card,
+    .left-column.admin-mode .upload-card,
+    .left-column:has(.keys-card.hide) .upload-card,
+    .left-column:has(.keys-card[style*="display: none"]) .upload-card,
+    .left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .upload-card,
+    .gradio-container .column.left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .upload-card {
+        flex: 1 1 0% !important;
+        height: 100% !important;
+        min-height: 200px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+    }
+
+    body.admin-mode .upload-card .file-upload-zone,
+    .left-column.admin-mode .upload-card .file-upload-zone,
+    body.admin-mode .upload-card .file-preview-holder,
+    .left-column.admin-mode .upload-card .file-preview-holder {
+        flex: 1 1 0% !important;
+        height: 100% !important;
+        min-height: 120px !important;
+    }
+
+    body.admin-mode .actions-row,
+    .left-column.admin-mode .actions-row,
+    .left-column:has(.keys-card.hide) .actions-row,
+    .left-column:has(.keys-card[style*="display: none"]) .actions-row,
+    .left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .actions-row {
+        margin-top: auto !important;
+        flex: 0 0 auto !important;
+    }
+
+    body.admin-mode .keys-card,
     .keys-card.hide,
-    .gradio-container .column.keys-card.hide {
+    .keys-card[style*="display: none"],
+    .gradio-container .column.keys-card.hide,
+    .gradio-container .column.keys-card[style*="display: none"] {
         display: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
     }
 
-    .keys-card:not(.hide),
-    .gradio-container .column.keys-card:not(.hide) {
+    body:not(.admin-mode) .keys-card:not(.hide):not([style*="display: none"]),
+    .keys-card:not(.hide):not([style*="display: none"]),
+    .gradio-container .column.keys-card:not(.hide):not([style*="display: none"]) {
         flex: 0 0 auto !important;
         flex-shrink: 0 !important;
         height: fit-content !important;
@@ -1340,7 +1399,7 @@ li[role="option"][aria-selected="true"],
     color: var(--aurora-green) !important;
 }
 
-/* ── MODULO 1: ARRASTRAR ARCHIVO (RESPONSIVO Y ELÁSTICO SIN SOLAPAR TEXTO DE FORMATOS) ── */
+/* ── MODULO 1: ARRASTRAR ARCHIVO (RESPONSIVO Y ADAPTABLE A TODO EL ALTO DISPONIBLE) ── */
 .file-upload-zone,
 .upload-card .file-upload-zone,
 .upload-card .file-upload-zone > div:not([data-testid="status-tracker"]):not(.file-preview-holder):not(.icon-button-wrapper) {
@@ -1350,21 +1409,25 @@ li[role="option"][aria-selected="true"],
     padding: 0 !important;
     width: 100% !important;
     flex: 1 1 0% !important;
-    min-height: 44px !important;
-    height: auto !important;
+    min-height: 48px !important;
+    height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
     position: relative !important;
 }
 
-/* Anula el min-height: var(--size-60) (240px) interno de Gradio 6 en .wrap.svelte-1vmd51o */
+/* Anula el min-height: var(--size-60) (240px) interno de Gradio 6 en .wrap.svelte-1vmd51o y permite estiramiento */
 .file-upload-zone .wrap:not([data-testid="status-tracker"]),
 .file-upload-zone [data-upload-density],
 .file-upload-zone .icon-wrap {
     min-height: 0 !important;
-    height: auto !important;
+    height: 100% !important;
+    flex: 1 1 0% !important;
+    display: flex !important;
+    flex-direction: column !important;
     margin: 0 !important;
     padding: 0 !important;
+    overflow: visible !important;
 }
 
 /* Zona de subida vacía (solo aplica al botón dropzone .boundedheight, NUNCA al botón X de borrar) */
@@ -1444,37 +1507,137 @@ li[role="option"][aria-selected="true"],
     margin: 0 !important;
 }
 
-/* Estado con archivo cargado: tarjeta limpia de archivo + botones de acción reubicados en esquina superior derecha */
+/* Estado con archivo cargado: tarjeta adaptable a toda la altura disponible, con barrita Aurora y sin scroll nativo duplicado */
+.file-upload-zone,
+.file-upload-zone > div:not(.icon-button-wrapper),
+.file-upload-zone div:has(> .file-preview-holder),
+.file-upload-zone div:has(> table.file-preview),
 .file-upload-zone .file-preview-holder {
+    flex: 1 1 0% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+}
+
+/* ── LISTA DE ARCHIVOS CON BARRA LATERAL NATIVA Y FLUIDA ── */
+.file-upload-zone .file-preview-holder {
+    position: relative !important;
     background: rgba(6, 14, 29, 0.82) !important;
     border: 1px solid rgba(0, 255, 135, 0.35) !important;
     border-radius: 10px !important;
     box-shadow: inset 0 0 14px rgba(0, 255, 135, 0.06) !important;
     width: 100% !important;
     flex: 1 1 0% !important;
-    min-height: 44px !important;
-    max-height: 180px !important;
+    min-height: 48px !important;
+    max-height: none !important;
     height: 100% !important;
     margin: 0 !important;
-    padding: 8px 76px 8px 14px !important;
+    padding: 6px 6px 6px 12px !important;
     display: flex !important;
-    align-items: center !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
     box-sizing: border-box !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(0, 212, 255, 0.35) rgba(4, 10, 24, 0.5) !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
 }
 
+/* Barra lateral nativa del navegador para la lista de archivos (suave, funcional y sin neón invasivo) */
+.file-upload-zone .file-preview-holder::-webkit-scrollbar {
+    width: 6px !important;
+    display: block !important;
+}
+
+.file-upload-zone .file-preview-holder::-webkit-scrollbar-track {
+    background: rgba(4, 10, 24, 0.5) !important;
+    border-radius: 4px !important;
+}
+
+.file-upload-zone .file-preview-holder::-webkit-scrollbar-thumb {
+    background: rgba(0, 212, 255, 0.35) !important;
+    border-radius: 4px !important;
+    min-height: 24px !important;
+}
+
+.file-upload-zone .file-preview-holder::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 212, 255, 0.7) !important;
+}
+
+/* 1. Global: Toda barra lateral de navegación con scrolleo vertical en la interfaz */
+*::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+    display: block !important;
+}
+
+*::-webkit-scrollbar-track {
+    background: rgba(4, 10, 24, 0.6) !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(0, 212, 255, 0.15) !important;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: rgba(0, 212, 255, 0.35) !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(0, 212, 255, 0.4) !important;
+    min-height: 28px !important;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 212, 255, 0.65) !important;
+    border-color: rgba(0, 212, 255, 0.7) !important;
+}
+
+*::-webkit-scrollbar-corner {
+    background: transparent !important;
+}
+
+*::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* Fallback Firefox */
+@supports (-moz-appearance: none) {
+    * {
+        scrollbar-width: thin !important;
+        scrollbar-color: rgba(0, 212, 255, 0.35) rgba(4, 10, 24, 0.6) !important;
+    }
+}
+
+/* Anular scroll redundante en la tabla interna para que el scroll nativo ocurra en .file-preview-holder */
 .file-upload-zone table.file-preview,
+.file-upload-zone .file-preview,
 .file-upload-zone table.file-preview tbody {
     width: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
+    max-height: none !important;
+    height: auto !important;
+    display: table !important;
+    table-layout: fixed !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
     background: transparent !important;
-    gap: 4px !important;
+    overflow: visible !important;
+    scrollbar-width: none !important;
+}
+
+.file-upload-zone table.file-preview tbody {
+    display: table-row-group !important;
+}
+
+.file-upload-zone table.file-preview::-webkit-scrollbar,
+.file-upload-zone .file-preview::-webkit-scrollbar,
+.file-upload-zone table.file-preview tbody::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 .file-upload-zone tr.file {
@@ -1483,24 +1646,59 @@ li[role="option"][aria-selected="true"],
     justify-content: space-between !important;
     width: 100% !important;
     height: auto !important;
-    gap: 12px !important;
-    padding: 2px 0 !important;
+    min-height: 28px !important;
+    gap: 10px !important;
+    padding: 4px 6px 4px 0 !important;
     margin: 0 !important;
     border: none !important;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.08) !important;
     background: transparent !important;
+    box-sizing: border-box !important;
+}
+
+.file-upload-zone tr.file:last-child {
+    border-bottom: none !important;
+}
+
+.file-upload-zone button.label-clear-button {
+    background: transparent !important;
+    border: none !important;
+    color: #F87171 !important;
+    opacity: 0.7 !important;
+    cursor: pointer !important;
+    font-size: 1.1rem !important;
+    line-height: 1 !important;
+    padding: 2px 6px !important;
+    transition: opacity 0.2s ease, transform 0.2s ease !important;
+}
+
+.file-upload-zone button.label-clear-button:hover {
+    opacity: 1 !important;
+    transform: scale(1.15) !important;
+    color: #FF5252 !important;
 }
 
 .file-upload-zone td.filename {
     display: flex !important;
     align-items: center !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.88rem, 1.75vh, 1.04rem) !important;
+    font-size: clamp(0.84rem, 1.6vh, 0.96rem) !important;
     font-weight: 600 !important;
     color: var(--aurora-green) !important;
     padding: 0 !important;
     border: none !important;
+    flex: 1 1 auto !important;
     min-width: 0 !important;
     overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.file-upload-zone td.filename .stem,
+.file-upload-zone td.filename span {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
 }
 
 .file-upload-zone td.download,
@@ -1509,7 +1707,7 @@ li[role="option"][aria-selected="true"],
     align-items: center !important;
     flex-shrink: 0 !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: clamp(0.80rem, 1.6vh, 0.94rem) !important;
+    font-size: clamp(0.76rem, 1.4vh, 0.88rem) !important;
     font-weight: 600 !important;
     color: #8CE0FF !important;
     text-decoration: none !important;
@@ -1517,69 +1715,176 @@ li[role="option"][aria-selected="true"],
     border: none !important;
 }
 
-/* Reubicación limpia de los botones Gradio ([↑] y [X]) en la esquina superior derecha sin solaparse */
+/* Reubicación limpia de los botones Gradio ([↑] y [X]) en la cabecera superior derecha del módulo */
+.upload-card .icon-button-wrapper,
 .file-upload-zone .icon-button-wrapper {
     position: absolute !important;
-    top: 8px !important;
-    right: 8px !important;
+    top: -36px !important;
+    right: 0 !important;
     transform: none !important;
-    z-index: 20 !important;
+    z-index: 35 !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
     width: auto !important;
-    height: auto !important;
+    height: 28px !important;
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    gap: 6px !important;
+    gap: 8px !important;
+    pointer-events: auto !important;
 }
 
-.file-upload-zone button.icon-button,
-.file-upload-zone [aria-label="Clear"],
-.file-upload-zone [title="Clear"],
-.file-upload-zone [aria-label="Upload"],
-.file-upload-zone [title="Upload"] {
-    width: 26px !important;
-    height: 26px !important;
-    min-width: 26px !important;
-    min-height: 26px !important;
-    max-width: 26px !important;
-    max-height: 26px !important;
-    flex: 0 0 26px !important;
+/* Solo los botones directos del wrapper son botones de acción */
+.upload-card .icon-button-wrapper > button,
+.file-upload-zone .icon-button-wrapper > button {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    max-width: 28px !important;
+    max-height: 28px !important;
+    flex: 0 0 28px !important;
     padding: 0 !important;
     margin: 0 !important;
-    border-radius: 7px !important;
-    background: rgba(15, 29, 54, 0.92) !important;
-    border: 1px solid rgba(0, 212, 255, 0.28) !important;
-    color: #A3BBD6 !important;
+    border-radius: 8px !important;
+    opacity: 1 !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
     box-shadow: none !important;
     transition: all 0.2s ease !important;
+    position: relative !important;
+    overflow: visible !important;
 }
 
-.file-upload-zone [aria-label*="Clear"]:hover,
-.file-upload-zone [title*="Clear"]:hover,
-.file-upload-zone .icon-button-wrapper button:last-child:hover {
-    background: rgba(239, 68, 68, 0.22) !important;
-    border-color: rgba(239, 68, 68, 0.6) !important;
-    color: #F87171 !important;
-    box-shadow: 0 0 10px rgba(239, 68, 68, 0.28) !important;
+.upload-card .icon-button-wrapper button::after,
+.file-upload-zone .icon-button-wrapper button::after {
+    display: none !important;
+    content: none !important;
 }
 
-.file-upload-zone [aria-label*="Upload"]:hover,
-.file-upload-zone [title*="Upload"]:hover,
-.file-upload-zone .icon-button-wrapper button:first-child:hover {
-    background: rgba(0, 212, 255, 0.18) !important;
-    border-color: rgba(0, 212, 255, 0.6) !important;
+/* El contenedor interno de subida (.upload-container) no debe tener borde ni fondo para no duplicar la caja */
+.upload-card .icon-button-wrapper .upload-container,
+.file-upload-zone .icon-button-wrapper .upload-container {
+    all: unset !important;
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: 2 !important;
+}
+
+.upload-card .icon-button-wrapper > button > div,
+.file-upload-zone .icon-button-wrapper > button > div {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    position: relative !important;
+}
+
+.upload-card .icon-button-wrapper > button svg,
+.file-upload-zone .icon-button-wrapper > button svg {
+    width: 15px !important;
+    height: 15px !important;
+    display: block !important;
+    flex-shrink: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Botón 1: Subida Manual [↑] - Estilo cyan limpio y nítido */
+.upload-card .icon-button-wrapper > button:first-child,
+.file-upload-zone .icon-button-wrapper > button:first-child {
+    background: rgba(0, 212, 255, 0.16) !important;
+    border: 1.5px solid rgba(0, 212, 255, 0.8) !important;
     color: #00D4FF !important;
-    box-shadow: 0 0 10px rgba(0, 212, 255, 0.28) !important;
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.35) !important;
+}
+
+.upload-card .icon-button-wrapper > button:first-child:hover,
+.file-upload-zone .icon-button-wrapper > button:first-child:hover {
+    background: rgba(0, 212, 255, 0.32) !important;
+    border-color: #00F0FF !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 0 16px rgba(0, 212, 255, 0.75) !important;
+    transform: scale(1.06) !important;
+}
+
+.upload-card .icon-button-wrapper > button:first-child svg,
+.file-upload-zone .icon-button-wrapper > button:first-child svg,
+.upload-card .icon-button-wrapper > button:first-child path,
+.file-upload-zone .icon-button-wrapper > button:first-child path,
+.upload-card .icon-button-wrapper > button:first-child polyline,
+.file-upload-zone .icon-button-wrapper > button:first-child polyline,
+.upload-card .icon-button-wrapper > button:first-child line,
+.file-upload-zone .icon-button-wrapper > button:first-child line {
+    stroke: #00D4FF !important;
+    color: #00D4FF !important;
+    filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.85)) !important;
+}
+
+.upload-card .icon-button-wrapper > button:first-child:hover svg,
+.file-upload-zone .icon-button-wrapper > button:first-child:hover svg,
+.upload-card .icon-button-wrapper > button:first-child:hover path,
+.file-upload-zone .icon-button-wrapper > button:first-child:hover path {
+    stroke: #FFFFFF !important;
+    color: #FFFFFF !important;
+    filter: drop-shadow(0 0 8px rgba(0, 212, 255, 1)) !important;
+}
+
+/* Botón 2: Borrar / Limpiar [X] - En rojo coral limpio y brillante */
+.upload-card .icon-button-wrapper > button:last-child,
+.file-upload-zone .icon-button-wrapper > button:last-child {
+    background: rgba(239, 68, 68, 0.14) !important;
+    border: 1.5px solid rgba(239, 68, 68, 0.7) !important;
+    color: #F87171 !important;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.28) !important;
+}
+
+.upload-card .icon-button-wrapper > button:last-child:hover,
+.file-upload-zone .icon-button-wrapper > button:last-child:hover {
+    background: rgba(239, 68, 68, 0.28) !important;
+    border-color: #EF4444 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.7) !important;
+    transform: scale(1.06) !important;
+}
+
+.upload-card .icon-button-wrapper > button:last-child svg,
+.file-upload-zone .icon-button-wrapper > button:last-child svg,
+.upload-card .icon-button-wrapper > button:last-child path,
+.file-upload-zone .icon-button-wrapper > button:last-child path,
+.upload-card .icon-button-wrapper > button:last-child line,
+.file-upload-zone .icon-button-wrapper > button:last-child line {
+    stroke: #F87171 !important;
+    color: #F87171 !important;
+    filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.8)) !important;
+}
+
+.upload-card .icon-button-wrapper > button:last-child:hover svg,
+.file-upload-zone .icon-button-wrapper > button:last-child:hover svg,
+.upload-card .icon-button-wrapper > button:last-child:hover path,
+.file-upload-zone .icon-button-wrapper > button:last-child:hover path {
+    stroke: #FFFFFF !important;
+    color: #FFFFFF !important;
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 1)) !important;
 }
 
 /* Overlay de subida de archivos multimedia con indicador visual en tiempo real */
@@ -1670,11 +1975,6 @@ li[role="option"][aria-selected="true"],
 .file-upload-zone input[type="file"],
 .file-upload-zone [type="file"] {
     display: none !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    pointer-events: none !important;
-    width: 0 !important;
-    height: 0 !important;
 }
 
 .file-hint {
@@ -2614,6 +2914,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         "📋 Copiar texto",
                         variant="secondary",
                         elem_classes=["btn-secondary"],
+                        interactive=False,
                         scale=1,
                     )
 
@@ -2632,7 +2933,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
         """Controla la visibilidad del panel de claves de acuerdo a si es invitado o administrador."""
         if is_admin:
             return (
-                gr.update(visible=False),
+                gr.update(visible=False, elem_classes=["module-card", "keys-card", "hide"]),
                 gr.update(visible=False),
                 gr.update(visible=False),
                 gr.update(visible=False),
@@ -2652,7 +2953,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
         show_aai = is_aai
 
         return (
-            gr.update(visible=True),
+            gr.update(visible=True, elem_classes=["module-card", "keys-card"]),
             gr.update(visible=show_notice),
             gr.update(visible=show_hf),
             gr.update(visible=show_dg),
@@ -2794,7 +3095,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 gr.update(visible=False),  # modal_login
                 gr.update(visible=False),  # btn_open_login
                 gr.update(visible=True),  # btn_logout
-                gr.update(visible=False),  # guest_keys_panel
+                gr.update(visible=False, elem_classes=["module-card", "keys-card", "hide"]),  # guest_keys_panel
                 gr.update(visible=False),
                 gr.update(visible=False),
                 gr.update(visible=False),
@@ -2896,7 +3197,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
             *panel_vis,
         )
 
-    _ui_enhancements_js = """() => {
+    _ui_enhancements_js = r"""() => {
         if (!window.__transcriptorUiEnhancements) {
             window.__transcriptorUiEnhancements = true;
 
@@ -3026,10 +3327,46 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 }
             };
 
+            // ── MODO ADMIN SEGURO (ZERO RECURSIÓN) ──
+            let currentIsAdmin = null;
+            const updateAdminMode = () => {
+                const keysCard = document.querySelector('.keys-card');
+                const btnLogout = document.querySelector('.btn-login-compact:not([style*="display: none"])');
+                const isAdmin = Boolean(
+                    (keysCard && (keysCard.classList.contains('hide') || keysCard.style.display === 'none')) ||
+                    (btnLogout && btnLogout.textContent && btnLogout.textContent.includes('Salir'))
+                );
+                if (isAdmin !== currentIsAdmin) {
+                    currentIsAdmin = isAdmin;
+                    document.body.classList.toggle('admin-mode', isAdmin);
+                    document.documentElement.classList.toggle('admin-mode', isAdmin);
+                    const leftCol = document.querySelector('.left-column');
+                    if (leftCol) leftCol.classList.toggle('admin-mode', isAdmin);
+                    syncViewport();
+                }
+            };
+
+            // Limpieza de cualquier rastro previo de barra neón sintética
+            document.querySelectorAll('.neon-scrollbar-track').forEach((el) => el.remove());
+
+            // Asegurar que cualquier clic en el botón de subida manual active el selector si no fue interceptado
+            document.addEventListener('click', (e) => {
+                const uploadBtn = e.target.closest('.icon-button-wrapper > button:first-child, .file-upload-zone [aria-label*="Upload"]');
+                if (uploadBtn && uploadBtn.closest('.upload-card, .file-upload-zone')) {
+                    if (!e.target.matches('input[type="file"]') && !e.target.closest('.upload-container')) {
+                        const fileInput = uploadBtn.querySelector('input[type="file"]') || document.querySelector('.file-upload-zone input[type="file"]');
+                        if (fileInput) {
+                            fileInput.click();
+                        }
+                    }
+                }
+            });
+
             syncViewport();
             hookParentIframe();
-            setTimeout(() => { syncViewport(); hookParentIframe(); }, 120);
-            setTimeout(() => { syncViewport(); hookParentIframe(); }, 500);
+            updateAdminMode();
+            setTimeout(() => { syncViewport(); hookParentIframe(); updateAdminMode(); }, 120);
+            setTimeout(() => { syncViewport(); hookParentIframe(); updateAdminMode(); }, 500);
 
             let rafId = 0;
             const onViewportChange = () => {
@@ -3037,6 +3374,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 rafId = requestAnimationFrame(() => {
                     syncViewport();
                     hookParentIframe();
+                    updateAdminMode();
                 });
             };
 
@@ -3048,6 +3386,44 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 const ro = new ResizeObserver(onViewportChange);
                 ro.observe(document.documentElement);
             }
+
+            // Observer reactivo para la columna izquierda (modo admin)
+            let colMoRaf = 0;
+            const leftCol = document.querySelector('.left-column');
+            if (leftCol && 'MutationObserver' in window) {
+                const colMo = new MutationObserver(() => {
+                    if (colMoRaf) return;
+                    colMoRaf = requestAnimationFrame(() => {
+                        colMoRaf = 0;
+                        updateAdminMode();
+                    });
+                });
+                colMo.observe(leftCol, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['style', 'class', 'hidden']
+                });
+            }
+
+            // Escuchar clics en botones de login/logout/modal para actualizar modo admin inmediatamente
+            document.addEventListener('click', (e) => {
+                const btn = e.target && e.target.closest ? e.target.closest('.btn-login-compact, #btn_submit_login, .btn-login-submit, .btn-modal-close, .btn-secondary') : null;
+                if (btn) {
+                    setTimeout(updateAdminMode, 150);
+                    setTimeout(updateAdminMode, 500);
+                    setTimeout(updateAdminMode, 1000);
+                }
+            }, true);
+
+            // Escuchar tecla Enter en el campo de PIN del modal de login
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.target && e.target.matches('input[type="password"]')) {
+                    setTimeout(updateAdminMode, 200);
+                    setTimeout(updateAdminMode, 600);
+                    setTimeout(updateAdminMode, 1200);
+                }
+            }, true);
 
             // Detectar cambio de escala DPI al arrastrar la ventana entre monitor externo (100%) y laptop (125%/150%)
             const watchDpiChange = () => {
@@ -3222,6 +3598,20 @@ with gr.Blocks(**blocks_kwargs) as demo:
         show_progress="hidden",
     )
 
+    media_input.clear(
+        fn=clear_all,
+        outputs=[
+            media_input,
+            output_textbox,
+            btn_download,
+            btn_download_consolidated,
+            status_badge,
+            btn_transcribe,
+            batch_cache_state,
+        ],
+        show_progress="hidden",
+    )
+
     # --- Detección de archivos multimedia añadidos para reactivar transcripción diferencial ---
     media_input.change(
         fn=on_media_files_changed,
@@ -3252,6 +3642,14 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 document.body.removeChild(ta);
             }
         }""",
+    )
+
+    # --- Activar/desactivar botón Copiar texto de forma reactiva ---
+    output_textbox.change(
+        fn=lambda t: gr.Button(interactive=bool(t and t.strip())),
+        inputs=[output_textbox],
+        outputs=[btn_copy],
+        show_progress="hidden",
     )
 
     # --- Iniciar Transcripción ---
