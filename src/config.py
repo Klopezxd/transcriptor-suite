@@ -185,22 +185,19 @@ TIMESTAMP_CHOICES: list[str] = list(TIMESTAMP_LABEL_MAP.keys())
 
 PROVIDER_MODEL_CHOICES: dict[str, list[tuple[str, str]]] = {
     ProviderType.WHISPERX.value: [
-        (
-            "large-v3-turbo  ·  [Recomendado · Rápido & Gratuito en GPU]",
-            ModelName.LARGE_V3_TURBO.value,
-        ),
-        ("large-v3  ·  [Alta Capacidad · Mayor Tiempo GPU]", ModelName.LARGE_V3.value),
-        ("medium  ·  [Equilibrado · Menor VRAM]", ModelName.MEDIUM.value),
-        ("small  ·  [Ligero · Inferencia Rápida]", ModelName.SMALL.value),
-        ("base  ·  [Ultraligero · Básico]", ModelName.BASE.value),
+        ("large-v3-turbo · Recomendado", ModelName.LARGE_V3_TURBO.value),
+        ("large-v3 · Máxima Precisión", ModelName.LARGE_V3.value),
+        ("medium · Equilibrado", ModelName.MEDIUM.value),
+        ("small · Ligero & Rápido", ModelName.SMALL.value),
+        ("base · Ultraligero", ModelName.BASE.value),
     ],
     ProviderType.DEEPGRAM.value: [
-        ("nova-2  ·  [Recomendado · Ultrarrápido & Más Económico]", DeepgramModel.NOVA_2.value),
-        ("nova-3  ·  [Última Gen · Robusto en Ruido & Acentos]", DeepgramModel.NOVA_3.value),
+        ("nova-2 · Rápido & Económico", DeepgramModel.NOVA_2.value),
+        ("nova-3 · Robusto & Acentos", DeepgramModel.NOVA_3.value),
     ],
     ProviderType.ASSEMBLYAI.value: [
-        ("best  ·  [Universal-1 · Máxima Fidelidad Editorial]", AssemblyAIModel.BEST.value),
-        ("nano  ·  [Ultraligero · Mayor Ahorro de Créditos]", AssemblyAIModel.NANO.value),
+        ("best · Alta Fidelidad", AssemblyAIModel.BEST.value),
+        ("nano · Ultraligero", AssemblyAIModel.NANO.value),
     ],
 }
 
