@@ -226,7 +226,7 @@ def render_options_card() -> tuple[
             )
             model_dropdown = gr.Dropdown(
                 choices=PROVIDER_MODEL_CHOICES[ProviderType.DEEPGRAM.value],
-                value=DeepgramModel.NOVA_2.value,
+                value=DeepgramModel.NOVA_3.value,
                 label="Modelo de Transcripción",
                 allow_custom_value=True,
                 min_width=100,

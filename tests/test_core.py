@@ -54,7 +54,7 @@ def response(data=None, status=200):
 class ConfigTests(unittest.TestCase):
     def test_provider_defaults(self):
         for provider, model in [
-            (ProviderType.DEEPGRAM, "nova-2"),
+            (ProviderType.DEEPGRAM, "nova-3"),
             (ProviderType.ASSEMBLYAI, "best"),
         ]:
             with self.subTest(provider=provider):

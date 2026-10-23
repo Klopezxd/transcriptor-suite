@@ -16,7 +16,7 @@ PROVIDER_INFO_HTML: dict[str, str] = {
     ),
     ProviderType.DEEPGRAM.value: (
         '<div class="info-notice"><span>💡</span>'
-        "<span><b>Deepgram:</b> Inferencia ultrarrápida (~20s por audio largo). Modelo <code>nova-2</code> es el más económico y <code>nova-3</code> óptimo para ruido y acentos.</span></div>"
+        "<span><b>Deepgram:</b> Inferencia ultrarrápida (~20s por audio largo). Modelo <code>nova-3</code> óptimo para ruido y acentos (por defecto) y <code>nova-2</code> para máxima economía.</span></div>"
     ),
     ProviderType.ASSEMBLYAI.value: (
         '<div class="info-notice"><span>💡</span>'

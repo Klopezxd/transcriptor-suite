@@ -74,7 +74,7 @@ class TranscriptionConfig:
     """
 
     provider: str = ProviderType.DEEPGRAM.value
-    model_name: str = DeepgramModel.NOVA_2.value
+    model_name: str = DeepgramModel.NOVA_3.value
     device: str = "cuda"
     compute_type: str = ComputeType.INT8.value
     batch_size: int = 16
@@ -163,7 +163,7 @@ def normalize_provider_name(provider: str) -> str:
 
 DEFAULT_PROVIDER_MODELS: dict[str, str] = {
     ProviderType.WHISPERX.value: ModelName.LARGE_V3_TURBO.value,
-    ProviderType.DEEPGRAM.value: DeepgramModel.NOVA_2.value,
+    ProviderType.DEEPGRAM.value: DeepgramModel.NOVA_3.value,
     ProviderType.ASSEMBLYAI.value: AssemblyAIModel.BEST.value,
 }
 
@@ -192,8 +192,8 @@ PROVIDER_MODEL_CHOICES: dict[str, list[tuple[str, str]]] = {
         ("base · Ultraligero", ModelName.BASE.value),
     ],
     ProviderType.DEEPGRAM.value: [
+        ("nova-3 · Robusto & Acentos (Por Defecto)", DeepgramModel.NOVA_3.value),
         ("nova-2 · Rápido & Económico", DeepgramModel.NOVA_2.value),
-        ("nova-3 · Robusto & Acentos", DeepgramModel.NOVA_3.value),
     ],
     ProviderType.ASSEMBLYAI.value: [
         ("best · Alta Fidelidad", AssemblyAIModel.BEST.value),
