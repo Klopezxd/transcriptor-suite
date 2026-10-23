@@ -1594,6 +1594,20 @@ li[role="option"][aria-selected="true"],
     font-weight: 600 !important;
 }
 
+.status-strip-content .status-strip-link {
+    color: var(--aurora-green) !important;
+    text-decoration: underline !important;
+    text-underline-offset: 2px !important;
+    font-weight: 600 !important;
+    transition: color 0.15s ease !important;
+    cursor: pointer !important;
+}
+
+.status-strip-content .status-strip-link:hover {
+    color: var(--ice-cyan) !important;
+    text-decoration: underline !important;
+}
+
 .file-hint,
 .file-hint-formats,
 .file-hint-optimization,

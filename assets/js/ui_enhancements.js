@@ -362,7 +362,7 @@
                     strip.innerHTML = `
                         <div class="status-strip-content is-server">
                             <span class="status-pill server">⚡ Video extenso (${stats.origMb})</span>
-                            <span class="status-text">Extracción de audio en servidor (Máxima calidad FFmpeg)</span>
+                            <span class="status-text">La IA solo necesita el audio · Sube más rápido con <a href="https://github.com/Klopezxd/transcriptor-suite/raw/main/extraer_audio.bat" target="_blank" class="status-strip-link" title="Descargar herramienta ligera para Windows">extraer_audio.bat ↗</a></span>
                         </div>
                     `;
                 } else {
@@ -413,7 +413,7 @@
                     defaultSub = `⬆ Subiendo WAV PCM 16 kHz · Máxima fidelidad acústica`;
                 } else if (stats && stats.largeVideo) {
                     defaultTitle = `⬆ Subiendo video (${stats.origMb})...`;
-                    defaultSub = `Extracción acelerada con FFmpeg en servidor`;
+                    defaultSub = `La IA solo necesita el audio · Sube más rápido con extraer_audio.bat`;
                 } else if (stats && stats.mb) {
                     defaultTitle = stats.anyAudio ? '⬆ Subiendo audio al servidor...' : `Subiendo ${stats.count} archivo(s)...`;
                     defaultSub = `${stats.mb} · Transfiriendo a Hugging Face Space`;
