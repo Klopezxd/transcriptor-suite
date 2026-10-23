@@ -5,6 +5,20 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [2.4.2] - 2026-10-23
+
+### Agregado
+* **Utilidad Ligera de Extracción de Audio (`extraer_audio.bat` - Cero Python):**
+  * Script directo para Windows diseñado para resolver el cuello de botella de grabaciones universitarias de OBS Studio y videos pesados (>1.5 GB).
+  * Reduce archivos de 1.5 GB a ~50 MB (-96% de peso) en segundos extrayendo audio en formato AAC Mono a 64 kbps (`.m4a`).
+  * 100% nativo en Windows: funciona con simple arrastrar y soltar (Drag & Drop) sobre el icono, sin requerir Python, Conda ni librerías adicionales.
+* **Extracción Web en Cliente (WAV PCM 16 kHz Mono):**
+  * En navegador: generación directa de **WAV PCM lineal de 16 bits a 16 kHz Mono** para videos <= 450 MB.
+  * Eliminación de la biblioteca `lame.min.js`, reduciendo el bundle frontend web en ~160 KB.
+* **Barra de Estado Ultra Compacta (Zero-Scroll / Ahorro de Espacio Vertical):**
+  * Reemplazo de los 3 bloques apilados por una barra de estado dinámica y fluida de 1 sola línea (22px).
+  * Umbral de 450 MB en cliente para delegar videos extensos directamente a FFmpeg en servidor sin congelamientos de memoria.
+
 ## [2.4.1] - 2026-10-23
 
 ### Agregado

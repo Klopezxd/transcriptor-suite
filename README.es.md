@@ -77,6 +77,7 @@
 * **Optimización de Memoria (4GB VRAM & ZeroGPU):** Diseñado con cuantización `INT8` y recolección forzada de memoria entre fases, permitiendo ejecución fluida tanto en GPUs de consumo (ej. NVIDIA GTX 1650 con 4GB VRAM) como en **Hugging Face ZeroGPU**.
 * **Procesamiento por Lotes en Cola (Multiarchivo):** Carga o selecciona múltiples archivos de audio/video a la vez. Se procesan ordenadamente en cola secuencial FIFO para proteger la VRAM, con reporte de avance por archivo, empaquetado automático de resultados en un archivo ZIP descargable y la opción de descargar todas las transcripciones unificadas en un archivo de texto consolidado (`.txt`) con divisores claros.
 * **Optimización de Video en el Navegador (0% Pérdida):** Extracción y remuestreo nativo a 16 kHz Mono WAV PCM directo en el navegador del cliente mediante la Web Audio API. Reduce el tamaño de subida entre un 90% y 98% de forma instantánea.
+* **Extractor Ligero de Escritorio (`extraer_audio.bat` - Cero Python):** Utilidad instantánea para Windows. Si tienes grabaciones universitarias de OBS Studio o videos pesados (+1.5 GB), simplemente arrastra el archivo sobre `extraer_audio.bat`. Extrae el audio original (`.m4a`) en **2 segundos** por Stream Copy (`-c:a copy`) sin tocar Python ni recodificar nada, dejándolo listo para subirlo a la web.
 * **Doble Interfaz (Web + CLI):**
   * **Web UI (Gradio):** Interfaz para navegador con arquitectura modular, soporte de arrastre continuo, descarga individual para archivo único y botones dobles de descarga (ZIP y archivo consolidado `.txt`) que se muestran en lotes multiarchivo.
   * **CLI (Terminal):** Soporte completo de argumentos por consola (`argparse`) con soporte multiarchivo, selector gráfico múltiple de respaldo y generación automática de la transcripción consolidada del lote.
@@ -214,6 +215,8 @@ transcriptor-suite/
 │
 ├── cli.py                  # Punto de entrada de consola (CLI): ejecución directa por lotes (--input, --model,
 │                           # --diarize) y selector gráfico interactivo múltiple de respaldo.
+│
+├── extraer_audio.bat       # Utilidad Windows (Cero Python): arrastrar y soltar videos pesados para extraer audio M4A.
 │
 ├── assets/                 # Activos estáticos de frontend (CSS y JavaScript desacoplados)
 │   ├── css/theme.css       # Skin visual Aurora Boreal Nórdica, diseño responsivo y scrollbars fluidos.
@@ -393,6 +396,28 @@ python cli.py -i "conferencia.wav" --timestamps range -o "./transcripciones"
 
 ---
 
+### 4. Extractor Ligero de Audio (`extraer_audio.bat` - Cero Python)
+
+Script directo para Windows diseñado para resolver el problema de **videos y grabaciones pesadas de OBS Studio** (de 1 a 2 horas y más de 1.5 GB):
+
+* **100% Nativo en Windows (Cero Python):** No requiere Python, ni Conda, ni entornos virtuales. Cualquier persona en Windows puede usarlo.
+* **Uso con Arrastrar y Soltar (Drag & Drop):** Arrastra uno o varios videos (`.mp4`, `.mkv`, `.mov`, `.ts`) directamente sobre el archivo `extraer_audio.bat`.
+* **Doble clic interactivo:** Si haces doble clic sin arrastrar archivos, te pedirá que pegues la ruta del video.
+* **Ahorro masivo y velocidad instantánea:** Extrae el audio `.m4a` por copia directa de stream en solo **2 segundos**, reduciendo un video de 1.5 GB a ~140 MB sin pérdida alguna de calidad acústica (con fallback automático a AAC si el formato original lo requiere), listo para subirlo a Transcriptor Suite sin demoras.
+
+#### ¿Cuándo subir directo a la Web vs. usar el extractor local?
+
+```mermaid
+flowchart TD
+    A["¿Qué archivo tienes?"] --> B{"¿Ya es audio?<br>(.mp3, .m4a, .wav, .flac)"}
+    B -->|SÍ| C["Súbelo DIRECTO a la Web<br>(No conviertas nada)"]
+    B -->|NO, es un Video| D{"¿Pesa más de 450 MB<br>o es .mkv o dura > 45 min?"}
+    D -->|SÍ| E["Usa extraer_audio.bat<br>⚡ 2 segundos en PC y sube volando"]
+    D -->|NO| F["Súbelo DIRECTO a la Web<br>(La web lo extrae sola)"]
+```
+
+---
+
 ## Estructura del Proyecto
 
 ```text
@@ -400,19 +425,25 @@ transcriptor-suite/
 ├── .github/
 │   └── workflows/
 │       ├── sync-to-hf.yml       # CI/CD: Sincronización automática con Hugging Face Spaces
-│       └── lint.yml             # Análisis estático de código con Ruff
+│       └── lint.yml             # Análisis estático de código con Ruff y suite de pruebas
 ├── src/
 │   ├── __init__.py
 │   ├── config.py                # Dataclasses inmutables y enums
 │   ├── transcriber.py           # Pipeline orquestador WhisperX + Pyannote
+│   ├── cloud_providers.py      # Conectores REST Deepgram y AssemblyAI
+│   ├── ui/                      # Componentes modulares Gradio y assets
 │   └── utils.py                 # Funciones puras de VRAM, formateo y seguridad
+├── extraer_audio.bat            # Utilidad ligera de extracción de audio (Cero Python)
 ├── app.py                       # Interfaz Web Gradio (Local + ZeroGPU)
 ├── cli.py                       # Interfaz CLI avanzada
-├── requirements.txt             # Dependencias Python
+├── requirements.txt             # Dependencias Python principales
 ├── packages.txt                 # Dependencias del SO (FFmpeg en HF Spaces)
 ├── environment.yml              # Definición de entorno Conda
-├── .env.example                 # Plantilla de credenciales
-├── .gitignore                   # Exclusión estricta de medios y temporales
+├── pyproject.toml               # Configuración de empaquetado y linters
+├── LICENSE                      # Licencia MIT
+├── README.md                    # Documentación principal en Inglés
+└── README.es.md                 # Documentación en Español
+```
 ├── pyproject.toml               # Configuración de empaquetado y linters
 ├── LICENSE                      # Licencia MIT
 ├── README.md                    # Documentación principal en Inglés

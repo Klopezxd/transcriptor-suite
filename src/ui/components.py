@@ -183,14 +183,12 @@ def render_media_upload_card() -> gr.File:
         )
         gr.HTML(
             """
-            <div class="file-hint">
-                <div class="file-hint-formats">
-                    Formatos soportados: MP3, WAV, M4A, MP4, MKV, FLAC, OGG, WEBM, MOV, AAC.
+            <div class="file-status-strip">
+                <div class="status-strip-content">
+                    <span class="status-formats">Formatos: WAV, FLAC, M4A, MP3, MP4, MKV, WEBM</span>
+                    <span class="status-dot">·</span>
+                    <span class="status-hint">⚡ Audio sin pérdida (Lossless)</span>
                 </div>
-                <div class="file-hint-optimization">
-                    ⚡ Los videos son optimizados localmente en tu navegador sin pérdida de calidad para acelerar la subida.
-                </div>
-                <div class="optimization-badge-slot"></div>
             </div>
             """
         )

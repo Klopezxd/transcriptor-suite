@@ -1513,25 +1513,92 @@ li[role="option"][aria-selected="true"],
     display: none !important;
 }
 
-.file-hint {
+/* ── BARRA ULTRA-COMPACTA DE ESTADO Y FORMATOS DE ARCHIVO ── */
+.file-status-strip {
     flex: 0 0 auto !important;
+    margin-top: 4px !important;
+    padding: 2px 4px !important;
+    min-height: 22px !important;
+    max-height: 26px !important;
     display: flex !important;
-    flex-direction: column !important;
-    gap: 3px !important;
-    margin-top: 5px !important;
-    line-height: 1.25 !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
 }
 
-.file-hint-formats {
-    font-size: clamp(0.76rem, 1.45vh, 0.88rem) !important;
-    color: #88A2C2 !important;
+.status-strip-content {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: clamp(0.72rem, 1.35vh, 0.80rem) !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
 }
 
-.file-hint-optimization {
-    font-size: clamp(0.74rem, 1.40vh, 0.86rem) !important;
+.status-strip-content .status-formats {
+    color: #64748B !important;
+    font-weight: 400 !important;
+}
+
+.status-strip-content .status-dot {
+    color: #475569 !important;
+    font-weight: 700 !important;
+    opacity: 0.7 !important;
+}
+
+.status-strip-content .status-hint {
     color: var(--ice-cyan) !important;
-    opacity: 0.95 !important;
     font-weight: 500 !important;
+    opacity: 0.9 !important;
+}
+
+.status-strip-content .status-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 1px 7px !important;
+    border-radius: 9999px !important;
+    font-size: 0.69rem !important;
+    font-weight: 700 !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0.02em !important;
+}
+
+.status-strip-content .status-pill.success {
+    background: rgba(0, 255, 135, 0.12) !important;
+    color: var(--aurora-green) !important;
+    border: 1px solid rgba(0, 255, 135, 0.35) !important;
+    box-shadow: 0 0 8px rgba(0, 255, 135, 0.2) !important;
+}
+
+.status-strip-content .status-pill.server {
+    background: rgba(0, 212, 255, 0.12) !important;
+    color: var(--ice-cyan) !important;
+    border: 1px solid rgba(0, 212, 255, 0.35) !important;
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.2) !important;
+}
+
+.status-strip-content .status-text {
+    color: var(--frost-white) !important;
+    font-size: 0.75rem !important;
+}
+
+.status-strip-content .status-text b {
+    color: var(--ice-cyan) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-weight: 600 !important;
+}
+
+.file-hint,
+.file-hint-formats,
+.file-hint-optimization,
+.optimization-result-badge {
+    display: none !important;
 }
 
 /* ── MODULO 4: RESULTADO DE LA TRANSCRIPCIÓN (ALTURA SIMÉTRICA Y RESPONSIVA) ── */

@@ -256,36 +256,7 @@
                 return `${mb.toFixed(1)} MB`;
             };
 
-            const audioBufferToMp3 = (buffer, bitrate = 64) => {
-                if (!window.lamejs || !window.lamejs.Mp3Encoder) {
-                    return null;
-                }
-                const sampleRate = buffer.sampleRate;
-                const mp3encoder = new window.lamejs.Mp3Encoder(1, sampleRate, bitrate);
-                const ch0 = buffer.getChannelData(0);
-                const numSamples = buffer.length;
-                const samples = new Int16Array(numSamples);
-                for (let i = 0; i < numSamples; i++) {
-                    const s = Math.max(-1, Math.min(1, ch0[i]));
-                    samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-                }
-
-                const chunkSize = 1152;
-                const mp3Chunks = [];
-                for (let i = 0; i < samples.length; i += chunkSize) {
-                    const chunk = samples.subarray(i, i + chunkSize);
-                    const mp3buf = mp3encoder.encodeBuffer(chunk);
-                    if (mp3buf.length > 0) {
-                        mp3Chunks.push(mp3buf);
-                    }
-                }
-                const mp3buf = mp3encoder.flush();
-                if (mp3buf.length > 0) {
-                    mp3Chunks.push(mp3buf);
-                }
-                return new Blob(mp3Chunks, { type: 'audio/mp3' });
-            };
-
+            // Generador de audio sin pérdida WAV PCM 16-bit lineal (Máxima Fidelidad Acústica)
             const audioBufferToWav = (buffer) => {
                 const numChannels = 1;
                 const sampleRate = buffer.sampleRate;
@@ -337,14 +308,14 @@
                 const ctx = new AudioCtxClass();
                 let decoded;
                 try {
-                    if (onProgress) onProgress('Decodificando pista de audio...');
+                    if (onProgress) onProgress('Decodificando pista de audio sin pérdida...');
                     decoded = await ctx.decodeAudioData(ab);
                 } finally {
                     if (ctx.close) ctx.close().catch(() => {});
                 }
 
-                // Resamplear a 16kHz mono (estándar de oro universal para WhisperX, Deepgram y AssemblyAI)
-                if (onProgress) onProgress('Resampleando a 16 kHz Mono...');
+                // Resamplear a 16kHz mono (estándar de oro universal sin pérdida acústica para WhisperX, Deepgram y AssemblyAI)
+                if (onProgress) onProgress('Generando audio lineal WAV PCM 16 kHz (Máxima Fidelidad)...');
                 const targetRate = 16000;
                 const targetLength = Math.max(1, Math.ceil(decoded.duration * targetRate));
                 const offlineCtx = new OfflineAudioContext(1, targetLength, targetRate);
@@ -354,82 +325,58 @@
                 source.start(0);
                 const resampled = await offlineCtx.startRendering();
 
-                // Intentar primero MP3 a 64 kbps (compresión óptima para voz sin pérdida de fidelidad acústica)
-                let audioBlob = null;
-                let ext = 'mp3';
-                let mimeType = 'audio/mp3';
-                try {
-                    if (onProgress) onProgress('Comprimiendo audio ultra ligero (MP3 64 kbps)...');
-                    audioBlob = audioBufferToMp3(resampled, 64);
-                } catch (mp3Err) {
-                    console.warn('[Transcriptor] No se pudo codificar MP3, usando WAV fallback:', mp3Err);
-                }
-
-                if (!audioBlob) {
-                    if (onProgress) onProgress('Generando audio PCM WAV (16 kHz)...');
-                    audioBlob = audioBufferToWav(resampled);
-                    ext = 'wav';
-                    mimeType = 'audio/wav';
-                }
-
+                // Generar archivo WAV PCM de 16 bits sin pérdida adicional
+                const audioBlob = audioBufferToWav(resampled);
                 const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-                return new File([audioBlob], `${baseName}.${ext}`, {
-                    type: mimeType,
+                return new File([audioBlob], `${baseName}.wav`, {
+                    type: 'audio/wav',
                     lastModified: Date.now()
                 });
             };
 
-            const renderOptimizationBadge = (zone, stats) => {
-                const targetZone = zone || document.querySelector('.upload-card, .file-upload-zone');
-                if (!targetZone) return;
-                const slot = targetZone.querySelector('.optimization-badge-slot') || targetZone.querySelector('.file-hint');
-                if (!slot) return;
+            const defaultStripContent = `
+                <div class="status-strip-content">
+                    <span class="status-formats">Formatos: WAV, FLAC, M4A, MP3, MP4, MKV, WEBM</span>
+                    <span class="status-dot">·</span>
+                    <span class="status-hint">⚡ Audio sin pérdida (Lossless)</span>
+                </div>
+            `;
 
-                let badge = targetZone.querySelector('.optimization-result-badge');
+            const updateFileStatusStrip = (zone, stats) => {
+                const strip = document.querySelector('.file-status-strip');
+                if (!strip) return;
+
                 if (!stats || !stats.processed) {
-                    if (badge) badge.remove();
+                    strip.innerHTML = defaultStripContent;
                     return;
                 }
 
-                if (!badge) {
-                    badge = document.createElement('div');
-                    badge.className = 'optimization-result-badge';
-                    slot.appendChild(badge);
-                }
-
                 if (stats.success) {
-                    badge.className = 'optimization-result-badge success';
-                    badge.innerHTML = `
-                        <div class="opt-badge-left">
-                            <span class="opt-badge-icon">⚡</span>
-                            <div class="opt-badge-content">
-                                <div class="opt-badge-title">
-                                    <strong>Optimización local en navegador completada</strong>
-                                    <span class="opt-badge-pill">-${stats.savingsPct}% de ancho de banda</span>
-                                </div>
-                                <div class="opt-badge-desc">
-                                    De <b>${stats.origMb}</b> redujo a <b>${stats.optMb}</b> · Ahorraste <b>${stats.savedMb}</b> de transferencia
-                                </div>
-                            </div>
+                    strip.innerHTML = `
+                        <div class="status-strip-content is-optimized">
+                            <span class="status-pill success">⚡ WAV 16 kHz (Sin pérdida)</span>
+                            <span class="status-text">${stats.origMb} ➔ <b>${stats.optMb}</b> (${stats.savingsPct}% menos subida)</span>
+                        </div>
+                    `;
+                } else if (stats.largeVideo) {
+                    strip.innerHTML = `
+                        <div class="status-strip-content is-server">
+                            <span class="status-pill server">⚡ Video extenso (${stats.origMb})</span>
+                            <span class="status-text">Extracción de audio en servidor (Máxima calidad FFmpeg)</span>
                         </div>
                     `;
                 } else {
-                    badge.className = 'optimization-result-badge warning';
-                    badge.innerHTML = `
-                        <div class="opt-badge-left">
-                            <span class="opt-badge-icon">ℹ️</span>
-                            <div class="opt-badge-content">
-                                <div class="opt-badge-title">
-                                    <strong>Subiendo video original (${stats.origMb})</strong>
-                                    <span class="opt-badge-pill warn">Sin compresión en cliente</span>
-                                </div>
-                                <div class="opt-badge-desc">
-                                    ${stats.reason || 'El codec del video se procesará con aceleración directa FFmpeg en el servidor.'}
-                                </div>
-                            </div>
+                    strip.innerHTML = `
+                        <div class="status-strip-content is-server">
+                            <span class="status-pill server">⚡ Subida directa (${stats.origMb})</span>
+                            <span class="status-text">Extracción de audio en servidor</span>
                         </div>
                     `;
                 }
+            };
+
+            const renderOptimizationBadge = (zone, stats) => {
+                updateFileStatusStrip(zone, stats);
             };
 
             const updateExtractingOverlay = (zone, current, total, fileName, stageText) => {
@@ -462,8 +409,11 @@
                 let defaultSub = 'Transfiriendo a Hugging Face Space';
 
                 if (stats && stats.success) {
-                    defaultTitle = `⚡ ¡Optimizado! ${stats.origMb} ➔ ${stats.optMb} (-${stats.savingsPct}%)`;
-                    defaultSub = `⬆ Subiendo audio ultra ligero · Ahorraste ${stats.savedMb} de subida`;
+                    defaultTitle = `⚡ ¡Audio sin pérdida extraído! ${stats.origMb} ➔ ${stats.optMb} (-${stats.savingsPct}%)`;
+                    defaultSub = `⬆ Subiendo WAV PCM 16 kHz · Máxima fidelidad acústica`;
+                } else if (stats && stats.largeVideo) {
+                    defaultTitle = `⬆ Subiendo video (${stats.origMb})...`;
+                    defaultSub = `Extracción acelerada con FFmpeg en servidor`;
                 } else if (stats && stats.mb) {
                     defaultTitle = stats.anyAudio ? '⬆ Subiendo audio al servidor...' : `Subiendo ${stats.count} archivo(s)...`;
                     defaultSub = `${stats.mb} · Transfiriendo a Hugging Face Space`;
@@ -529,11 +479,19 @@
                     return { files: fileArray, stats: null };
                 }
 
+                // Límite seguro para decodificación Web Audio en el navegador.
+                // Archivos mayores a 450 MB generan más de 2 GB de muestras Float32 PCM desnudas en memoria,
+                // excediendo el límite de búfer de Chromium y congelando el navegador.
+                // Para videos mayores a 450 MB, el servidor los procesa con FFmpeg nativo en 1 segundo.
+                const MAX_BROWSER_DECODE_SIZE = 450 * 1024 * 1024; // 450 MB
+
                 const processed = [];
                 let videoProcessed = 0;
                 let totalOrigBytes = 0;
                 let totalOptBytes = 0;
                 let anyOptimized = false;
+                let anyLargeVideo = false;
+                let anyFallback = false;
                 let failureReason = '';
 
                 for (let i = 0; i < fileArray.length; i++) {
@@ -542,6 +500,15 @@
                         videoProcessed++;
                         totalOrigBytes += f.size;
                         const origMb = formatBytes(f.size);
+
+                        // Si el archivo supera el umbral seguro de decodificación en memoria del navegador:
+                        if (f.size > MAX_BROWSER_DECODE_SIZE) {
+                            console.log(`[Transcriptor] Video extenso (${origMb} > 450MB). Omitiendo decodificación Web Audio para evitar sobrecarga de RAM; el servidor procesará el audio con FFmpeg.`);
+                            totalOptBytes += f.size;
+                            anyLargeVideo = true;
+                            processed.push(f);
+                            continue;
+                        }
 
                         updateExtractingOverlay(zone, videoProcessed, videoIndices.length, `${f.name} (${origMb})`, 'Iniciando optimización...');
                         try {
@@ -569,6 +536,7 @@
                             console.warn(`[Transcriptor] No se pudo extraer audio local de ${f.name}, subiendo original:`, err);
                             failureReason = err.message || 'Codec no decodificable en navegador';
                             totalOptBytes += f.size;
+                            anyFallback = true;
                             processed.push(f);
                         }
                     } else {
@@ -584,6 +552,8 @@
                 const stats = {
                     processed: true,
                     success: anyOptimized && savingsPct > 0,
+                    largeVideo: anyLargeVideo && !anyOptimized,
+                    fallback: anyFallback && !anyOptimized,
                     origTotal: totalOrigBytes,
                     optTotal: totalOptBytes,
                     savedBytes: savedBytes,
