@@ -829,8 +829,7 @@ li[role="option"][aria-selected="true"],
 
 /* Anula el min-height: var(--size-60) (240px) interno de Gradio 6 en .wrap.svelte-1vmd51o y permite estiramiento */
 .file-upload-zone .wrap:not([data-testid="status-tracker"]),
-.file-upload-zone [data-upload-density],
-.file-upload-zone .icon-wrap {
+.file-upload-zone [data-upload-density] {
     min-height: 0 !important;
     height: 100% !important;
     flex: 1 1 0% !important;
@@ -839,6 +838,19 @@ li[role="option"][aria-selected="true"],
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
+}
+
+.file-upload-zone .icon-wrap,
+.file-upload-zone [data-testid="upload-icon"] {
+    min-height: 0 !important;
+    height: auto !important;
+    width: auto !important;
+    flex: 0 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* Zona de subida vacía (solo aplica al botón dropzone .boundedheight, NUNCA al botón X de borrar) */
@@ -851,10 +863,12 @@ li[role="option"][aria-selected="true"],
     flex: 1 1 0% !important;
     min-height: 44px !important;
     height: 100% !important;
-    padding: 6px 14px !important;
+    padding: 10px 14px !important;
     display: flex !important;
+    flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
+    gap: 8px !important;
     cursor: pointer !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
@@ -875,16 +889,17 @@ li[role="option"][aria-selected="true"],
 .file-upload-zone [data-testid="upload-text"],
 .file-upload-zone button.boundedheight > div {
     display: flex !important;
-    flex-direction: row !important;
+    flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 10px !important;
+    gap: 0 !important;
     font-size: 0 !important;
     color: transparent !important;
     line-height: 0 !important;
     width: 100% !important;
     min-height: 0 !important;
     height: auto !important;
+    flex: 0 0 auto !important;
     margin: 0 !important;
     padding: 0 !important;
 }
@@ -909,12 +924,12 @@ li[role="option"][aria-selected="true"],
 .file-upload-zone button.boundedheight > div::after {
     content: "Arrastre el archivo aquí o haga clic para cargar" !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.95rem, 2.0vh, 1.20rem) !important;
+    font-size: clamp(0.92rem, 1.8vh, 1.15rem) !important;
     line-height: 1.25 !important;
     font-weight: 600 !important;
     color: var(--frost-white) !important;
     text-align: center !important;
-    display: inline-block !important;
+    display: block !important;
     margin: 0 !important;
 }
 
@@ -1390,10 +1405,23 @@ li[role="option"][aria-selected="true"],
 
 .file-hint {
     flex: 0 0 auto !important;
-    font-size: clamp(0.78rem, 1.55vh, 0.94rem) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    margin-top: 5px !important;
+    line-height: 1.25 !important;
+}
+
+.file-hint-formats {
+    font-size: clamp(0.76rem, 1.45vh, 0.88rem) !important;
     color: #88A2C2 !important;
-    margin-top: 3px !important;
-    line-height: 1.2 !important;
+}
+
+.file-hint-optimization {
+    font-size: clamp(0.74rem, 1.40vh, 0.86rem) !important;
+    color: var(--ice-cyan) !important;
+    opacity: 0.95 !important;
+    font-weight: 500 !important;
 }
 
 /* ── MODULO 4: RESULTADO DE LA TRANSCRIPCIÓN (ALTURA SIMÉTRICA Y RESPONSIVA) ── */
