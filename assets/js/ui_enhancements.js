@@ -242,6 +242,21 @@
             watchDpiChange();
 
             // 3. Extracción y Compresión de Audio en el Navegador y Soporte Drag & Drop Continuo
+            window.__downloadAudioExtractorBat = () => {
+                const batContent = `@echo off\r\nsetlocal enabledelayedexpansion\r\ntitle Extractor de Audio - Transcriptor Suite\r\ncolor 0B\r\nchcp 65001 >nul\r\n\r\necho ======================================================\r\necho       EXTRACTOR DE AUDIO - TRANSCRIPTOR SUITE\r\necho ======================================================\r\necho.\r\n\r\n:: 1. Buscar FFmpeg en el sistema\r\nset "FFMPEG="\r\nwhere ffmpeg >nul 2>&1 && set "FFMPEG=ffmpeg"\r\n\r\nif "!FFMPEG!"=="" (\r\n    if exist "%LOCALAPPDATA%\\Microsoft\\WinGet\\Links\\ffmpeg.exe" (\r\n        set "FFMPEG=%LOCALAPPDATA%\\Microsoft\\WinGet\\Links\\ffmpeg.exe"\r\n    ) else if exist "%~dp0ffmpeg.exe" (\r\n        set "FFMPEG=%~dp0ffmpeg.exe"\r\n    ) else if exist "C:\\ffmpeg\\bin\\ffmpeg.exe" (\r\n        set "FFMPEG=C:\\ffmpeg\\bin\\ffmpeg.exe"\r\n    )\r\n)\r\n\r\nif "!FFMPEG!"=="" (\r\n    color 0C\r\n    echo [ERROR] No se encontro FFmpeg en tu computadora.\r\n    echo.\r\n    echo Para instalarlo en 1 minuto, abre PowerShell y escribe:\r\n    echo     winget install Gyan.FFmpeg\r\n    echo.\r\n    echo O descarga ffmpeg.exe y colocalo en esta misma carpeta.\r\n    echo ======================================================\r\n    pause\r\n    exit /b 1\r\n)\r\n\r\n:: 2. Si no arrastro archivos, pedir ruta por teclado\r\nif "%~1"=="" (\r\n    echo Arrastra un archivo de video a esta ventana o escribe su ruta:\r\n    set /p "INPUT_FILE=> "\r\n    set "INPUT_FILE=!INPUT_FILE:"=!"\r\n    if "!INPUT_FILE!"=="" exit /b 0\r\n    call :PROCESAR "!INPUT_FILE!"\r\n    goto :FIN\r\n)\r\n\r\n:: 3. Procesar todos los archivos arrastrados (uno o varios a la vez)\r\n:LOOP\r\nif "%~1"=="" goto :FIN\r\ncall :PROCESAR "%~1"\r\nshift\r\ngoto :LOOP\r\n\r\n:PROCESAR\r\nset "ORIGINAL=%~1"\r\nif not exist "!ORIGINAL!" (\r\n    echo [ERROR] No se encuentra el archivo: "!ORIGINAL!"\r\n    echo.\r\n    exit /b 1\r\n)\r\n\r\nset "DESTINO=%~dpn1_audio.m4a"\r\n\r\necho ------------------------------------------------------\r\necho Procesando: "%~nx1"\r\necho Extrayendo audio en calidad original (Stream Copy)...\r\n\r\n"!FFMPEG!" -y -hide_banner -loglevel warning -stats -i "!ORIGINAL!" -vn -c:a copy "!DESTINO!"\r\n\r\nif !ERRORLEVEL! neq 0 (\r\n    echo [AVISO] Formato no compatible con copia directa. Codificando a AAC...\r\n    "!FFMPEG!" -y -hide_banner -loglevel warning -stats -i "!ORIGINAL!" -vn -c:a aac -b:a 64k -ac 1 "!DESTINO!"\r\n)\r\n\r\nif !ERRORLEVEL! equ 0 (\r\n    echo.\r\n    echo [EXITO] Audio listo para subir:\r\n    echo         "!DESTINO!"\r\n) else (\r\n    echo.\r\n    echo [ERROR] Ocurrio un fallo al procesar "%~nx1".\r\n)\r\necho ------------------------------------------------------\r\necho.\r\nexit /b 0\r\n\r\n:FIN\r\necho ======================================================\r\necho Proceso finalizado.\r\necho Puedes subir los audios generados a Transcriptor Suite.\r\necho ======================================================\r\necho.\r\npause\r\n`;
+                const blob = new Blob([batContent], { type: 'application/x-bat' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'extraer_audio.bat';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            };
+
             const isVideoFile = (file) => {
                 if (!file) return false;
                 const name = (file.name || '').toLowerCase();
@@ -362,7 +377,7 @@
                     strip.innerHTML = `
                         <div class="status-strip-content is-server">
                             <span class="status-pill server">⚡ Video extenso (${stats.origMb})</span>
-                            <span class="status-text">La IA solo necesita el audio · Sube más rápido con <a href="https://github.com/Klopezxd/transcriptor-suite/raw/main/extraer_audio.bat" target="_blank" class="status-strip-link" title="Descargar herramienta ligera para Windows">extraer_audio.bat ↗</a></span>
+                            <span class="status-text">La IA solo necesita el audio · Sube más rápido con <a href="javascript:void(0)" onclick="window.__downloadAudioExtractorBat()" class="status-strip-link" title="Haz clic para descargar extraer_audio.bat directamente">extraer_audio.bat ⬇</a></span>
                         </div>
                     `;
                 } else {
