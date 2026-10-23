@@ -1337,6 +1337,32 @@ li[role="option"][aria-selected="true"],
     animation: fadeInOverlay 0.2s ease-out !important;
 }
 
+.overlay-dismiss-btn {
+    position: absolute !important;
+    top: 6px !important;
+    right: 8px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #88A2C2 !important;
+    border-radius: 4px !important;
+    width: 22px !important;
+    height: 22px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    z-index: 55 !important;
+}
+
+.overlay-dismiss-btn:hover {
+    background: rgba(239, 68, 68, 0.4) !important;
+    color: #FFFFFF !important;
+    border-color: rgba(239, 68, 68, 0.8) !important;
+}
+
 .upload-spinner {
     width: 22px !important;
     height: 22px !important;

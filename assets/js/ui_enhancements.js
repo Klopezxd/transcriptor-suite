@@ -281,21 +281,25 @@
                 writeString(36, 'data');
                 view.setUint32(40, dataSize, true);
 
-                const channelData = [];
-                for (let i = 0; i < numChannels; i++) {
-                    channelData.push(buffer.getChannelData(i));
-                }
-
-                let offset = 44;
-                for (let i = 0; i < buffer.length; i++) {
-                    for (let ch = 0; ch < numChannels; ch++) {
-                        let s = channelData[ch][i];
-                        s = Math.max(-1, Math.min(1, s));
-                        view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-                        offset += 2;
+                const samples = new Int16Array(arrayBuffer, 44, buffer.length * numChannels);
+                if (numChannels === 1) {
+                    const ch0 = buffer.getChannelData(0);
+                    for (let i = 0; i < buffer.length; i++) {
+                        const s = Math.max(-1, Math.min(1, ch0[i]));
+                        samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                    }
+                } else {
+                    const ch0 = buffer.getChannelData(0);
+                    const ch1 = buffer.getChannelData(1);
+                    let ptr = 0;
+                    for (let i = 0; i < buffer.length; i++) {
+                        const s0 = Math.max(-1, Math.min(1, ch0[i]));
+                        const s1 = Math.max(-1, Math.min(1, ch1[i]));
+                        samples[ptr++] = s0 < 0 ? s0 * 0x8000 : s0 * 0x7FFF;
+                        samples[ptr++] = s1 < 0 ? s1 * 0x8000 : s1 * 0x7FFF;
                     }
                 }
-                return new Blob([view], { type: 'audio/wav' });
+                return new Blob([arrayBuffer], { type: 'audio/wav' });
             };
 
             const extractAudioFromVideo = async (file) => {
@@ -330,7 +334,7 @@
                 });
             };
 
-            const updateExtractingOverlay = (zone, current, total, fileName) => {
+            const updateExtractingOverlay = (zone, current, total, fileName, stageText) => {
                 const targetZone = zone || document.querySelector('.file-upload-zone');
                 if (!targetZone) return;
                 let overlay = targetZone.querySelector('.upload-loading-overlay');
@@ -342,11 +346,11 @@
                 overlay.innerHTML = `
                     <div class="upload-spinner"></div>
                     <div class="upload-loading-text">⚡ Optimizando video (${current}/${total})...</div>
-                    <div class="upload-loading-subtext">Extrayendo audio localmente (100% Lossless) · ${fileName}</div>
+                    <div class="upload-loading-subtext">${stageText || 'Extrayendo audio localmente (100% Lossless)'} · ${fileName}</div>
                 `;
             };
 
-            const showUploadOverlay = (zone, count, mbText) => {
+            const showUploadOverlay = (zone, count, mbText, title, sub) => {
                 const targetZone = zone || document.querySelector('.file-upload-zone');
                 if (!targetZone) return;
                 let overlay = targetZone.querySelector('.upload-loading-overlay');
@@ -355,11 +359,14 @@
                     overlay.className = 'upload-loading-overlay';
                     targetZone.appendChild(overlay);
                 }
-                const fileText = count === 1 ? 'archivo multimedia' : `${count} archivos multimedia`;
+                const fileText = count === 1 ? 'audio' : `${count} archivos`;
+                const defaultTitle = `⬆ Subiendo ${fileText} al servidor...`;
+                const defaultSub = `${mbText ? mbText + ' · ' : ''}Transfiriendo a Hugging Face Space`;
                 overlay.innerHTML = `
+                    <button class="overlay-dismiss-btn" title="Cerrar overlay" onclick="this.closest('.upload-loading-overlay').remove()">✕</button>
                     <div class="upload-spinner"></div>
-                    <div class="upload-loading-text">Subiendo ${fileText}...</div>
-                    <div class="upload-loading-subtext">${mbText ? mbText + ' · ' : ''}Transfiriendo al servidor</div>
+                    <div class="upload-loading-text">${title || defaultTitle}</div>
+                    <div class="upload-loading-subtext">${sub || defaultSub}</div>
                 `;
             };
 
@@ -367,15 +374,37 @@
                 document.querySelectorAll('.upload-loading-overlay').forEach((el) => el.remove());
             };
 
+            // Observador DOM en tiempo real: cierra el overlay en cuanto Gradio monte los archivos en pantalla
+            const observeUploadZone = () => {
+                const zone = document.querySelector('.file-upload-zone, .upload-card');
+                if (!zone || zone.__transcriptorObserverAttached) return;
+                zone.__transcriptorObserverAttached = true;
+                const mo = new MutationObserver(() => {
+                    const hasPreview = zone.querySelector('.file-preview-holder, table.file-preview, [data-testid="file-preview"], .icon-button-wrapper, .filename, table');
+                    if (hasPreview) {
+                        hideUploadOverlay();
+                    }
+                });
+                mo.observe(zone, { childList: true, subtree: true });
+            };
+            observeUploadZone();
+            setInterval(observeUploadZone, 1000);
+
             const handleFilesUploadStart = (zone, files) => {
                 if (!files || files.length === 0) return;
                 let totalBytes = 0;
+                let anyWav = false;
                 for (let i = 0; i < files.length; i++) {
                     totalBytes += files[i].size || 0;
+                    if (files[i].name && files[i].name.endsWith('.wav')) {
+                        anyWav = true;
+                    }
                 }
                 const mb = totalBytes > 0 ? `${(totalBytes / (1024 * 1024)).toFixed(1)} MB` : '';
-                showUploadOverlay(zone, files.length, mb);
-                setTimeout(() => hideUploadOverlay(), 180000);
+                const title = anyWav ? '⬆ Subiendo audio optimizado...' : `Subiendo ${files.length} archivo(s)...`;
+                const sub = `${mb ? mb + ' · ' : ''}Transfiriendo a Hugging Face Space`;
+                showUploadOverlay(zone, files.length, mb, title, sub);
+                setTimeout(() => hideUploadOverlay(), 45000);
             };
 
             const processFilesWithAudioExtraction = async (zone, files) => {
@@ -396,13 +425,17 @@
                     const f = fileArray[i];
                     if (isVideoFile(f)) {
                         videoProcessed++;
-                        updateExtractingOverlay(zone, videoProcessed, videoIndices.length, f.name);
+                        const origMb = (f.size / (1024 * 1024)).toFixed(1);
+                        updateExtractingOverlay(zone, videoProcessed, videoIndices.length, `${f.name} (${origMb} MB)`, 'Decodificando pista de audio...');
                         try {
                             const audioFile = await extractAudioFromVideo(f);
-                            console.log(`[Transcriptor] Optimización exitosa: ${f.name} (${(f.size / (1024 * 1024)).toFixed(1)} MB) -> ${audioFile.name} (${(audioFile.size / (1024 * 1024)).toFixed(1)} MB)`);
+                            const audioMb = (audioFile.size / (1024 * 1024)).toFixed(1);
+                            const savings = Math.max(0, Math.round((1 - audioFile.size / f.size) * 100));
+                            console.log(`[Transcriptor] Optimización exitosa: ${f.name} (${origMb} MB) -> ${audioFile.name} (${audioMb} MB, -${savings}%)`);
                             processed.push(audioFile);
                         } catch (err) {
                             console.warn(`[Transcriptor] No se pudo extraer audio local de ${f.name}, subiendo original:`, err);
+                            updateExtractingOverlay(zone, videoProcessed, videoIndices.length, f.name, `⚠️ No se pudo extraer audio local (${err.message || 'error'}). Subiendo original...`);
                             processed.push(f);
                         }
                     } else {
@@ -412,23 +445,42 @@
                 return processed;
             };
 
-            // Hook a fetch para ocultar el overlay inmediatamente al finalizar el upload en Gradio
+            // Multi-Network Hook (Fetch y XHR) para ocultar el overlay inmediatamente al finalizar el upload
             if (!window.__transcriptorHookedFetch && window.fetch) {
                 window.__transcriptorHookedFetch = true;
                 const origFetch = window.fetch;
                 window.fetch = async function(...args) {
                     const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
-                    if (url.includes('/upload')) {
-                        try {
-                            const res = await origFetch.apply(this, args);
-                            setTimeout(() => hideUploadOverlay(), 400);
-                            return res;
-                        } catch (err) {
-                            hideUploadOverlay();
-                            throw err;
+                    const isUpload = url.includes('upload') || url.includes('/api/') || (args[1] && (args[1].body instanceof FormData || args[1].body instanceof Blob || args[1].body instanceof File));
+                    try {
+                        const res = await origFetch.apply(this, args);
+                        if (isUpload) {
+                            setTimeout(() => hideUploadOverlay(), 300);
                         }
+                        return res;
+                    } catch (err) {
+                        if (isUpload) hideUploadOverlay();
+                        throw err;
                     }
-                    return origFetch.apply(this, args);
+                };
+            }
+
+            if (!window.__transcriptorHookedXHR && window.XMLHttpRequest) {
+                window.__transcriptorHookedXHR = true;
+                const origOpen = XMLHttpRequest.prototype.open;
+                const origSend = XMLHttpRequest.prototype.send;
+                XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+                    this.__transcriptorUrl = String(url || '');
+                    return origOpen.call(this, method, url, ...rest);
+                };
+                XMLHttpRequest.prototype.send = function(...args) {
+                    const url = this.__transcriptorUrl || '';
+                    if (url.includes('upload') || (args[0] && (args[0] instanceof FormData || args[0] instanceof Blob || args[0] instanceof File))) {
+                        this.addEventListener('loadend', () => {
+                            setTimeout(() => hideUploadOverlay(), 300);
+                        });
+                    }
+                    return origSend.apply(this, args);
                 };
             }
 
