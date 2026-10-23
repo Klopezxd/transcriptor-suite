@@ -394,29 +394,41 @@
                 updateFileStatusStrip(zone, stats);
             };
 
+            const getUploadZone = (zone) => {
+                if (zone && zone.classList && zone.classList.contains('file-upload-zone')) return zone;
+                return document.querySelector('.file-upload-zone') || zone;
+            };
+
             const updateExtractingOverlay = (zone, current, total, fileName, stageText) => {
-                const targetZone = zone || document.querySelector('.file-upload-zone');
+                const targetZone = getUploadZone(zone);
                 if (!targetZone) return;
                 let overlay = targetZone.querySelector('.upload-loading-overlay');
                 if (!overlay) {
                     overlay = document.createElement('div');
                     overlay.className = 'upload-loading-overlay';
+                    overlay.addEventListener('click', (e) => e.stopPropagation());
                     targetZone.appendChild(overlay);
                 }
                 overlay.innerHTML = `
-                    <div class="upload-spinner"></div>
-                    <div class="upload-loading-text">⚡ Optimizando video (${current}/${total})...</div>
-                    <div class="upload-loading-subtext">${stageText || 'Extrayendo audio localmente'} · ${fileName}</div>
+                    <button class="overlay-dismiss-btn" title="Cerrar overlay" onclick="this.closest('.upload-loading-overlay').remove()">✕</button>
+                    <div class="upload-overlay-body">
+                        <div class="upload-spinner"></div>
+                        <div class="upload-loading-info">
+                            <div class="upload-loading-text">⚡ Optimizando video (${current}/${total})...</div>
+                            <div class="upload-loading-subtext">${stageText || 'Extrayendo audio localmente'} · ${fileName}</div>
+                        </div>
+                    </div>
                 `;
             };
 
             const showUploadOverlay = (zone, stats, title, sub) => {
-                const targetZone = zone || document.querySelector('.file-upload-zone');
+                const targetZone = getUploadZone(zone);
                 if (!targetZone) return;
                 let overlay = targetZone.querySelector('.upload-loading-overlay');
                 if (!overlay) {
                     overlay = document.createElement('div');
                     overlay.className = 'upload-loading-overlay';
+                    overlay.addEventListener('click', (e) => e.stopPropagation());
                     targetZone.appendChild(overlay);
                 }
 
@@ -436,9 +448,13 @@
 
                 overlay.innerHTML = `
                     <button class="overlay-dismiss-btn" title="Cerrar overlay" onclick="this.closest('.upload-loading-overlay').remove()">✕</button>
-                    <div class="upload-spinner"></div>
-                    <div class="upload-loading-text">${title || defaultTitle}</div>
-                    <div class="upload-loading-subtext">${sub || defaultSub}</div>
+                    <div class="upload-overlay-body">
+                        <div class="upload-spinner"></div>
+                        <div class="upload-loading-info">
+                            <div class="upload-loading-text">${title || defaultTitle}</div>
+                            <div class="upload-loading-subtext">${sub || defaultSub}</div>
+                        </div>
+                    </div>
                 `;
             };
 

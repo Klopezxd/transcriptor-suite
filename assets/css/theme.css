@@ -813,7 +813,7 @@ li[role="option"][aria-selected="true"],
 /* ── MODULO 1: ARRASTRAR ARCHIVO (RESPONSIVO Y ADAPTABLE A TODO EL ALTO DISPONIBLE) ── */
 .file-upload-zone,
 .upload-card .file-upload-zone,
-.upload-card .file-upload-zone > div:not([data-testid="status-tracker"]):not(.file-preview-holder):not(.icon-button-wrapper) {
+.upload-card .file-upload-zone > div:not([data-testid="status-tracker"]):not(.file-preview-holder):not(.icon-button-wrapper):not(.upload-loading-overlay) {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -1397,40 +1397,66 @@ li[role="option"][aria-selected="true"],
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Overlay de subida de archivos multimedia con indicador visual en tiempo real */
+/* Overlay de subida y optimización de archivos multimedia con indicador visual en tiempo real */
+.upload-card .file-upload-zone .upload-loading-overlay,
+.upload-card .upload-loading-overlay,
+.file-upload-zone .upload-loading-overlay,
 .upload-loading-overlay {
     position: absolute !important;
     inset: 0 !important;
     width: 100% !important;
     height: 100% !important;
-    min-height: 44px !important;
-    background: rgba(5, 11, 26, 0.94) !important;
+    min-height: 48px !important;
+    background: rgba(6, 14, 29, 0.96) !important;
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
     border: 1.5px solid var(--aurora-green) !important;
     border-radius: 10px !important;
-    z-index: 50 !important;
+    z-index: 100 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    padding: 8px 36px 8px 14px !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 0 20px rgba(0, 255, 135, 0.35) !important;
+    animation: fadeInOverlay 0.2s ease-out !important;
+    pointer-events: all !important;
+}
+
+.upload-overlay-body {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+.upload-loading-info {
     display: flex !important;
     flex-direction: column !important;
-    align-items: center !important;
+    align-items: flex-start !important;
     justify-content: center !important;
-    gap: 6px !important;
-    padding: 8px 14px !important;
-    box-sizing: border-box !important;
-    box-shadow: 0 0 20px rgba(0, 255, 135, 0.3) !important;
-    animation: fadeInOverlay 0.2s ease-out !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
 }
 
 .overlay-dismiss-btn {
     position: absolute !important;
-    top: 6px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
     right: 8px !important;
     background: rgba(255, 255, 255, 0.08) !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
     color: #88A2C2 !important;
     border-radius: 4px !important;
-    width: 22px !important;
-    height: 22px !important;
+    width: 20px !important;
+    height: 20px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1438,7 +1464,7 @@ li[role="option"][aria-selected="true"],
     line-height: 1 !important;
     cursor: pointer !important;
     transition: all 0.2s ease !important;
-    z-index: 55 !important;
+    z-index: 105 !important;
 }
 
 .overlay-dismiss-btn:hover {
@@ -1448,6 +1474,7 @@ li[role="option"][aria-selected="true"],
 }
 
 .upload-spinner {
+    flex: 0 0 22px !important;
     width: 22px !important;
     height: 22px !important;
     border: 2.5px solid rgba(0, 212, 255, 0.25) !important;
@@ -1459,21 +1486,27 @@ li[role="option"][aria-selected="true"],
 
 .upload-loading-text {
     font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.85rem, 1.7vh, 1.0rem) !important;
+    font-size: clamp(0.78rem, 1.4vh, 0.88rem) !important;
     font-weight: 700 !important;
     color: var(--frost-white) !important;
-    text-align: center !important;
-    max-width: 90% !important;
+    text-align: left !important;
+    max-width: 100% !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
+    line-height: 1.25 !important;
 }
 
 .upload-loading-subtext {
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: clamp(0.72rem, 1.35vh, 0.84rem) !important;
+    font-size: clamp(0.68rem, 1.2vh, 0.78rem) !important;
     color: #00D4FF !important;
-    text-align: center !important;
+    text-align: left !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    line-height: 1.2 !important;
 }
 
 @keyframes spin-pulse {
