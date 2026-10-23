@@ -5,6 +5,24 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [2.4.1] - 2026-10-23
+
+### Agregado
+* **Codificación Ultra Ligera en Cliente (MP3 64 kbps a 16 kHz) con `lamejs`:**
+  * Compresión acústica local que reduce hasta 4 veces más el tamaño frente a PCM WAV (ej. 10 minutos pasan de 19.2 MB a sólo 4.58 MB; 30 minutos a ~13.7 MB), acelerando la subida a Hugging Face Space hasta en un 97%.
+  * Fallback automático a 16 kHz Mono WAV ante cualquier eventualidad.
+* **Insignia Permanente y Feedback en Tiempo Real de Ahorro en la Interfaz:**
+  * Visualización visible e inconfundible del ahorro exacto (`124.5 MB ➔ 4.6 MB (-96% de ancho de banda)` y megabytes ahorrados) tanto en el overlay en vivo durante la subida como en una insignia permanente bajo la zona de carga de archivos.
+  * Notificación informativa clara en caso de que un video requiera procesamiento directo en servidor.
+
+### Corregido
+* **Prevención de Carga Innecesaria de Audio:**
+  * Si el archivo de video original ya es más liviano que el audio generado (ej. videos ultra comprimidos), se conserva el video original para no ralentizar la transferencia.
+* **Cierre Prematuro del Overlay de Carga:**
+  * Corregido el hook de red para evitar que solicitudes internas `/api/` en segundo plano ocultaran el overlay antes de que la subida a Hugging Face Space finalizara.
+
+---
+
 ## [2.4.0] - 2026-10-22
 
 ### Agregado

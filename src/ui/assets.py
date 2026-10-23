@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 ASSETS_DIR = ROOT_DIR / "assets"
 CSS_THEME_FILE = ASSETS_DIR / "css" / "theme.css"
+LAME_JS_FILE = ASSETS_DIR / "js" / "lame.min.js"
 JS_ENHANCEMENTS_FILE = ASSETS_DIR / "js" / "ui_enhancements.js"
 
 
@@ -21,8 +22,18 @@ def get_custom_css() -> str:
 @lru_cache(maxsize=1)
 def get_ui_enhancements_js() -> str:
     """Retorna los scripts JavaScript de cliente (Web Audio, Drag & Drop, DPI, etc.)."""
+    enhancements_code = ""
     if JS_ENHANCEMENTS_FILE.is_file():
-        return JS_ENHANCEMENTS_FILE.read_text(encoding="utf-8")
+        enhancements_code = JS_ENHANCEMENTS_FILE.read_text(encoding="utf-8").strip()
+
+    lame_code = ""
+    if LAME_JS_FILE.is_file():
+        lame_code = LAME_JS_FILE.read_text(encoding="utf-8").strip()
+
+    if lame_code and enhancements_code:
+        return f"() => {{\n    if (!window.lamejs) {{\n{lame_code}\n    }}\n    return ({enhancements_code})();\n}}"
+    if enhancements_code:
+        return enhancements_code
     return "() => {}"
 
 

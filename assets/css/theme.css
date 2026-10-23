@@ -1313,6 +1313,90 @@ li[role="option"][aria-selected="true"],
     filter: drop-shadow(0 0 8px rgba(239, 68, 68, 1)) !important;
 }
 
+/* Badge de resultado de optimización local en navegador */
+.optimization-result-badge {
+    margin-top: 10px !important;
+    padding: 10px 14px !important;
+    background: rgba(15, 23, 42, 0.85) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(0, 255, 135, 0.35) !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    box-shadow: 0 0 15px rgba(0, 255, 135, 0.15) !important;
+    animation: fadeInBadge 0.25s ease-out !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+
+.optimization-result-badge.warning {
+    border-color: rgba(245, 158, 11, 0.4) !important;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.12) !important;
+}
+
+.opt-badge-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+}
+
+.opt-badge-icon {
+    font-size: 1.15rem !important;
+    line-height: 1 !important;
+    flex-shrink: 0 !important;
+}
+
+.opt-badge-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    width: 100% !important;
+}
+
+.opt-badge-title {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    font-size: 0.82rem !important;
+    color: var(--frost-white) !important;
+}
+
+.opt-badge-pill {
+    background: rgba(0, 255, 135, 0.15) !important;
+    color: #00FF87 !important;
+    border: 1px solid rgba(0, 255, 135, 0.4) !important;
+    border-radius: 9999px !important;
+    padding: 1px 8px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+.opt-badge-pill.warn {
+    background: rgba(245, 158, 11, 0.15) !important;
+    color: #F59E0B !important;
+    border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.opt-badge-desc {
+    font-size: 0.74rem !important;
+    color: #94A3B8 !important;
+}
+
+.opt-badge-desc b {
+    color: #38BDF8 !important;
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+@keyframes fadeInBadge {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* Overlay de subida de archivos multimedia con indicador visual en tiempo real */
 .upload-loading-overlay {
     position: absolute !important;

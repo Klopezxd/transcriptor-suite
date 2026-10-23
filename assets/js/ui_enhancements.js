@@ -241,7 +241,7 @@
             };
             watchDpiChange();
 
-            // 3. Extracción de Audio en el Navegador y Soporte Drag & Drop Continuo
+            // 3. Extracción y Compresión de Audio en el Navegador y Soporte Drag & Drop Continuo
             const isVideoFile = (file) => {
                 if (!file) return false;
                 const name = (file.name || '').toLowerCase();
@@ -249,8 +249,45 @@
                 return videoExts.some(ext => name.endsWith(ext)) || (file.type && file.type.startsWith('video/'));
             };
 
+            const formatBytes = (bytes) => {
+                if (!bytes || bytes <= 0) return '0 MB';
+                const mb = bytes / (1024 * 1024);
+                if (mb < 0.1) return `${Math.round(bytes / 1024)} KB`;
+                return `${mb.toFixed(1)} MB`;
+            };
+
+            const audioBufferToMp3 = (buffer, bitrate = 64) => {
+                if (!window.lamejs || !window.lamejs.Mp3Encoder) {
+                    return null;
+                }
+                const sampleRate = buffer.sampleRate;
+                const mp3encoder = new window.lamejs.Mp3Encoder(1, sampleRate, bitrate);
+                const ch0 = buffer.getChannelData(0);
+                const numSamples = buffer.length;
+                const samples = new Int16Array(numSamples);
+                for (let i = 0; i < numSamples; i++) {
+                    const s = Math.max(-1, Math.min(1, ch0[i]));
+                    samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                }
+
+                const chunkSize = 1152;
+                const mp3Chunks = [];
+                for (let i = 0; i < samples.length; i += chunkSize) {
+                    const chunk = samples.subarray(i, i + chunkSize);
+                    const mp3buf = mp3encoder.encodeBuffer(chunk);
+                    if (mp3buf.length > 0) {
+                        mp3Chunks.push(mp3buf);
+                    }
+                }
+                const mp3buf = mp3encoder.flush();
+                if (mp3buf.length > 0) {
+                    mp3Chunks.push(mp3buf);
+                }
+                return new Blob(mp3Chunks, { type: 'audio/mp3' });
+            };
+
             const audioBufferToWav = (buffer) => {
-                const numChannels = buffer.numberOfChannels;
+                const numChannels = 1;
                 const sampleRate = buffer.sampleRate;
                 const bitDepth = 16;
                 const bytesPerSample = bitDepth / 8;
@@ -281,28 +318,17 @@
                 writeString(36, 'data');
                 view.setUint32(40, dataSize, true);
 
-                const samples = new Int16Array(arrayBuffer, 44, buffer.length * numChannels);
-                if (numChannels === 1) {
-                    const ch0 = buffer.getChannelData(0);
-                    for (let i = 0; i < buffer.length; i++) {
-                        const s = Math.max(-1, Math.min(1, ch0[i]));
-                        samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-                    }
-                } else {
-                    const ch0 = buffer.getChannelData(0);
-                    const ch1 = buffer.getChannelData(1);
-                    let ptr = 0;
-                    for (let i = 0; i < buffer.length; i++) {
-                        const s0 = Math.max(-1, Math.min(1, ch0[i]));
-                        const s1 = Math.max(-1, Math.min(1, ch1[i]));
-                        samples[ptr++] = s0 < 0 ? s0 * 0x8000 : s0 * 0x7FFF;
-                        samples[ptr++] = s1 < 0 ? s1 * 0x8000 : s1 * 0x7FFF;
-                    }
+                const samples = new Int16Array(arrayBuffer, 44, buffer.length);
+                const ch0 = buffer.getChannelData(0);
+                for (let i = 0; i < buffer.length; i++) {
+                    const s = Math.max(-1, Math.min(1, ch0[i]));
+                    samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
                 }
                 return new Blob([arrayBuffer], { type: 'audio/wav' });
             };
 
-            const extractAudioFromVideo = async (file) => {
+            const extractAudioFromVideo = async (file, onProgress) => {
+                if (onProgress) onProgress('Leyendo video en memoria...');
                 const ab = await file.arrayBuffer();
                 const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
                 if (!AudioCtxClass) {
@@ -311,12 +337,14 @@
                 const ctx = new AudioCtxClass();
                 let decoded;
                 try {
+                    if (onProgress) onProgress('Decodificando pista de audio...');
                     decoded = await ctx.decodeAudioData(ab);
                 } finally {
                     if (ctx.close) ctx.close().catch(() => {});
                 }
 
                 // Resamplear a 16kHz mono (estándar de oro universal para WhisperX, Deepgram y AssemblyAI)
+                if (onProgress) onProgress('Resampleando a 16 kHz Mono...');
                 const targetRate = 16000;
                 const targetLength = Math.max(1, Math.ceil(decoded.duration * targetRate));
                 const offlineCtx = new OfflineAudioContext(1, targetLength, targetRate);
@@ -326,12 +354,82 @@
                 source.start(0);
                 const resampled = await offlineCtx.startRendering();
 
-                const wavBlob = audioBufferToWav(resampled);
+                // Intentar primero MP3 a 64 kbps (compresión óptima para voz sin pérdida de fidelidad acústica)
+                let audioBlob = null;
+                let ext = 'mp3';
+                let mimeType = 'audio/mp3';
+                try {
+                    if (onProgress) onProgress('Comprimiendo audio ultra ligero (MP3 64 kbps)...');
+                    audioBlob = audioBufferToMp3(resampled, 64);
+                } catch (mp3Err) {
+                    console.warn('[Transcriptor] No se pudo codificar MP3, usando WAV fallback:', mp3Err);
+                }
+
+                if (!audioBlob) {
+                    if (onProgress) onProgress('Generando audio PCM WAV (16 kHz)...');
+                    audioBlob = audioBufferToWav(resampled);
+                    ext = 'wav';
+                    mimeType = 'audio/wav';
+                }
+
                 const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-                return new File([wavBlob], `${baseName}.wav`, {
-                    type: 'audio/wav',
+                return new File([audioBlob], `${baseName}.${ext}`, {
+                    type: mimeType,
                     lastModified: Date.now()
                 });
+            };
+
+            const renderOptimizationBadge = (zone, stats) => {
+                const targetZone = zone || document.querySelector('.upload-card, .file-upload-zone');
+                if (!targetZone) return;
+                const slot = targetZone.querySelector('.optimization-badge-slot') || targetZone.querySelector('.file-hint');
+                if (!slot) return;
+
+                let badge = targetZone.querySelector('.optimization-result-badge');
+                if (!stats || !stats.processed) {
+                    if (badge) badge.remove();
+                    return;
+                }
+
+                if (!badge) {
+                    badge = document.createElement('div');
+                    badge.className = 'optimization-result-badge';
+                    slot.appendChild(badge);
+                }
+
+                if (stats.success) {
+                    badge.className = 'optimization-result-badge success';
+                    badge.innerHTML = `
+                        <div class="opt-badge-left">
+                            <span class="opt-badge-icon">⚡</span>
+                            <div class="opt-badge-content">
+                                <div class="opt-badge-title">
+                                    <strong>Optimización local en navegador completada</strong>
+                                    <span class="opt-badge-pill">-${stats.savingsPct}% de ancho de banda</span>
+                                </div>
+                                <div class="opt-badge-desc">
+                                    De <b>${stats.origMb}</b> redujo a <b>${stats.optMb}</b> · Ahorraste <b>${stats.savedMb}</b> de transferencia
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    badge.className = 'optimization-result-badge warning';
+                    badge.innerHTML = `
+                        <div class="opt-badge-left">
+                            <span class="opt-badge-icon">ℹ️</span>
+                            <div class="opt-badge-content">
+                                <div class="opt-badge-title">
+                                    <strong>Subiendo video original (${stats.origMb})</strong>
+                                    <span class="opt-badge-pill warn">Sin compresión en cliente</span>
+                                </div>
+                                <div class="opt-badge-desc">
+                                    ${stats.reason || 'El codec del video se procesará con aceleración directa FFmpeg en el servidor.'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
             };
 
             const updateExtractingOverlay = (zone, current, total, fileName, stageText) => {
@@ -346,11 +444,11 @@
                 overlay.innerHTML = `
                     <div class="upload-spinner"></div>
                     <div class="upload-loading-text">⚡ Optimizando video (${current}/${total})...</div>
-                    <div class="upload-loading-subtext">${stageText || 'Extrayendo audio localmente (100% Lossless)'} · ${fileName}</div>
+                    <div class="upload-loading-subtext">${stageText || 'Extrayendo audio localmente'} · ${fileName}</div>
                 `;
             };
 
-            const showUploadOverlay = (zone, count, mbText, title, sub) => {
+            const showUploadOverlay = (zone, stats, title, sub) => {
                 const targetZone = zone || document.querySelector('.file-upload-zone');
                 if (!targetZone) return;
                 let overlay = targetZone.querySelector('.upload-loading-overlay');
@@ -359,9 +457,18 @@
                     overlay.className = 'upload-loading-overlay';
                     targetZone.appendChild(overlay);
                 }
-                const fileText = count === 1 ? 'audio' : `${count} archivos`;
-                const defaultTitle = `⬆ Subiendo ${fileText} al servidor...`;
-                const defaultSub = `${mbText ? mbText + ' · ' : ''}Transfiriendo a Hugging Face Space`;
+
+                let defaultTitle = '⬆ Subiendo archivos al servidor...';
+                let defaultSub = 'Transfiriendo a Hugging Face Space';
+
+                if (stats && stats.success) {
+                    defaultTitle = `⚡ ¡Optimizado! ${stats.origMb} ➔ ${stats.optMb} (-${stats.savingsPct}%)`;
+                    defaultSub = `⬆ Subiendo audio ultra ligero · Ahorraste ${stats.savedMb} de subida`;
+                } else if (stats && stats.mb) {
+                    defaultTitle = stats.anyAudio ? '⬆ Subiendo audio al servidor...' : `Subiendo ${stats.count} archivo(s)...`;
+                    defaultSub = `${stats.mb} · Transfiriendo a Hugging Face Space`;
+                }
+
                 overlay.innerHTML = `
                     <button class="overlay-dismiss-btn" title="Cerrar overlay" onclick="this.closest('.upload-loading-overlay').remove()">✕</button>
                     <div class="upload-spinner"></div>
@@ -390,20 +497,24 @@
             observeUploadZone();
             setInterval(observeUploadZone, 1000);
 
-            const handleFilesUploadStart = (zone, files) => {
+            const handleFilesUploadStart = (zone, files, optStats) => {
                 if (!files || files.length === 0) return;
                 let totalBytes = 0;
-                let anyWav = false;
+                let anyAudio = false;
                 for (let i = 0; i < files.length; i++) {
                     totalBytes += files[i].size || 0;
-                    if (files[i].name && files[i].name.endsWith('.wav')) {
-                        anyWav = true;
+                    const nm = (files[i].name || '').toLowerCase();
+                    if (nm.endsWith('.mp3') || nm.endsWith('.wav') || nm.endsWith('.m4a') || nm.endsWith('.flac')) {
+                        anyAudio = true;
                     }
                 }
-                const mb = totalBytes > 0 ? `${(totalBytes / (1024 * 1024)).toFixed(1)} MB` : '';
-                const title = anyWav ? '⬆ Subiendo audio optimizado...' : `Subiendo ${files.length} archivo(s)...`;
-                const sub = `${mb ? mb + ' · ' : ''}Transfiriendo a Hugging Face Space`;
-                showUploadOverlay(zone, files.length, mb, title, sub);
+                const mb = formatBytes(totalBytes);
+                if (optStats && optStats.processed) {
+                    showUploadOverlay(zone, optStats);
+                } else {
+                    const stats = { count: files.length, mb, anyAudio };
+                    showUploadOverlay(zone, stats);
+                }
                 setTimeout(() => hideUploadOverlay(), 45000);
             };
 
@@ -415,34 +526,75 @@
                 });
 
                 if (videoIndices.length === 0) {
-                    return fileArray;
+                    return { files: fileArray, stats: null };
                 }
 
                 const processed = [];
                 let videoProcessed = 0;
+                let totalOrigBytes = 0;
+                let totalOptBytes = 0;
+                let anyOptimized = false;
+                let failureReason = '';
 
                 for (let i = 0; i < fileArray.length; i++) {
                     const f = fileArray[i];
                     if (isVideoFile(f)) {
                         videoProcessed++;
-                        const origMb = (f.size / (1024 * 1024)).toFixed(1);
-                        updateExtractingOverlay(zone, videoProcessed, videoIndices.length, `${f.name} (${origMb} MB)`, 'Decodificando pista de audio...');
+                        totalOrigBytes += f.size;
+                        const origMb = formatBytes(f.size);
+
+                        updateExtractingOverlay(zone, videoProcessed, videoIndices.length, `${f.name} (${origMb})`, 'Iniciando optimización...');
                         try {
-                            const audioFile = await extractAudioFromVideo(f);
-                            const audioMb = (audioFile.size / (1024 * 1024)).toFixed(1);
-                            const savings = Math.max(0, Math.round((1 - audioFile.size / f.size) * 100));
-                            console.log(`[Transcriptor] Optimización exitosa: ${f.name} (${origMb} MB) -> ${audioFile.name} (${audioMb} MB, -${savings}%)`);
-                            processed.push(audioFile);
+                            const audioFile = await extractAudioFromVideo(f, (stageText) => {
+                                updateExtractingOverlay(zone, videoProcessed, videoIndices.length, `${f.name} (${origMb})`, stageText);
+                            });
+
+                            const audioMb = formatBytes(audioFile.size);
+
+                            // Si el audio generado es más pequeño que el video, lo usamos
+                            if (audioFile.size < f.size) {
+                                const savedBytes = f.size - audioFile.size;
+                                const savings = Math.max(0, Math.round((savedBytes / f.size) * 100));
+                                totalOptBytes += audioFile.size;
+                                anyOptimized = true;
+                                console.log(`[Transcriptor] Optimización exitosa: ${f.name} (${origMb}) -> ${audioFile.name} (${audioMb}, -${savings}%)`);
+                                processed.push(audioFile);
+                            } else {
+                                // El video ya era más pequeño que el audio (conservamos el original)
+                                totalOptBytes += f.size;
+                                console.log(`[Transcriptor] El archivo original (${origMb}) ya era más ligero que el audio. Conservando original.`);
+                                processed.push(f);
+                            }
                         } catch (err) {
                             console.warn(`[Transcriptor] No se pudo extraer audio local de ${f.name}, subiendo original:`, err);
-                            updateExtractingOverlay(zone, videoProcessed, videoIndices.length, f.name, `⚠️ No se pudo extraer audio local (${err.message || 'error'}). Subiendo original...`);
+                            failureReason = err.message || 'Codec no decodificable en navegador';
+                            totalOptBytes += f.size;
                             processed.push(f);
                         }
                     } else {
+                        totalOrigBytes += f.size;
+                        totalOptBytes += f.size;
                         processed.push(f);
                     }
                 }
-                return processed;
+
+                const savedBytes = Math.max(0, totalOrigBytes - totalOptBytes);
+                const savingsPct = totalOrigBytes > 0 ? Math.round((savedBytes / totalOrigBytes) * 100) : 0;
+
+                const stats = {
+                    processed: true,
+                    success: anyOptimized && savingsPct > 0,
+                    origTotal: totalOrigBytes,
+                    optTotal: totalOptBytes,
+                    savedBytes: savedBytes,
+                    savingsPct: savingsPct,
+                    origMb: formatBytes(totalOrigBytes),
+                    optMb: formatBytes(totalOptBytes),
+                    savedMb: formatBytes(savedBytes),
+                    reason: failureReason
+                };
+
+                return { files: processed, stats };
             };
 
             // Multi-Network Hook (Fetch y XHR) para ocultar el overlay inmediatamente al finalizar el upload
@@ -451,7 +603,7 @@
                 const origFetch = window.fetch;
                 window.fetch = async function(...args) {
                     const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
-                    const isUpload = url.includes('upload') || url.includes('/api/') || (args[1] && (args[1].body instanceof FormData || args[1].body instanceof Blob || args[1].body instanceof File));
+                    const isUpload = url.includes('/upload') || (args[1] && (args[1].body instanceof FormData || args[1].body instanceof Blob || args[1].body instanceof File));
                     try {
                         const res = await origFetch.apply(this, args);
                         if (isUpload) {
@@ -475,7 +627,7 @@
                 };
                 XMLHttpRequest.prototype.send = function(...args) {
                     const url = this.__transcriptorUrl || '';
-                    if (url.includes('upload') || (args[0] && (args[0] instanceof FormData || args[0] instanceof Blob || args[0] instanceof File))) {
+                    if (url.includes('/upload') || (args[0] && (args[0] instanceof FormData || args[0] instanceof Blob || args[0] instanceof File))) {
                         this.addEventListener('loadend', () => {
                             setTimeout(() => hideUploadOverlay(), 300);
                         });
@@ -500,7 +652,8 @@
                     const hasVideo = originalFiles.some(isVideoFile);
 
                     if (!hasVideo) {
-                        handleFilesUploadStart(zone, target.files);
+                        renderOptimizationBadge(zone, null);
+                        handleFilesUploadStart(zone, target.files, null);
                         return;
                     }
 
@@ -509,17 +662,24 @@
                     e.preventDefault();
 
                     try {
-                        const processedFiles = await processFilesWithAudioExtraction(zone, originalFiles);
+                        const { files: processedFiles, stats } = await processFilesWithAudioExtraction(zone, originalFiles);
+                        renderOptimizationBadge(zone, stats);
                         const dt = new DataTransfer();
                         processedFiles.forEach((f) => dt.items.add(f));
                         target.files = dt.files;
                         target.__audioExtracted = true;
-                        handleFilesUploadStart(zone, dt.files);
+                        handleFilesUploadStart(zone, dt.files, stats);
                         target.dispatchEvent(new Event('change', { bubbles: true }));
                     } catch (err) {
                         console.warn('[Transcriptor] Fallback a subida original:', err);
+                        renderOptimizationBadge(zone, {
+                            processed: true,
+                            success: false,
+                            origMb: formatBytes(originalFiles.reduce((acc, f) => acc + f.size, 0)),
+                            reason: err.message
+                        });
                         target.__audioExtracted = true;
-                        handleFilesUploadStart(zone, target.files);
+                        handleFilesUploadStart(zone, target.files, null);
                         target.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 }
@@ -563,24 +723,39 @@
                         if (fileInput) {
                             const rawFiles = Array.from(e.dataTransfer.files);
                             try {
-                                const processedFiles = await processFilesWithAudioExtraction(zone, rawFiles);
+                                const { files: processedFiles, stats } = await processFilesWithAudioExtraction(zone, rawFiles);
+                                renderOptimizationBadge(zone, stats);
                                 const dt = new DataTransfer();
                                 processedFiles.forEach((f) => dt.items.add(f));
                                 fileInput.files = dt.files;
                                 fileInput.__audioExtracted = true;
-                                handleFilesUploadStart(zone, dt.files);
+                                handleFilesUploadStart(zone, dt.files, stats);
                                 fileInput.dispatchEvent(new Event('change', { bubbles: true }));
                             } catch (err) {
                                 console.warn('[Transcriptor] Fallback drop a original:', err);
+                                renderOptimizationBadge(zone, {
+                                    processed: true,
+                                    success: false,
+                                    origMb: formatBytes(rawFiles.reduce((acc, f) => acc + f.size, 0)),
+                                    reason: err.message
+                                });
                                 const dt = new DataTransfer();
                                 rawFiles.forEach((f) => dt.items.add(f));
                                 fileInput.files = dt.files;
                                 fileInput.__audioExtracted = true;
-                                handleFilesUploadStart(zone, dt.files);
+                                handleFilesUploadStart(zone, dt.files, null);
                                 fileInput.dispatchEvent(new Event('change', { bubbles: true }));
                             }
                         }
                     }
+                }
+            }, true);
+
+            // Limpieza del badge de optimización al vaciar la lista
+            document.addEventListener('click', (e) => {
+                const clearBtn = e.target && e.target.closest ? e.target.closest('#btn_clear, .file-upload-zone [aria-label*="Clear"], .file-upload-zone .icon-button-wrapper > button:last-child') : null;
+                if (clearBtn) {
+                    renderOptimizationBadge(null, null);
                 }
             }, true);
         }

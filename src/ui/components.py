@@ -190,6 +190,7 @@ def render_media_upload_card() -> gr.File:
                 <div class="file-hint-optimization">
                     ⚡ Los videos son optimizados localmente en tu navegador sin pérdida de calidad para acelerar la subida.
                 </div>
+                <div class="optimization-badge-slot"></div>
             </div>
             """
         )
