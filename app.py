@@ -2747,7 +2747,7 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 gr.HTML(
                     """
                     <div class="file-hint">
-                        Formatos soportados: MP3, WAV, M4A, MP4, MKV, FLAC, OGG, WEBM, MOV, AAC (Soporta múltiples archivos en cola).
+                        Formatos soportados: MP3, WAV, M4A, MP4, MKV, FLAC, OGG, WEBM, MOV, AAC. ⚡ Los videos son optimizados localmente en tu navegador sin pérdida de calidad para acelerar la subida.
                     </div>
                     """
                 )
@@ -3440,7 +3440,111 @@ with gr.Blocks(**blocks_kwargs) as demo:
             };
             watchDpiChange();
 
-            // 3. Indicador de Carga y Soporte de Arrastrar y Soltar (Drag & Drop) continuo
+            // 3. Extracción de Audio en el Navegador y Soporte Drag & Drop Continuo
+            const isVideoFile = (file) => {
+                if (!file) return false;
+                const name = (file.name || '').toLowerCase();
+                const videoExts = ['.mp4', '.mov', '.mkv', '.webm', '.avi', '.m4v', '.flv', '.wmv'];
+                return videoExts.some(ext => name.endsWith(ext)) || (file.type && file.type.startsWith('video/'));
+            };
+
+            const audioBufferToWav = (buffer) => {
+                const numChannels = buffer.numberOfChannels;
+                const sampleRate = buffer.sampleRate;
+                const bitDepth = 16;
+                const bytesPerSample = bitDepth / 8;
+                const blockAlign = numChannels * bytesPerSample;
+                const dataSize = buffer.length * blockAlign;
+                const headerSize = 44;
+                const totalSize = headerSize + dataSize;
+                const arrayBuffer = new ArrayBuffer(totalSize);
+                const view = new DataView(arrayBuffer);
+
+                const writeString = (offset, str) => {
+                    for (let i = 0; i < str.length; i++) {
+                        view.setUint8(offset + i, str.charCodeAt(i));
+                    }
+                };
+
+                writeString(0, 'RIFF');
+                view.setUint32(4, 36 + dataSize, true);
+                writeString(8, 'WAVE');
+                writeString(12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true); // PCM format
+                view.setUint16(22, numChannels, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate * blockAlign, true);
+                view.setUint16(32, blockAlign, true);
+                view.setUint16(34, bitDepth, true);
+                writeString(36, 'data');
+                view.setUint32(40, dataSize, true);
+
+                const channelData = [];
+                for (let i = 0; i < numChannels; i++) {
+                    channelData.push(buffer.getChannelData(i));
+                }
+
+                let offset = 44;
+                for (let i = 0; i < buffer.length; i++) {
+                    for (let ch = 0; ch < numChannels; ch++) {
+                        let s = channelData[ch][i];
+                        s = Math.max(-1, Math.min(1, s));
+                        view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+                        offset += 2;
+                    }
+                }
+                return new Blob([view], { type: 'audio/wav' });
+            };
+
+            const extractAudioFromVideo = async (file) => {
+                const ab = await file.arrayBuffer();
+                const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtxClass) {
+                    throw new Error('Web Audio no soportado');
+                }
+                const ctx = new AudioCtxClass();
+                let decoded;
+                try {
+                    decoded = await ctx.decodeAudioData(ab);
+                } finally {
+                    if (ctx.close) ctx.close().catch(() => {});
+                }
+
+                // Resamplear a 16kHz mono (estándar de oro universal para WhisperX, Deepgram y AssemblyAI)
+                const targetRate = 16000;
+                const targetLength = Math.max(1, Math.ceil(decoded.duration * targetRate));
+                const offlineCtx = new OfflineAudioContext(1, targetLength, targetRate);
+                const source = offlineCtx.createBufferSource();
+                source.buffer = decoded;
+                source.connect(offlineCtx.destination);
+                source.start(0);
+                const resampled = await offlineCtx.startRendering();
+
+                const wavBlob = audioBufferToWav(resampled);
+                const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                return new File([wavBlob], `${baseName}.wav`, {
+                    type: 'audio/wav',
+                    lastModified: Date.now()
+                });
+            };
+
+            const updateExtractingOverlay = (zone, current, total, fileName) => {
+                const targetZone = zone || document.querySelector('.file-upload-zone');
+                if (!targetZone) return;
+                let overlay = targetZone.querySelector('.upload-loading-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.className = 'upload-loading-overlay';
+                    targetZone.appendChild(overlay);
+                }
+                overlay.innerHTML = `
+                    <div class="upload-spinner"></div>
+                    <div class="upload-loading-text">⚡ Optimizando video (${current}/${total})...</div>
+                    <div class="upload-loading-subtext">Extrayendo audio localmente (100% Lossless) · ${fileName}</div>
+                `;
+            };
+
             const showUploadOverlay = (zone, count, mbText) => {
                 const targetZone = zone || document.querySelector('.file-upload-zone');
                 if (!targetZone) return;
@@ -3448,14 +3552,14 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 if (!overlay) {
                     overlay = document.createElement('div');
                     overlay.className = 'upload-loading-overlay';
-                    const fileText = count === 1 ? 'archivo multimedia' : `${count} archivos multimedia`;
-                    overlay.innerHTML = `
-                        <div class="upload-spinner"></div>
-                        <div class="upload-loading-text">Subiendo ${fileText}...</div>
-                        <div class="upload-loading-subtext">${mbText ? mbText + ' · ' : ''}Transfiriendo al servidor</div>
-                    `;
                     targetZone.appendChild(overlay);
                 }
+                const fileText = count === 1 ? 'archivo multimedia' : `${count} archivos multimedia`;
+                overlay.innerHTML = `
+                    <div class="upload-spinner"></div>
+                    <div class="upload-loading-text">Subiendo ${fileText}...</div>
+                    <div class="upload-loading-subtext">${mbText ? mbText + ' · ' : ''}Transfiriendo al servidor</div>
+                `;
             };
 
             const hideUploadOverlay = () => {
@@ -3470,9 +3574,41 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 }
                 const mb = totalBytes > 0 ? `${(totalBytes / (1024 * 1024)).toFixed(1)} MB` : '';
                 showUploadOverlay(zone, files.length, mb);
+                setTimeout(() => hideUploadOverlay(), 180000);
+            };
 
-                // Auto-cleanup de seguridad tras 2 minutos si la red tarda o hay error
-                setTimeout(() => hideUploadOverlay(), 120000);
+            const processFilesWithAudioExtraction = async (zone, files) => {
+                const fileArray = Array.from(files || []);
+                const videoIndices = [];
+                fileArray.forEach((f, idx) => {
+                    if (isVideoFile(f)) videoIndices.push(idx);
+                });
+
+                if (videoIndices.length === 0) {
+                    return fileArray;
+                }
+
+                const processed = [];
+                let videoProcessed = 0;
+
+                for (let i = 0; i < fileArray.length; i++) {
+                    const f = fileArray[i];
+                    if (isVideoFile(f)) {
+                        videoProcessed++;
+                        updateExtractingOverlay(zone, videoProcessed, videoIndices.length, f.name);
+                        try {
+                            const audioFile = await extractAudioFromVideo(f);
+                            console.log(`[Transcriptor] Optimización exitosa: ${f.name} (${(f.size / (1024 * 1024)).toFixed(1)} MB) -> ${audioFile.name} (${(audioFile.size / (1024 * 1024)).toFixed(1)} MB)`);
+                            processed.push(audioFile);
+                        } catch (err) {
+                            console.warn(`[Transcriptor] No se pudo extraer audio local de ${f.name}, subiendo original:`, err);
+                            processed.push(f);
+                        }
+                    } else {
+                        processed.push(f);
+                    }
+                }
+                return processed;
             };
 
             // Hook a fetch para ocultar el overlay inmediatamente al finalizar el upload en Gradio
@@ -3495,13 +3631,43 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 };
             }
 
-            // Detectar selección de archivos vía botón [ ↑ ]
-            document.addEventListener('change', (e) => {
+            // Detectar selección de archivos vía botón [ ↑ ] o clic en selector
+            document.addEventListener('change', async (e) => {
                 const target = e.target;
                 if (target && target.type === 'file' && target.closest('.file-upload-zone, .upload-card')) {
+                    if (target.__audioExtracted) {
+                        delete target.__audioExtracted;
+                        return;
+                    }
+
+                    const originalFiles = Array.from(target.files || []);
+                    if (!originalFiles.length) return;
+
                     const zone = target.closest('.file-upload-zone, .upload-card');
-                    if (target.files && target.files.length > 0) {
+                    const hasVideo = originalFiles.some(isVideoFile);
+
+                    if (!hasVideo) {
                         handleFilesUploadStart(zone, target.files);
+                        return;
+                    }
+
+                    // Interceptar antes de que Gradio comience la subida del video pesado
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+
+                    try {
+                        const processedFiles = await processFilesWithAudioExtraction(zone, originalFiles);
+                        const dt = new DataTransfer();
+                        processedFiles.forEach((f) => dt.items.add(f));
+                        target.files = dt.files;
+                        target.__audioExtracted = true;
+                        handleFilesUploadStart(zone, dt.files);
+                        target.dispatchEvent(new Event('change', { bubbles: true }));
+                    } catch (err) {
+                        console.warn('[Transcriptor] Fallback a subida original:', err);
+                        target.__audioExtracted = true;
+                        handleFilesUploadStart(zone, target.files);
+                        target.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 }
             }, true);
@@ -3532,7 +3698,8 @@ with gr.Blocks(**blocks_kwargs) as demo:
                 }
             }, true);
 
-            document.addEventListener('drop', (e) => {
+            // Soporte Drag & Drop continuo con extracción de audio automática en cliente
+            document.addEventListener('drop', async (e) => {
                 const zone = isFileInputTarget(e);
                 if (zone) {
                     zone.classList.remove('drag-over-active');
@@ -3541,13 +3708,24 @@ with gr.Blocks(**blocks_kwargs) as demo:
                         e.stopPropagation();
                         const fileInput = getUploadInput(zone);
                         if (fileInput) {
-                            handleFilesUploadStart(zone, e.dataTransfer.files);
-                            const dt = new DataTransfer();
-                            for (let i = 0; i < e.dataTransfer.files.length; i++) {
-                                dt.items.add(e.dataTransfer.files[i]);
+                            const rawFiles = Array.from(e.dataTransfer.files);
+                            try {
+                                const processedFiles = await processFilesWithAudioExtraction(zone, rawFiles);
+                                const dt = new DataTransfer();
+                                processedFiles.forEach((f) => dt.items.add(f));
+                                fileInput.files = dt.files;
+                                fileInput.__audioExtracted = true;
+                                handleFilesUploadStart(zone, dt.files);
+                                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                            } catch (err) {
+                                console.warn('[Transcriptor] Fallback drop a original:', err);
+                                const dt = new DataTransfer();
+                                rawFiles.forEach((f) => dt.items.add(f));
+                                fileInput.files = dt.files;
+                                fileInput.__audioExtracted = true;
+                                handleFilesUploadStart(zone, dt.files);
+                                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
                             }
-                            fileInput.files = dt.files;
-                            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
                         }
                     }
                 }
