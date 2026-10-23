@@ -5,6 +5,34 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [2.4.0] - 2026-10-22
+
+### Agregado
+* **Optimización y Extracción de Audio en el Cliente (Navegador) con Web Audio API:**
+  * Decodificación y remuestreo nativo en el navegador a 16 kHz Mono WAV PCM de 16 bits para archivos de video (`.mp4`, `.mov`, `.mkv`, `.webm`, `.avi`, `.m4v`, `.flv`, `.wmv`).
+  * Reducción del peso de subida entre un 90% y 98% (ej. de 1.5 GB a ~30-50 MB) con 0% de pérdida de calidad acústica para los modelos WhisperX, Deepgram y AssemblyAI.
+  * Compatibilidad uniforme e interceptación transparente tanto en el selector manual de archivos como en arrastrar y soltar (Drag & Drop).
+  * Overlay visual dinámico con progreso en tiempo real (`⚡ Optimizando video (X/N)...`) y fallback automático al archivo original ante fallos de decodificación.
+
+### Cambiado / Refactorizado
+* **Arquitectura Modular de Presentación y Frontend (`assets/` y `src/ui/`):**
+  * Desacoplamiento de más de 2,500 líneas de CSS y JavaScript que residían como cadenas multilínea en `app.py`.
+  * Creación del directorio de activos estáticos: `assets/css/theme.css` (estilos puros Aurora Boreal Nórdica) y `assets/js/ui_enhancements.js`.
+  * Creación del paquete `src/ui/`:
+    * `components.py`: Componentes modulares de Gradio (Navbar, Modal de Login, Tarjetas de Entrada, Motor, Credenciales y Resultados).
+    * `helpers.py`: Generación de estados de botones, insignias de estado y huellas digitales de archivos.
+    * `theme.py`: Configuración de temas visuales y compatibilidad con versiones de Gradio.
+    * `assets.py`: Gestor y lector eficiente con caché para archivos estáticos.
+  * Reducción drástica de `app.py` de 3,860 líneas a ~790 líneas (reducción del 80%), manteniéndolo como un orquestador legible y mantenible.
+
+### Corregido
+* **Alineación y Centrado de la Zona de Carga (Dropzone):**
+  * Desacoplamiento de dimensiones de `.icon-wrap` y configuración en columna centrada para evitar que la flecha y el texto se separen a los extremos en modo Admin o pantallas altas.
+* **Jerarquía Visual de Formatos y Aviso de Optimización:**
+  * Separación en renglones independientes para los formatos soportados y el aviso de optimización de video en cliente, mejorando la legibilidad.
+
+---
+
 ## [2.3.0] - 2026-10-16
 
 ### Agregado

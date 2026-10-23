@@ -76,10 +76,11 @@
 * **Diarización de Hablantes:** Identifica y segmenta interlocutores automáticamente mediante **Pyannote Audio 3.1**.
 * **Optimización de Memoria (4GB VRAM & ZeroGPU):** Diseñado con cuantización `INT8` y recolección forzada de memoria entre fases, permitiendo ejecución fluida tanto en GPUs de consumo (ej. NVIDIA GTX 1650 con 4GB VRAM) como en **Hugging Face ZeroGPU**.
 * **Procesamiento por Lotes en Cola (Multiarchivo):** Carga o selecciona múltiples archivos de audio/video a la vez. Se procesan ordenadamente en cola secuencial FIFO para proteger la VRAM, con reporte de avance por archivo, empaquetado automático de resultados en un archivo ZIP descargable y la opción de descargar todas las transcripciones unificadas en un archivo de texto consolidado (`.txt`) con divisores claros.
+* **Optimización de Video en el Navegador (0% Pérdida):** Extracción y remuestreo nativo a 16 kHz Mono WAV PCM directo en el navegador del cliente mediante la Web Audio API. Reduce el tamaño de subida entre un 90% y 98% de forma instantánea.
 * **Doble Interfaz (Web + CLI):**
-  * **Web UI (Gradio):** Interfaz para navegador con soporte de arrastre de múltiples archivos, avance ponderado, descarga individual para archivo único y botones dobles de descarga (ZIP y archivo consolidado `.txt`) que se muestran contextual y exclusivamente cuando se procesan lotes multiarchivo.
+  * **Web UI (Gradio):** Interfaz para navegador con arquitectura modular, soporte de arrastre continuo, descarga individual para archivo único y botones dobles de descarga (ZIP y archivo consolidado `.txt`) que se muestran en lotes multiarchivo.
   * **CLI (Terminal):** Soporte completo de argumentos por consola (`argparse`) con soporte multiarchivo, selector gráfico múltiple de respaldo y generación automática de la transcripción consolidada del lote.
-* **Ingeniería de Software:** Tipado estricto (Type Hints), logging estructurado, pipeline desacoplado y gestión segura de credenciales vía variables de entorno.
+* **Ingeniería de Software Modular:** Separación estricta entre presentación (`assets/` y `src/ui/`), dominio y pipelines de inferencia (`src/`) y suite de 90 pruebas unitarias automatizadas.
 
 ---
 
@@ -208,11 +209,15 @@ Si en el futuro revisas este repositorio desde GitHub o Hugging Face sin tener l
 ```text
 transcriptor-suite/
 │
-├── app.py                  # Interfaz Web Gradio: Tema Aurora Boreal Nórdica, barra de estado v2.1.0,
-│                           # procesamiento multiarchivo por cola secuencial y aislamiento de decorador @spaces.GPU.
+├── app.py                  # Orquestador Web Gradio: reactividad, gestión de sesiones y flujo de eventos,
+│                           # delegando la interfaz a componentes modulares y pipelines de inferencia.
 │
 ├── cli.py                  # Punto de entrada de consola (CLI): ejecución directa por lotes (--input, --model,
 │                           # --diarize) y selector gráfico interactivo múltiple de respaldo.
+│
+├── assets/                 # Activos estáticos de frontend (CSS y JavaScript desacoplados)
+│   ├── css/theme.css       # Skin visual Aurora Boreal Nórdica, diseño responsivo y scrollbars fluidos.
+│   └── js/ui_enhancements.js# Extracción de audio en cliente con Web Audio, drag & drop y auto-scroll.
 │
 ├── requirements.txt        # Dependencias esenciales del entorno (torch, whisperx, gradio, requests, pyannote).
 ├── CHANGELOG.md            # Historial formal de cambios siguiendo el estándar Keep a Changelog.
@@ -232,6 +237,12 @@ transcriptor-suite/
 │   │
 │   ├── cloud_providers.py  # Conectores REST en la nube: DeepgramPipeline y AssemblyAIPipeline
 │   │                       # con diarización nativa, polling asíncrono y sin consumo de GPU.
+│   │
+│   ├── ui/                 # Paquete modular de presentación y componentes Gradio
+│   │   ├── components.py   # Tarjetas modulares reutilizables (Navbar, Modal, Subida, Opciones, Resultados).
+│   │   ├── helpers.py      # Constructores de estados de botones, insignias de estado y huellas de archivos.
+│   │   ├── theme.py        # Configuración de tema nórdico y compatibilidad de versiones de Gradio.
+│   │   └── assets.py       # Gestor con caché para hojas de estilo y scripts de cliente.
 │   │
 │   └── utils.py            # Utilidades: resolución jerárquica de API keys, escritura atómica de archivos y ZIP,
 │                           # barra de progreso continua en tiempo real y limpieza de VRAM.

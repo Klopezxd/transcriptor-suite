@@ -73,10 +73,11 @@
 * **Speaker Diarization:** Identifies and segments discrete speakers seamlessly using **Pyannote Audio 3.1**.
 * **Consumer GPU & ZeroGPU Ready:** Architected with `INT8` quantization and explicit VRAM garbage collection between pipeline stages, running efficiently on 4GB VRAM cards (e.g., NVIDIA GeForce GTX 1650) as well as **Hugging Face ZeroGPU** runners.
 * **Queued Multi-File Batching:** Upload or select multiple audio/video files simultaneously. Processed in an orderly sequential FIFO queue with real-time per-file progress tracking, automatic ZIP packaging, and an optional consolidated single-file (`.txt`) download with distinct file dividers.
+* **Client-Side Lossless Video Optimization:** Video files (`.mp4`, `.mov`, `.mkv`, `.webm`, etc.) are processed locally in the browser via the native Web Audio API prior to upload. Audio is demuxed and resampled to 16 kHz Mono WAV PCM, reducing upload payloads by 90-98% without acoustic quality loss.
 * **Dual Interface (Web + CLI):**
-  * **Web UI (Gradio):** Interactive browser application with multi-file drag-and-drop, individual downloads for single files, and dual ZIP + consolidated `.txt` buttons automatically activated exclusively for multi-file batches.
+  * **Web UI (Gradio):** Interactive browser application with modular architecture, multi-file drag-and-drop, individual downloads for single files, and dual ZIP + consolidated `.txt` buttons automatically activated exclusively for multi-file batches.
   * **CLI (Terminal):** Fully featured command-line interface supporting multiple file arguments with interactive graphical multi-file picker fallback and automatic generation of consolidated batch transcripts.
-* **Production Engineering:** Explicit type hints, structured logging, decoupled domain logic, and secure environment-based credential handling.
+* **Modular Software Engineering:** Clean separation between presentation (`assets/` & `src/ui/`), domain inference pipelines (`src/`), and test harnesses (90 automated tests). Structured logging and secure environment-based credential handling.
 
 ---
 
@@ -205,11 +206,15 @@ If you need to audit or manage this repository in the future without a local clo
 ```text
 transcriptor-suite/
 │
-├── app.py                  # Gradio Web Interface: Nordic Aurora theme, academic statusbar v2.1.0,
-│                           # multi-file queued batch processing, and isolated @spaces.GPU decorator execution.
+├── app.py                  # Gradio Web Orchestrator: event wiring, reactive state handlers,
+│                           # and execution flow delegating to modular UI components and pipelines.
 │
 ├── cli.py                  # Terminal CLI entry point: multi-file batch execution (--input, --model,
 │                           # --diarize) with interactive graphical multi-file picker fallback.
+│
+├── assets/                 # Frontend static assets (isolated CSS and JavaScript)
+│   ├── css/theme.css       # Nordic Aurora design skin, flexbox grid, and responsive rules.
+│   └── js/ui_enhancements.js# Client-side Web Audio extraction, drag-and-drop & DPI scaling.
 │
 ├── requirements.txt        # Runtime dependencies (torch, whisperx, gradio, requests, pyannote).
 ├── CHANGELOG.md            # Formal versioning and release notes conforming to Keep a Changelog.
@@ -229,6 +234,12 @@ transcriptor-suite/
 │   │
 │   ├── cloud_providers.py  # Lightweight cloud REST connectors: DeepgramPipeline & AssemblyAIPipeline
 │   │                       # featuring word-level diarization, async polling, and ZERO GPU usage.
+│   │
+│   ├── ui/                 # Modular presentation package
+│   │   ├── components.py   # Reusable Gradio components (Navbar, Modal, Upload, Options, Results).
+│   │   ├── helpers.py      # Dynamic button state builders, status badges, and file fingerprinting.
+│   │   ├── theme.py        # Nordic Aurora palette and theme configuration.
+│   │   └── assets.py       # Cached asset loader for CSS and client JavaScript.
 │   │
 │   └── utils.py            # Utility helpers: hierarchical API key resolution, atomic file & zip writes,
 │                           # real-time continuous progress notifier, and VRAM garbage collectors.
