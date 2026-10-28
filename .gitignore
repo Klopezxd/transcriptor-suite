@@ -52,3 +52,8 @@ hf_cache/
 .coverage
 htmlcov/
 .audit-temp/
+
+# Binarios ejecutables pesados (FFmpeg portatil)
+bin/*.exe
+*.exe
+!bin/.gitkeep
