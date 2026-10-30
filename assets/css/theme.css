@@ -2251,3 +2251,493 @@ div.modal-overlay:not(.hide),
     border-top: 1px solid rgba(0, 212, 255, 0.08) !important;
     margin-top: clamp(4px, 0.65vh, 8px) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVIDAD AVANZADA PARA TABLETS Y DISPOSITIVOS MÓVILES
+   (Preserva intacta la vista de escritorio en pantallas de computadoras)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. TABLETS (PORTRAIT Y PANTALLAS HASTA 1024px) ───────────────────────── */
+@media (max-width: 1024px) {
+    html,
+    body,
+    gradio-app {
+        height: auto !important;
+        min-height: 100% !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    .gradio-container,
+    .gradio-container > .main,
+    .gradio-container > .main > .wrap,
+    main.contain,
+    main.contain > .wrap,
+    .gradio-container div:has(> .main-body-row) {
+        height: auto !important;
+        max-height: none !important;
+        min-height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: visible !important;
+    }
+
+    .gradio-container {
+        padding: 10px 14px 24px 14px !important;
+    }
+
+    .main-body-row,
+    .gradio-container .row.main-body-row {
+        display: flex !important;
+        flex-direction: column !important;
+        flex-wrap: wrap !important;
+        height: auto !important;
+        max-height: none !important;
+        min-height: auto !important;
+        gap: 16px !important;
+        overflow: visible !important;
+    }
+
+    .left-column,
+    .gradio-container .column.left-column,
+    .result-column,
+    .gradio-container .column.result-column {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 1 auto !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        gap: 14px !important;
+        overflow: visible !important;
+    }
+
+    /* Módulo 1: Archivo Multimedia */
+    .upload-card,
+    .gradio-container .column.upload-card,
+    body.admin-mode .upload-card,
+    .left-column.admin-mode .upload-card,
+    .left-column:has(.keys-card.hide) .upload-card,
+    .left-column:has(.keys-card[style*="display: none"]) .upload-card,
+    .left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .upload-card,
+    .gradio-container .column.left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .upload-card {
+        height: auto !important;
+        min-height: 180px !important;
+        max-height: none !important;
+        flex: 1 1 auto !important;
+    }
+
+    .file-upload-zone,
+    .upload-card .file-upload-zone,
+    body.admin-mode .upload-card .file-upload-zone,
+    .left-column.admin-mode .upload-card .file-upload-zone {
+        height: auto !important;
+        min-height: 160px !important;
+        flex: 1 1 auto !important;
+    }
+
+    .file-upload-zone button.boundedheight,
+    .file-upload-zone [aria-label*="upload"] {
+        height: auto !important;
+        min-height: 150px !important;
+        padding: 24px 16px !important;
+    }
+
+    .file-upload-zone [data-testid="upload-text"]::after,
+    .file-upload-zone button.boundedheight > div::after {
+        content: "Toca para seleccionar o arrastra archivos multimedia aquí" !important;
+    }
+
+    .file-upload-zone .file-preview-holder,
+    body.admin-mode .upload-card .file-preview-holder,
+    .left-column.admin-mode .upload-card .file-preview-holder {
+        height: auto !important;
+        min-height: 130px !important;
+        max-height: 260px !important;
+        overflow-y: auto !important;
+    }
+
+    /* Módulo 2 & 3: Opciones y Credenciales */
+    .options-card,
+    .gradio-container .column.options-card,
+    body.admin-mode .options-card,
+    .left-column.admin-mode .options-card,
+    .left-column:has(.keys-card.hide) .options-card,
+    .left-column:has(.keys-card[style*="display: none"]) .options-card,
+    .left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .options-card,
+    .gradio-container .column.left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .options-card,
+    .keys-card,
+    .gradio-container .column.keys-card {
+        height: auto !important;
+        max-height: none !important;
+        flex: 1 1 auto !important;
+        padding: 16px 18px !important;
+        gap: 12px !important;
+    }
+
+    .gradio-container input[type="text"]:not([role="combobox"]),
+    .gradio-container input[type="password"]:not([role="combobox"]),
+    .gradio-container select,
+    .module-card .wrap:has(> .wrap-inner > .secondary-wrap),
+    .module-card .gradio-dropdown .wrap {
+        height: 44px !important;
+        min-height: 44px !important;
+    }
+
+    /* Botones de acción */
+    .actions-row,
+    .left-column .actions-row,
+    body.admin-mode .actions-row,
+    .left-column.admin-mode .actions-row {
+        height: auto !important;
+        min-height: auto !important;
+        gap: 12px !important;
+        margin-top: 4px !important;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        height: 48px !important;
+        min-height: 48px !important;
+        font-size: 1.0rem !important;
+    }
+
+    /* Módulo 4: Resultado */
+    .result-card,
+    .gradio-container .column.result-card {
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        flex: 1 1 auto !important;
+        padding: 16px 18px !important;
+        gap: 14px !important;
+    }
+
+    .output-textbox,
+    .output-textbox > div:not([data-testid="status-tracker"]),
+    .output-textbox .container,
+    .output-textbox label,
+    .output-textbox .input-container {
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        flex: 1 1 auto !important;
+    }
+
+    .output-textbox textarea {
+        height: 380px !important;
+        min-height: 320px !important;
+        max-height: 600px !important;
+        font-size: 0.95rem !important;
+        line-height: 1.55 !important;
+        padding: 14px 16px !important;
+        resize: vertical !important;
+    }
+
+    .result-card .actions-row {
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+    }
+
+    .btn-glow-single,
+    .btn-glow-zip,
+    .btn-glow-txt,
+    .result-card .actions-row .btn-secondary {
+        height: 48px !important;
+        min-height: 48px !important;
+        font-size: 0.96rem !important;
+    }
+}
+
+/* ── 2. DISPOSITIVOS MÓVILES (TELÉFONOS HASTA 767px) ───────────────────────── */
+@media (max-width: 767px) {
+    .gradio-container {
+        padding: 6px 8px 18px 8px !important;
+    }
+
+    /* Navbar optimizado para móvil */
+    .app-navbar {
+        padding: 8px 12px !important;
+        margin-bottom: 8px !important;
+        border-radius: 11px !important;
+        gap: 8px !important;
+    }
+
+    .nav-brand {
+        gap: 8px !important;
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+        overflow: hidden !important;
+    }
+
+    .brand-icon {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        border-radius: 8px !important;
+    }
+
+    .brand-icon svg {
+        width: 15px !important;
+        height: 15px !important;
+    }
+
+    .brand-titles {
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .brand-titles h1 {
+        font-size: 1.05rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .brand-titles p {
+        font-size: 0.72rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 175px !important;
+    }
+
+    .btn-login-compact {
+        height: 32px !important;
+        min-height: 32px !important;
+        padding: 4px 10px !important;
+        font-size: 0.80rem !important;
+        border-radius: 7px !important;
+    }
+
+    /* Módulos compactos y suaves */
+    .module-card {
+        padding: 12px 12px !important;
+        border-radius: 12px !important;
+        gap: 10px !important;
+    }
+
+    .module-header,
+    .gradio-container .row.module-header,
+    .module-card .row.module-header {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        margin-bottom: 6px !important;
+        padding-bottom: 4px !important;
+    }
+
+    .module-title {
+        font-size: 0.98rem !important;
+        gap: 6px !important;
+    }
+
+    .module-title-icon {
+        font-size: 1.05rem !important;
+    }
+
+    .status-badge-container,
+    .row.module-header > .status-badge-container,
+    .module-header .status-badge-container {
+        margin-left: auto !important;
+    }
+
+    /* Módulo 1: Subida de archivo */
+    .upload-card,
+    .gradio-container .column.upload-card {
+        min-height: 140px !important;
+    }
+
+    .file-upload-zone,
+    .upload-card .file-upload-zone {
+        min-height: 130px !important;
+    }
+
+    .file-upload-zone button.boundedheight,
+    .file-upload-zone [aria-label*="upload"] {
+        min-height: 120px !important;
+        padding: 16px 10px !important;
+        gap: 6px !important;
+    }
+
+    .file-upload-zone [data-testid="upload-icon"] svg,
+    .file-upload-zone button.boundedheight svg {
+        width: 24px !important;
+        height: 24px !important;
+    }
+
+    .file-upload-zone [data-testid="upload-text"]::after,
+    .file-upload-zone button.boundedheight > div::after {
+        font-size: 0.88rem !important;
+        line-height: 1.25 !important;
+    }
+
+    .file-status-strip {
+        white-space: normal !important;
+        height: auto !important;
+        max-height: none !important;
+        min-height: 0 !important;
+        padding: 4px 0 !important;
+    }
+
+    .status-strip-content {
+        white-space: normal !important;
+        flex-wrap: wrap !important;
+        font-size: 0.72rem !important;
+        gap: 4px 6px !important;
+        line-height: 1.25 !important;
+        overflow: visible !important;
+    }
+
+    .file-upload-zone .file-preview-holder {
+        min-height: 110px !important;
+        max-height: 200px !important;
+    }
+
+    /* Módulo 2: Opciones en columna completa en móvil */
+    .options-card .row,
+    .options-card .gradio-row {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    .module-card label:has(input[type="checkbox"]) {
+        margin-top: 4px !important;
+        min-height: 42px !important;
+        padding: 4px 0 !important;
+    }
+
+    .info-notice {
+        padding: 6px 10px !important;
+        font-size: 0.78rem !important;
+        line-height: 1.3 !important;
+    }
+
+    /* Fila de acción en columna izquierda (Limpiar y Transcribir) */
+    .left-column .actions-row {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .left-column .actions-row .btn-secondary {
+        flex: 1 1 0% !important;
+        height: 48px !important;
+        min-height: 48px !important;
+        font-size: 0.90rem !important;
+        padding: 6px 8px !important;
+    }
+
+    .left-column .actions-row .btn-primary {
+        flex: 2 1 0% !important;
+        height: 48px !important;
+        min-height: 48px !important;
+        font-size: 0.94rem !important;
+        padding: 6px 10px !important;
+    }
+
+    /* Módulo 4: Textarea de resultados espacioso y botones apilados */
+    .output-textbox textarea {
+        height: 310px !important;
+        min-height: 250px !important;
+        max-height: 500px !important;
+        font-size: 0.88rem !important;
+        padding: 10px 12px !important;
+        line-height: 1.5 !important;
+    }
+
+    .result-card .actions-row {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .result-card .actions-row > *,
+    .result-card .actions-row button,
+    .result-card .actions-row a {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        height: 46px !important;
+        min-height: 46px !important;
+        font-size: 0.90rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Modal de Administrador en móvil */
+    .modal-overlay:not(.hide) .modal-dialog,
+    .gradio-container .modal-overlay:not(.hide) .modal-dialog {
+        width: 92vw !important;
+        max-width: 350px !important;
+        padding: 18px 14px !important;
+        border-radius: 14px !important;
+        max-height: 85dvh !important;
+        overflow-y: auto !important;
+    }
+
+    .modal-title {
+        font-size: 1.02rem !important;
+    }
+
+    .modal-subtext {
+        font-size: 0.80rem !important;
+        margin-bottom: 10px !important;
+    }
+
+    .modal-dialog .actions-row {
+        gap: 8px !important;
+        margin-top: 10px !important;
+    }
+
+    .app-footer {
+        font-size: 0.72rem !important;
+        padding: 6px 2px 0 2px !important;
+        line-height: 1.3 !important;
+    }
+}
+
+/* ── 3. PANTALLAS ULTRA COMPACTAS (MÓVILES PEQUEÑOS HASTA 420px) ─────────── */
+@media (max-width: 420px) {
+    .brand-titles p {
+        display: none !important;
+    }
+
+    .brand-titles h1 {
+        font-size: 0.98rem !important;
+    }
+
+    .output-textbox textarea {
+        height: 270px !important;
+        min-height: 220px !important;
+        font-size: 0.84rem !important;
+    }
+}
+
+/* ── 4. OPTIMIZACIONES ESPECÍFICAS PARA DISPOSITIVOS TÁCTILES ─────────────── */
+@media (hover: none) and (pointer: coarse) {
+    * {
+        -webkit-tap-highlight-color: rgba(0, 255, 135, 0.15) !important;
+    }
+
+    .btn-primary:active,
+    .btn-secondary:active,
+    .btn-glow-single:active,
+    .btn-glow-zip:active,
+    .btn-glow-txt:active,
+    .btn-login-compact:active {
+        transform: scale(0.98) !important;
+    }
+
+    li[role="option"],
+    .item,
+    .option-list li,
+    [role="option"] {
+        min-height: 44px !important;
+        padding: 10px 14px !important;
+    }
+}
+
