@@ -20,7 +20,7 @@ PROVIDER_INFO_HTML: dict[str, str] = {
     ),
     ProviderType.ASSEMBLYAI.value: (
         '<div class="info-notice"><span>💡</span>'
-        "<span><b>AssemblyAI:</b> Precisión acústica y editorial de alta fidelidad. <code>best</code> (Universal-1) y <code>nano</code> (ahorro).</span></div>"
+        "<span><b>AssemblyAI:</b> Precisión acústica y comprensión contextual de alta fidelidad. Modelo <code>universal-3-5-pro</code> por defecto con respaldo multilingüe <code>universal-2</code>.</span></div>"
     ),
 }
 

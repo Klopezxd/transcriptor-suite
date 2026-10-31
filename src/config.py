@@ -35,8 +35,9 @@ class DeepgramModel(str, Enum):
 class AssemblyAIModel(str, Enum):
     """Modelos de voz de AssemblyAI."""
 
-    BEST = "best"  # Universal-1: máxima precisión acústica
-    NANO = "nano"  # Ligero: procesamiento rápido para pruebas
+    UNIVERSAL_3_5_PRO = "universal-3-5-pro"  # Flagship: máxima precisión y velocidad (recomendado)
+    UNIVERSAL_2 = "universal-2"  # Multilingüe: cobertura extendida (99 idiomas)
+    BEST = "best"  # Alias retrocompatible (enruta a universal-3-5-pro + universal-2)
 
 
 class ComputeType(str, Enum):
@@ -73,8 +74,8 @@ class TranscriptionConfig:
         language: Código de idioma ISO (opcional, detección automática por defecto).
     """
 
-    provider: str = ProviderType.DEEPGRAM.value
-    model_name: str = DeepgramModel.NOVA_3.value
+    provider: str = ProviderType.ASSEMBLYAI.value
+    model_name: str = AssemblyAIModel.UNIVERSAL_3_5_PRO.value
     device: str = "cuda"
     compute_type: str = ComputeType.INT8.value
     batch_size: int = 16
@@ -101,7 +102,7 @@ class TranscriptionConfig:
     @classmethod
     def create_default(
         cls,
-        provider: str = ProviderType.DEEPGRAM.value,
+        provider: str = ProviderType.ASSEMBLYAI.value,
         model_name: str | None = None,
         enable_diarization: bool = False,
         timestamp_mode: TimestampMode = TimestampMode.SIMPLE,
@@ -164,7 +165,7 @@ def normalize_provider_name(provider: str) -> str:
 DEFAULT_PROVIDER_MODELS: dict[str, str] = {
     ProviderType.WHISPERX.value: ModelName.LARGE_V3_TURBO.value,
     ProviderType.DEEPGRAM.value: DeepgramModel.NOVA_3.value,
-    ProviderType.ASSEMBLYAI.value: AssemblyAIModel.BEST.value,
+    ProviderType.ASSEMBLYAI.value: AssemblyAIModel.UNIVERSAL_3_5_PRO.value,
 }
 
 
@@ -196,8 +197,14 @@ PROVIDER_MODEL_CHOICES: dict[str, list[tuple[str, str]]] = {
         ("nova-2 · Rápido & Económico", DeepgramModel.NOVA_2.value),
     ],
     ProviderType.ASSEMBLYAI.value: [
-        ("best · Alta Fidelidad", AssemblyAIModel.BEST.value),
-        ("nano · Ultraligero", AssemblyAIModel.NANO.value),
+        (
+            "universal-3-5-pro · Máxima Precisión (Recomendado)",
+            AssemblyAIModel.UNIVERSAL_3_5_PRO.value,
+        ),
+        (
+            "universal-2 · Cobertura Extendida (99 idiomas)",
+            AssemblyAIModel.UNIVERSAL_2.value,
+        ),
     ],
 }
 

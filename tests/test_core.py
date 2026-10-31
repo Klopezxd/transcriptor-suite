@@ -55,7 +55,7 @@ class ConfigTests(unittest.TestCase):
     def test_provider_defaults(self):
         for provider, model in [
             (ProviderType.DEEPGRAM, "nova-3"),
-            (ProviderType.ASSEMBLYAI, "best"),
+            (ProviderType.ASSEMBLYAI, "universal-3-5-pro"),
         ]:
             with self.subTest(provider=provider):
                 self.assertEqual(cloud_config(provider.value).model_name, model)
@@ -409,6 +409,18 @@ class CloudTests(unittest.TestCase):
             result = self.assembly.process(self.media)
         self.assertIn("Hola", result.formatted_text)
         self.assertTrue(result.output_path.is_file())
+
+    def test_assembly_submit_job_uses_speech_models_list(self):
+        pipeline = AssemblyAIPipeline(
+            cloud_config(ProviderType.ASSEMBLYAI.value, model_name="universal-3-5-pro")
+        )
+        with patch("src.cloud_providers.requests.post", return_value=response({"id": "job-123"})) as post_mock:
+            job_id = pipeline._submit_transcript_job("https://example.com/audio.mp3", {"authorization": "test"})
+            self.assertEqual(job_id, "job-123")
+            payload = post_mock.call_args[1]["json"]
+            self.assertIn("speech_models", payload)
+            self.assertNotIn("speech_model", payload)
+            self.assertEqual(payload["speech_models"], ["universal-3-5-pro", "universal-2"])
 
     def test_assembly_terminal_errors_fail_immediately(self):
         for status in [401, 403, 404]:

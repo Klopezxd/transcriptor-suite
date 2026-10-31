@@ -1,6 +1,6 @@
 """
 Módulo de proveedores en la nube para transcripción y diarización.
-Integra Deepgram (Nova-2/Nova-3) y AssemblyAI (Universal-1/Nano) con llamadas REST optimizadas.
+Integra Deepgram (Nova-2/Nova-3) y AssemblyAI (Universal-3.5 Pro/Universal-2) con llamadas REST optimizadas.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 
 import requests
 
-from src.config import TranscriptionConfig
+from src.config import AssemblyAIModel, TranscriptionConfig
 from src.utils import (
     ProgressFileReader,
     TranscriptionError,
@@ -338,9 +338,22 @@ class DeepgramPipeline:
         )
 
 
+def resolve_assemblyai_speech_models(model_name: str | None) -> list[str]:
+    """
+    Resuelve la lista de modelos para el parámetro 'speech_models' de AssemblyAI.
+    Para máxima fidelidad y cobertura, 'universal-3-5-pro' incluye 'universal-2' como respaldo.
+    """
+    raw = (model_name or "").strip().lower()
+    if raw in {"universal-2", "nano"}:
+        return ["universal-2"]
+    if raw in {"universal-3-5-pro", "best", "default", ""}:
+        return ["universal-3-5-pro", "universal-2"]
+    return [raw]
+
+
 class AssemblyAIPipeline:
     """
-    Cliente optimizado para la API de AssemblyAI (Universal-1 y Nano).
+    Cliente optimizado para la API de AssemblyAI (Universal-3.5 Pro y Universal-2).
     Soporta subida en streaming, sondeo de estado y diarización con etiquetas de interlocutor.
     """
 
@@ -420,7 +433,7 @@ class AssemblyAIPipeline:
     def _submit_transcript_job(self, audio_url: str, headers: dict[str, str]) -> str:
         transcript_payload: dict[str, Any] = {
             "audio_url": audio_url,
-            "speech_model": self.config.model_name or "best",
+            "speech_models": resolve_assemblyai_speech_models(self.config.model_name),
             "speaker_labels": self.config.enable_diarization,
         }
         if self.config.language:
@@ -454,7 +467,7 @@ class AssemblyAIPipeline:
     ) -> dict[str, Any]:
         poll_url = f"{self.TRANSCRIPT_URL}/{transcript_id}"
         deadline = time.monotonic() + self.MAX_POLL_SECONDS
-        model_label = self.config.model_name or "best"
+        model_label = self.config.model_name or AssemblyAIModel.UNIVERSAL_3_5_PRO.value
 
         with smooth_progress_stage(
             notify=notify,

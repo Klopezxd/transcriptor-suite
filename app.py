@@ -528,7 +528,7 @@ def update_guest_api_panel(
         )
 
     if selected_provider not in PROVIDER_MODEL_CHOICES:
-        selected_provider = ProviderType.DEEPGRAM.value
+        selected_provider = ProviderType.ASSEMBLYAI.value
 
     is_wx = selected_provider == ProviderType.WHISPERX.value
     is_dg = selected_provider == ProviderType.DEEPGRAM.value
@@ -553,7 +553,7 @@ def on_provider_selected(
 ):
     """Actualiza modelos disponibles, panel de claves y descripción."""
     if selected_provider not in PROVIDER_MODEL_CHOICES:
-        selected_provider = ProviderType.DEEPGRAM.value
+        selected_provider = ProviderType.ASSEMBLYAI.value
     choices = PROVIDER_MODEL_CHOICES.get(selected_provider, [])
     default_val = choices[0][1] if choices else ""
     panel_vis = update_guest_api_panel(selected_provider, is_diarize, is_admin)
@@ -633,11 +633,11 @@ def process_admin_logout(current_provider: str, is_diarize: bool):
 
 
 def initialize_guest_session(
-    current_provider: str = ProviderType.DEEPGRAM.value,
+    current_provider: str = ProviderType.ASSEMBLYAI.value,
     is_diarize: bool = False,
 ):
     if current_provider not in PROVIDER_MODEL_CHOICES:
-        current_provider = ProviderType.DEEPGRAM.value
+        current_provider = ProviderType.ASSEMBLYAI.value
     panel_vis = update_guest_api_panel(current_provider, bool(is_diarize), False)
     return (
         False,

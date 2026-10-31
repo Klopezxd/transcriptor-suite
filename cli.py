@@ -73,7 +73,7 @@ def parse_arguments() -> argparse.Namespace:
         "-p",
         "--provider",
         type=normalize_provider_name,
-        default=ProviderType.WHISPERX.value,
+        default=ProviderType.ASSEMBLYAI.value,
         choices=[p.value for p in ProviderType],
         help="Proveedor de inferencia: 'whisperx', 'deepgram' o 'assemblyai'.",
     )
@@ -82,7 +82,7 @@ def parse_arguments() -> argparse.Namespace:
         "--model",
         type=str,
         default=None,
-        help="Modelo a utilizar (ej. 'large-v3-turbo' para WhisperX, 'nova-2' para Deepgram, 'best' para AssemblyAI).",
+        help="Modelo a utilizar (ej. 'universal-3-5-pro' para AssemblyAI, 'nova-3' para Deepgram, 'large-v3-turbo' para WhisperX).",
     )
     parser.add_argument(
         "-d",

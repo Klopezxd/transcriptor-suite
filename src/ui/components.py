@@ -7,6 +7,7 @@ import gradio as gr
 from src.config import (
     PROVIDER_MODEL_CHOICES,
     TIMESTAMP_CHOICES,
+    AssemblyAIModel,
     DeepgramModel,
     ProviderType,
 )
@@ -213,19 +214,19 @@ def render_options_card() -> tuple[
         with gr.Row():
             provider_dropdown = gr.Dropdown(
                 choices=[
-                    ProviderType.WHISPERX.value,
-                    ProviderType.DEEPGRAM.value,
                     ProviderType.ASSEMBLYAI.value,
+                    ProviderType.DEEPGRAM.value,
+                    ProviderType.WHISPERX.value,
                 ],
-                value=ProviderType.DEEPGRAM.value,
+                value=ProviderType.ASSEMBLYAI.value,
                 label="Proveedor de Transcripción",
                 allow_custom_value=True,
                 min_width=100,
                 scale=1,
             )
             model_dropdown = gr.Dropdown(
-                choices=PROVIDER_MODEL_CHOICES[ProviderType.DEEPGRAM.value],
-                value=DeepgramModel.NOVA_3.value,
+                choices=PROVIDER_MODEL_CHOICES[ProviderType.ASSEMBLYAI.value],
+                value=AssemblyAIModel.UNIVERSAL_3_5_PRO.value,
                 label="Modelo de Transcripción",
                 allow_custom_value=True,
                 min_width=100,
@@ -248,7 +249,7 @@ def render_options_card() -> tuple[
                 scale=1,
             )
 
-        provider_info_box = gr.HTML(PROVIDER_INFO_HTML[ProviderType.DEEPGRAM.value])
+        provider_info_box = gr.HTML(PROVIDER_INFO_HTML[ProviderType.ASSEMBLYAI.value])
 
     return (
         provider_dropdown,
@@ -300,7 +301,7 @@ def render_credentials_card() -> tuple[
             placeholder="Pega tu clave de API de Deepgram...",
             type="password",
             info="Obtén tu clave con créditos iniciales gratuitos en console.deepgram.com",
-            visible=True,
+            visible=False,
         )
 
         assemblyai_key_box = gr.Textbox(
@@ -308,7 +309,7 @@ def render_credentials_card() -> tuple[
             placeholder="Pega tu clave de API de AssemblyAI...",
             type="password",
             info="Obtén tu clave gratuita en assemblyai.com",
-            visible=False,
+            visible=True,
         )
 
     return (
