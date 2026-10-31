@@ -8,7 +8,6 @@ from src.config import (
     PROVIDER_MODEL_CHOICES,
     TIMESTAMP_CHOICES,
     AssemblyAIModel,
-    DeepgramModel,
     ProviderType,
 )
 from src.ui.helpers import (
