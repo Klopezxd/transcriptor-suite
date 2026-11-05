@@ -1446,6 +1446,42 @@ li[role="option"][aria-selected="true"],
     overflow: hidden !important;
 }
 
+.upload-loading-queue-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    color: #FFB800 !important;
+    background: rgba(255, 184, 0, 0.12) !important;
+    border: 1px solid rgba(255, 184, 0, 0.4) !important;
+    border-radius: 6px !important;
+    padding: 1px 7px !important;
+    margin-top: 2px !important;
+    letter-spacing: 0.2px !important;
+    animation: fadeInOverlay 0.2s ease-out !important;
+}
+
+.btn-skip-optimization {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(0, 212, 255, 0.35) !important;
+    color: #00D4FF !important;
+    font-size: 0.74rem !important;
+    font-weight: 600 !important;
+    border-radius: 5px !important;
+    padding: 2px 8px !important;
+    margin-top: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: inline-block !important;
+}
+
+.btn-skip-optimization:hover {
+    background: rgba(0, 212, 255, 0.2) !important;
+    border-color: #00FF87 !important;
+    color: #ffffff !important;
+}
+
 .overlay-dismiss-btn {
     position: absolute !important;
     top: 50% !important;
@@ -1842,6 +1878,35 @@ li[role="option"][aria-selected="true"],
     color: #FAFBFC !important;
     box-shadow: 0 6px 20px rgba(0, 212, 255, 0.45), 0 0 14px rgba(123, 47, 190, 0.3) !important;
     transform: translateY(-1px) !important;
+}
+
+/* ── BOTÓN DE TRANSCRIPCIÓN EN COLA (AUTO-START TRAS SUBIDA) ── */
+.btn-transcribe-queued,
+#btn_transcribe.btn-transcribe-queued {
+    background: linear-gradient(135deg, #FFB800 0%, #FF8A00 100%) !important;
+    color: #050B1A !important;
+    border: 1px solid rgba(255, 184, 0, 0.6) !important;
+    box-shadow: 0 4px 18px rgba(255, 184, 0, 0.45), 0 0 16px rgba(255, 138, 0, 0.35) !important;
+    animation: pulseTranscribeQueued 1.8s infinite ease-in-out !important;
+    cursor: pointer !important;
+}
+
+.btn-transcribe-queued:hover,
+#btn_transcribe.btn-transcribe-queued:hover {
+    background: linear-gradient(135deg, #FFC837 0%, #FF8008 100%) !important;
+    box-shadow: 0 6px 24px rgba(255, 184, 0, 0.65), 0 0 20px rgba(255, 138, 0, 0.5) !important;
+    transform: translateY(-1px) !important;
+}
+
+@keyframes pulseTranscribeQueued {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 18px rgba(255, 184, 0, 0.45), 0 0 16px rgba(255, 138, 0, 0.35);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 6px 24px rgba(255, 184, 0, 0.7), 0 0 22px rgba(255, 138, 0, 0.55);
+    }
 }
 
 .btn-secondary {

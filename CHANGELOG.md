@@ -5,6 +5,20 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [2.4.3] - 2026-11-05
+
+### Agregado
+* **Cola Inteligente de Transcripción Asíncrona («Dejarlo Trabajando»):**
+  * Posibilidad de hacer clic en **"⚡ Iniciar Transcripción"** en cualquier momento mientras se analizan, optimizan o suben los archivos (tanto vía selector como mediante arrastrar y soltar).
+  * La interfaz intercepta la acción en fase de captura, activa el modo en cola (`⏳ En cola (iniciará al terminar subida)`) con iluminación pulsante ámbar y lanza la transcripción automáticamente en cuanto los archivos terminan de subirse al servidor, permitiendo desentenderse del proceso.
+  * Permite cancelar la programación con un segundo clic sobre el botón antes de la subida.
+
+### Optimizado
+* **Detección Instantánea de Archivos No Optimizables (<30 ms por lote):**
+  * Sondeo previo ultrarrápido con metadatos HTML5 que evita leer archivos completos en memoria (`ArrayBuffer`) cuando no es viable optimizarlos.
+  * Detección y desvío inmediato a subida directa para contenedores no decodificables por la Web Audio API del navegador (`.mkv`, `.avi`, `.flv`, `.wmv`) y para videos con bitrate ultra liviano cuyo peso original ya es menor o igual que el WAV PCM de 16 kHz esperado.
+  * Eliminación del cuello de botella en lotes extensos (ej. 21 videos): los archivos no optimizables pasan de inmediato a subida directa sin re-decodificaciones innecesarias, aprovechando la extracción acelerada con FFmpeg nativo en servidor.
+
 ## [2.4.2] - 2026-10-23
 
 ### Agregado

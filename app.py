@@ -664,10 +664,10 @@ def clear_all():
 # Carga de estilos y tema visual modular
 custom_css = get_custom_css()
 custom_theme = get_custom_theme()
-blocks_kwargs, launch_kwargs = get_blocks_and_launch_kwargs(
-    custom_css, custom_theme
-)
 _ui_enhancements_js = get_ui_enhancements_js()
+blocks_kwargs, launch_kwargs = get_blocks_and_launch_kwargs(
+    custom_css, custom_theme, _ui_enhancements_js
+)
 
 # Construcción de la aplicación Gradio
 with gr.Blocks(**blocks_kwargs) as demo:

@@ -257,11 +257,126 @@
                 }, 100);
             };
 
+            // ── ESTADO GLOBAL DE EXTRACCIÓN, SUBIDA Y COLA DE TRANSCRIPCIÓN ──
+            let isExtractingAudio = false;
+            let isUploadingFiles = false;
+            let activeUploadCount = 0;
+            let isTranscriptionQueued = false;
+            let isAutoTriggeringTranscription = false;
+            let queueTriggerTimer = null;
+            let abortCurrentOptimization = false;
+
+            window.__abortOptimization = () => {
+                abortCurrentOptimization = true;
+                console.log('[Transcriptor] Omitiendo optimización a petición del usuario. Pasando a subida directa...');
+                const overlay = document.querySelector('.upload-loading-overlay');
+                if (overlay) {
+                    const txt = overlay.querySelector('.upload-loading-subtext');
+                    if (txt) txt.textContent = '⚡ Omitiendo optimización... Subiendo original';
+                }
+            };
+
+            const getTranscribeButton = () => {
+                let btn = document.querySelector('#btn_transcribe') ||
+                          document.querySelector('.actions-row .btn-primary') ||
+                          document.querySelector('.btn-primary');
+                if (btn) return btn;
+                const buttons = document.querySelectorAll('button');
+                for (let i = 0; i < buttons.length; i++) {
+                    if (/transcri/i.test(buttons[i].textContent || '')) {
+                        return buttons[i];
+                    }
+                }
+                return null;
+            };
+
+            const updateQueueButtonVisual = () => {
+                const btn = getTranscribeButton();
+                if (!btn) return;
+                if (isTranscriptionQueued) {
+                    btn.classList.add('btn-transcribe-queued');
+                    if (!btn.dataset.originalText) {
+                        btn.dataset.originalText = btn.textContent || '⚡ Iniciar Transcripción';
+                    }
+                    btn.textContent = '⏳ En cola (iniciará al terminar subida)';
+                    btn.title = 'Haz clic para cancelar la ejecución en cola';
+
+                    // Actualizar badges en overlays abiertos
+                    document.querySelectorAll('.upload-loading-overlay .upload-loading-info').forEach((info) => {
+                        if (!info.querySelector('.upload-loading-queue-badge')) {
+                            const badge = document.createElement('div');
+                            badge.className = 'upload-loading-queue-badge';
+                            badge.textContent = '⏳ Transcripción en cola: iniciará automáticamente al completar';
+                            info.appendChild(badge);
+                        }
+                    });
+                } else {
+                    btn.classList.remove('btn-transcribe-queued');
+                    if (btn.dataset.originalText) {
+                        btn.textContent = btn.dataset.originalText;
+                        delete btn.dataset.originalText;
+                    }
+                    btn.title = '';
+                    document.querySelectorAll('.upload-loading-queue-badge').forEach((el) => el.remove());
+                }
+            };
+
+            const checkAndExecuteQueue = () => {
+                if (!isTranscriptionQueued) return;
+                if (isExtractingAudio || isUploadingFiles || activeUploadCount > 0) return;
+
+                if (queueTriggerTimer) clearTimeout(queueTriggerTimer);
+                queueTriggerTimer = setTimeout(() => {
+                    if (!isTranscriptionQueued) return;
+                    if (isExtractingAudio || isUploadingFiles || activeUploadCount > 0) return;
+
+                    const btn = getTranscribeButton();
+                    if (!btn) return;
+
+                    console.log('[Transcriptor] Ejecutando automáticamente transcripción en cola.');
+                    isTranscriptionQueued = false;
+                    updateQueueButtonVisual();
+
+                    const strip = document.querySelector('.file-status-strip');
+                    if (strip) {
+                        strip.innerHTML = `
+                            <div class="status-strip-content is-optimized">
+                                <span class="status-pill success">🚀 Cola ejecutada</span>
+                                <span class="status-text">Iniciando transcripción de archivos...</span>
+                            </div>
+                        `;
+                    }
+
+                    isAutoTriggeringTranscription = true;
+                    btn.click();
+                    setTimeout(() => {
+                        isAutoTriggeringTranscription = false;
+                    }, 800);
+                }, 350);
+            };
+
+            const isAudioFile = (file) => {
+                if (!file) return false;
+                const name = (file.name || '').toLowerCase();
+                const audioExts = ['.wav', '.flac', '.mp3', '.m4a', '.ogg', '.opus', '.aac', '.wma', '.aiff', '.alac'];
+                return audioExts.some(ext => name.endsWith(ext)) || (file.type && file.type.startsWith('audio/'));
+            };
+
             const isVideoFile = (file) => {
                 if (!file) return false;
+                if (isAudioFile(file)) return false;
                 const name = (file.name || '').toLowerCase();
                 const videoExts = ['.mp4', '.mov', '.mkv', '.webm', '.avi', '.m4v', '.flv', '.wmv'];
                 return videoExts.some(ext => name.endsWith(ext)) || (file.type && file.type.startsWith('video/'));
+            };
+
+            // Contenedores decodificables nativamente por la Web Audio API de los navegadores (Chromium/Firefox/Safari).
+            // MKV, AVI, FLV, WMV NO son decodificables en Web Audio decodeAudioData y deben subirse directamente.
+            const isBrowserDecodableVideo = (file) => {
+                if (!file) return false;
+                const name = (file.name || '').toLowerCase();
+                const decodableExts = ['.mp4', '.mov', '.m4v', '.webm'];
+                return decodableExts.some(ext => name.endsWith(ext));
             };
 
             const formatBytes = (bytes) => {
@@ -270,6 +385,97 @@
                 if (mb < 0.1) return `${Math.round(bytes / 1024)} KB`;
                 return `${mb.toFixed(1)} MB`;
             };
+
+            // Sondeo ultrarrápido (<30ms) de viabilidad de optimización mediante metadatos HTML5
+            const probeVideoOptimizationFeasibility = (file) => new Promise((resolve) => {
+                if (!isBrowserDecodableVideo(file)) {
+                    resolve({
+                        canOptimize: false,
+                        reason: 'Contenedor MKV/AVI/FLV no decodificable en navegador; subida directa para FFmpeg nativo'
+                    });
+                    return;
+                }
+
+                // Límite seguro para decodificación Web Audio en el navegador (450 MB)
+                const MAX_BROWSER_DECODE_SIZE = 450 * 1024 * 1024;
+                if (file.size > MAX_BROWSER_DECODE_SIZE) {
+                    resolve({
+                        canOptimize: false,
+                        largeVideo: true,
+                        reason: `Video extenso (${formatBytes(file.size)} > 450MB); subida directa para FFmpeg nativo`
+                    });
+                    return;
+                }
+
+                const v = document.createElement('video');
+                v.preload = 'metadata';
+                let isDone = false;
+
+                const timer = setTimeout(() => {
+                    if (!isDone) {
+                        isDone = true;
+                        cleanup();
+                        resolve({ canOptimize: false, reason: 'Tiempo de sondeo de metadatos superado (subida directa)' });
+                    }
+                }, 600);
+
+                const cleanup = () => {
+                    clearTimeout(timer);
+                    v.onloadedmetadata = null;
+                    v.onerror = null;
+                    if (v.src) URL.revokeObjectURL(v.src);
+                    v.remove();
+                };
+
+                v.onloadedmetadata = () => {
+                    if (isDone) return;
+                    isDone = true;
+                    const duration = v.duration;
+                    cleanup();
+
+                    if (!duration || duration <= 0 || !isFinite(duration)) {
+                        resolve({ canOptimize: false, reason: 'Duración no detectable en metadatos' });
+                        return;
+                    }
+
+                    // Tamaño exacto de audio PCM lineal WAV 16-bit 16kHz Mono:
+                    // 16,000 muestras/seg * 2 bytes/muestra = 32,000 bytes/seg + 44 bytes de cabecera RIFF
+                    const expectedWavBytes = Math.ceil(duration * 32000) + 44;
+
+                    // Si el archivo original de video ya es menor o similar al WAV esperado (<= expectedWavBytes * 1.1):
+                    // Significa que el video ya tiene bitrate ultra liviano o es más pequeño que el audio WAV sin pérdida.
+                    // Convertirlo a WAV aumentaría el tamaño o no ahorraría nada.
+                    if (file.size <= expectedWavBytes * 1.1) {
+                        resolve({
+                            canOptimize: false,
+                            duration,
+                            expectedWavBytes,
+                            reason: `Video ya optimizado (${formatBytes(file.size)} <= WAV esperado ${formatBytes(expectedWavBytes)})`
+                        });
+                        return;
+                    }
+
+                    resolve({
+                        canOptimize: true,
+                        duration,
+                        expectedWavBytes
+                    });
+                };
+
+                v.onerror = () => {
+                    if (isDone) return;
+                    isDone = true;
+                    cleanup();
+                    resolve({ canOptimize: false, reason: 'Codec no reproducible en navegador' });
+                };
+
+                try {
+                    v.src = URL.createObjectURL(file);
+                } catch (e) {
+                    cleanup();
+                    resolve({ canOptimize: false, reason: 'No se pudo crear URL de objeto' });
+                }
+            });
 
             // Generador de audio sin pérdida WAV PCM 16-bit lineal (Máxima Fidelidad Acústica)
             const audioBufferToWav = (buffer) => {
@@ -380,6 +586,13 @@
                             <span class="status-text">La IA solo necesita el audio · Sube más rápido con <a href="javascript:void(0)" onclick="window.__downloadAudioExtractorBat()" class="status-strip-link" title="Haz clic para descargar extraer_audio.bat directamente">extraer_audio.bat ⬇</a></span>
                         </div>
                     `;
+                } else if (stats.directUpload) {
+                    strip.innerHTML = `
+                        <div class="status-strip-content is-server">
+                            <span class="status-pill server">⚡ Subida directa (${stats.origMb})</span>
+                            <span class="status-text">${stats.count} archivo(s) listos · Extracción nativa en servidor</span>
+                        </div>
+                    `;
                 } else {
                     strip.innerHTML = `
                         <div class="status-strip-content is-server">
@@ -409,13 +622,17 @@
                     overlay.addEventListener('click', (e) => e.stopPropagation());
                     targetZone.appendChild(overlay);
                 }
+                const queueBadgeHtml = isTranscriptionQueued ?
+                    '<div class="upload-loading-queue-badge">⏳ Transcripción en cola: iniciará automáticamente al completar</div>' : '';
                 overlay.innerHTML = `
-                    <button class="overlay-dismiss-btn" title="Cerrar overlay" onclick="this.closest('.upload-loading-overlay').remove()">✕</button>
+                    <button class="overlay-dismiss-btn" title="Omitir optimización y subir archivo original" onclick="window.__abortOptimization && window.__abortOptimization()">✕</button>
                     <div class="upload-overlay-body">
                         <div class="upload-spinner"></div>
                         <div class="upload-loading-info">
                             <div class="upload-loading-text">⚡ Optimizando video (${current}/${total})...</div>
                             <div class="upload-loading-subtext">${stageText || 'Extrayendo audio localmente'} · ${fileName}</div>
+                            ${queueBadgeHtml}
+                            <button type="button" class="btn-skip-optimization" onclick="window.__abortOptimization && window.__abortOptimization()">⚡ Omitir y subir directo</button>
                         </div>
                     </div>
                 `;
@@ -441,10 +658,16 @@
                 } else if (stats && stats.largeVideo) {
                     defaultTitle = `⬆ Subiendo video (${stats.origMb})...`;
                     defaultSub = `La IA solo necesita el audio · Sube más rápido con extraer_audio.bat`;
+                } else if (stats && stats.directUpload) {
+                    defaultTitle = `⬆ Subiendo ${stats.count} archivo(s) (${stats.origMb})...`;
+                    defaultSub = `Subida directa · Extracción nativa con FFmpeg en servidor`;
                 } else if (stats && stats.mb) {
                     defaultTitle = stats.anyAudio ? '⬆ Subiendo audio al servidor...' : `Subiendo ${stats.count} archivo(s)...`;
                     defaultSub = `${stats.mb} · Transfiriendo a Hugging Face Space`;
                 }
+
+                const queueBadgeHtml = isTranscriptionQueued ?
+                    '<div class="upload-loading-queue-badge">⏳ Transcripción en cola: iniciará automáticamente al completar</div>' : '';
 
                 overlay.innerHTML = `
                     <button class="overlay-dismiss-btn" title="Cerrar overlay" onclick="this.closest('.upload-loading-overlay').remove()">✕</button>
@@ -453,6 +676,7 @@
                         <div class="upload-loading-info">
                             <div class="upload-loading-text">${title || defaultTitle}</div>
                             <div class="upload-loading-subtext">${sub || defaultSub}</div>
+                            ${queueBadgeHtml}
                         </div>
                     </div>
                 `;
@@ -471,6 +695,9 @@
                     const hasPreview = zone.querySelector('.file-preview-holder, table.file-preview, [data-testid="file-preview"], .icon-button-wrapper, .filename, table');
                     if (hasPreview) {
                         hideUploadOverlay();
+                        if (!isExtractingAudio && !isUploadingFiles) {
+                            checkAndExecuteQueue();
+                        }
                     }
                 });
                 mo.observe(zone, { childList: true, subtree: true });
@@ -480,12 +707,12 @@
 
             const handleFilesUploadStart = (zone, files, optStats) => {
                 if (!files || files.length === 0) return;
+                isUploadingFiles = true;
                 let totalBytes = 0;
                 let anyAudio = false;
                 for (let i = 0; i < files.length; i++) {
                     totalBytes += files[i].size || 0;
-                    const nm = (files[i].name || '').toLowerCase();
-                    if (nm.endsWith('.mp3') || nm.endsWith('.wav') || nm.endsWith('.m4a') || nm.endsWith('.flac')) {
+                    if (isAudioFile(files[i])) {
                         anyAudio = true;
                     }
                 }
@@ -496,60 +723,102 @@
                     const stats = { count: files.length, mb, anyAudio };
                     showUploadOverlay(zone, stats);
                 }
-                setTimeout(() => hideUploadOverlay(), 45000);
+                setTimeout(() => {
+                    hideUploadOverlay();
+                    isUploadingFiles = false;
+                    checkAndExecuteQueue();
+                }, 45000);
             };
 
             const processFilesWithAudioExtraction = async (zone, files) => {
-                const fileArray = Array.from(files || []);
-                const videoIndices = [];
-                fileArray.forEach((f, idx) => {
-                    if (isVideoFile(f)) videoIndices.push(idx);
-                });
+                isExtractingAudio = true;
+                abortCurrentOptimization = false;
+                try {
+                    const fileArray = Array.from(files || []);
+                    if (fileArray.length === 0) {
+                        return { files: fileArray, stats: null };
+                    }
 
-                if (videoIndices.length === 0) {
-                    return { files: fileArray, stats: null };
-                }
+                    // 1. Sondeo rápido de viabilidad (milisegundos): detecta de inmediato archivos no optimizables
+                    updateExtractingOverlay(zone, 1, fileArray.length, 'Analizando archivos...', 'Detectando formato y tamaño...');
 
-                // Límite seguro para decodificación Web Audio en el navegador.
-                // Archivos mayores a 450 MB generan más de 2 GB de muestras Float32 PCM desnudas en memoria,
-                // excediendo el límite de búfer de Chromium y congelando el navegador.
-                // Para videos mayores a 450 MB, el servidor los procesa con FFmpeg nativo en 1 segundo.
-                const MAX_BROWSER_DECODE_SIZE = 450 * 1024 * 1024; // 450 MB
+                    const feasibilityList = [];
+                    for (let i = 0; i < fileArray.length; i++) {
+                        const f = fileArray[i];
+                        if (isAudioFile(f)) {
+                            feasibilityList.push({ file: f, canOptimize: false, isAudio: true });
+                        } else if (!isVideoFile(f)) {
+                            feasibilityList.push({ file: f, canOptimize: false });
+                        } else {
+                            const feas = await probeVideoOptimizationFeasibility(f);
+                            feasibilityList.push({ file: f, ...feas });
+                        }
+                    }
 
-                const processed = [];
-                let videoProcessed = 0;
-                let totalOrigBytes = 0;
-                let totalOptBytes = 0;
-                let anyOptimized = false;
-                let anyLargeVideo = false;
-                let anyFallback = false;
-                let failureReason = '';
+                    const optimizableItems = feasibilityList.filter(item => item.canOptimize);
 
-                for (let i = 0; i < fileArray.length; i++) {
-                    const f = fileArray[i];
-                    if (isVideoFile(f)) {
-                        videoProcessed++;
+                    // Si ningún archivo se puede optimizar en el navegador (por ser MKV, audio directo o video ya liviano),
+                    // pasar de inmediato a la subida directa sin demoras artificiales
+                    if (optimizableItems.length === 0) {
+                        hideUploadOverlay();
+                        const totalBytes = fileArray.reduce((acc, f) => acc + f.size, 0);
+                        const anyLarge = feasibilityList.some(item => item.largeVideo);
+                        const stats = {
+                            processed: true,
+                            success: false,
+                            largeVideo: anyLarge,
+                            directUpload: true,
+                            count: fileArray.length,
+                            origMb: formatBytes(totalBytes),
+                            reason: 'Archivos aptos para subida directa (extracción optimizada en servidor)'
+                        };
+                        return { files: fileArray, stats };
+                    }
+
+                    // 2. Extracción de audio únicamente para los archivos que realmente se benefician
+                    const processed = [];
+                    let currentOptimizedIdx = 0;
+                    let totalOrigBytes = 0;
+                    let totalOptBytes = 0;
+                    let anyOptimized = false;
+                    let anyLargeVideo = false;
+
+                    for (let i = 0; i < feasibilityList.length; i++) {
+                        const item = feasibilityList[i];
+                        const f = item.file;
                         totalOrigBytes += f.size;
                         const origMb = formatBytes(f.size);
 
-                        // Si el archivo supera el umbral seguro de decodificación en memoria del navegador:
-                        if (f.size > MAX_BROWSER_DECODE_SIZE) {
-                            console.log(`[Transcriptor] Video extenso (${origMb} > 450MB). Omitiendo decodificación Web Audio para evitar sobrecarga de RAM; el servidor procesará el audio con FFmpeg.`);
+                        if (abortCurrentOptimization) {
+                            console.log(`[Transcriptor] Optimización omitida para ${f.name}. Subiendo original.`);
                             totalOptBytes += f.size;
-                            anyLargeVideo = true;
                             processed.push(f);
                             continue;
                         }
 
-                        updateExtractingOverlay(zone, videoProcessed, videoIndices.length, `${f.name} (${origMb})`, 'Iniciando optimización...');
+                        if (!item.canOptimize) {
+                            if (item.largeVideo) anyLargeVideo = true;
+                            totalOptBytes += f.size;
+                            console.log(`[Transcriptor] Subida directa sin extracción local: ${f.name} (${origMb}). Motivo: ${item.reason || 'No optimizable en cliente'}`);
+                            processed.push(f);
+                            continue;
+                        }
+
+                        currentOptimizedIdx++;
+                        updateExtractingOverlay(
+                            zone,
+                            currentOptimizedIdx,
+                            optimizableItems.length,
+                            `${f.name} (${origMb})`,
+                            'Decodificando pista de audio sin pérdida...'
+                        );
+
                         try {
                             const audioFile = await extractAudioFromVideo(f, (stageText) => {
-                                updateExtractingOverlay(zone, videoProcessed, videoIndices.length, `${f.name} (${origMb})`, stageText);
+                                updateExtractingOverlay(zone, currentOptimizedIdx, optimizableItems.length, `${f.name} (${origMb})`, stageText);
                             });
 
                             const audioMb = formatBytes(audioFile.size);
-
-                            // Si el audio generado es más pequeño que el video, lo usamos
                             if (audioFile.size < f.size) {
                                 const savedBytes = f.size - audioFile.size;
                                 const savings = Math.max(0, Math.round((savedBytes / f.size) * 100));
@@ -558,44 +827,37 @@
                                 console.log(`[Transcriptor] Optimización exitosa: ${f.name} (${origMb}) -> ${audioFile.name} (${audioMb}, -${savings}%)`);
                                 processed.push(audioFile);
                             } else {
-                                // El video ya era más pequeño que el audio (conservamos el original)
                                 totalOptBytes += f.size;
                                 console.log(`[Transcriptor] El archivo original (${origMb}) ya era más ligero que el audio. Conservando original.`);
                                 processed.push(f);
                             }
                         } catch (err) {
                             console.warn(`[Transcriptor] No se pudo extraer audio local de ${f.name}, subiendo original:`, err);
-                            failureReason = err.message || 'Codec no decodificable en navegador';
                             totalOptBytes += f.size;
-                            anyFallback = true;
                             processed.push(f);
                         }
-                    } else {
-                        totalOrigBytes += f.size;
-                        totalOptBytes += f.size;
-                        processed.push(f);
                     }
+
+                    const savedBytes = Math.max(0, totalOrigBytes - totalOptBytes);
+                    const savingsPct = totalOrigBytes > 0 ? Math.round((savedBytes / totalOrigBytes) * 100) : 0;
+
+                    const stats = {
+                        processed: true,
+                        success: anyOptimized && savingsPct > 0,
+                        largeVideo: anyLargeVideo && !anyOptimized,
+                        origTotal: totalOrigBytes,
+                        optTotal: totalOptBytes,
+                        savedBytes: savedBytes,
+                        savingsPct: savingsPct,
+                        origMb: formatBytes(totalOrigBytes),
+                        optMb: formatBytes(totalOptBytes),
+                        savedMb: formatBytes(savedBytes),
+                    };
+
+                    return { files: processed, stats };
+                } finally {
+                    isExtractingAudio = false;
                 }
-
-                const savedBytes = Math.max(0, totalOrigBytes - totalOptBytes);
-                const savingsPct = totalOrigBytes > 0 ? Math.round((savedBytes / totalOrigBytes) * 100) : 0;
-
-                const stats = {
-                    processed: true,
-                    success: anyOptimized && savingsPct > 0,
-                    largeVideo: anyLargeVideo && !anyOptimized,
-                    fallback: anyFallback && !anyOptimized,
-                    origTotal: totalOrigBytes,
-                    optTotal: totalOptBytes,
-                    savedBytes: savedBytes,
-                    savingsPct: savingsPct,
-                    origMb: formatBytes(totalOrigBytes),
-                    optMb: formatBytes(totalOptBytes),
-                    savedMb: formatBytes(savedBytes),
-                    reason: failureReason
-                };
-
-                return { files: processed, stats };
             };
 
             // Multi-Network Hook (Fetch y XHR) para ocultar el overlay inmediatamente al finalizar el upload
@@ -605,14 +867,29 @@
                 window.fetch = async function(...args) {
                     const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
                     const isUpload = url.includes('/upload') || (args[1] && (args[1].body instanceof FormData || args[1].body instanceof Blob || args[1].body instanceof File));
+                    if (isUpload) {
+                        activeUploadCount++;
+                        isUploadingFiles = true;
+                    }
                     try {
                         const res = await origFetch.apply(this, args);
                         if (isUpload) {
-                            setTimeout(() => hideUploadOverlay(), 300);
+                            setTimeout(() => {
+                                activeUploadCount = Math.max(0, activeUploadCount - 1);
+                                if (activeUploadCount === 0) {
+                                    isUploadingFiles = false;
+                                    hideUploadOverlay();
+                                    checkAndExecuteQueue();
+                                }
+                            }, 300);
                         }
                         return res;
                     } catch (err) {
-                        if (isUpload) hideUploadOverlay();
+                        if (isUpload) {
+                            activeUploadCount = Math.max(0, activeUploadCount - 1);
+                            if (activeUploadCount === 0) isUploadingFiles = false;
+                            hideUploadOverlay();
+                        }
                         throw err;
                     }
                 };
@@ -628,14 +905,57 @@
                 };
                 XMLHttpRequest.prototype.send = function(...args) {
                     const url = this.__transcriptorUrl || '';
-                    if (url.includes('/upload') || (args[0] && (args[0] instanceof FormData || args[0] instanceof Blob || args[0] instanceof File))) {
+                    const isUpload = url.includes('/upload') || (args[0] && (args[0] instanceof FormData || args[0] instanceof Blob || args[0] instanceof File));
+                    if (isUpload) {
+                        activeUploadCount++;
+                        isUploadingFiles = true;
                         this.addEventListener('loadend', () => {
-                            setTimeout(() => hideUploadOverlay(), 300);
+                            setTimeout(() => {
+                                activeUploadCount = Math.max(0, activeUploadCount - 1);
+                                if (activeUploadCount === 0) {
+                                    isUploadingFiles = false;
+                                    hideUploadOverlay();
+                                    checkAndExecuteQueue();
+                                }
+                            }, 300);
                         });
                     }
                     return origSend.apply(this, args);
                 };
             }
+
+            // Interceptar clic en "Iniciar Transcripción" mientras se procesan o suben archivos para poner en cola
+            document.addEventListener('click', (e) => {
+                let btn = e.target.closest('#btn_transcribe, .actions-row .btn-primary, .btn-primary');
+                if (!btn) {
+                    const candidate = e.target.closest('button');
+                    if (candidate && /transcri/i.test(candidate.textContent || '')) {
+                        btn = candidate;
+                    }
+                }
+                if (!btn) return;
+
+                if (isAutoTriggeringTranscription) {
+                    // Clic automático generado por la cola al estar todo listo: permitir que fluya a Gradio
+                    return;
+                }
+
+                if (isExtractingAudio || isUploadingFiles || activeUploadCount > 0) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
+                    if (isTranscriptionQueued) {
+                        isTranscriptionQueued = false;
+                        updateQueueButtonVisual();
+                        console.log('[Transcriptor] Cola de transcripción cancelada por el usuario.');
+                    } else {
+                        isTranscriptionQueued = true;
+                        updateQueueButtonVisual();
+                        console.log('[Transcriptor] Transcripción agregada a la cola. Iniciará al completar la subida.');
+                    }
+                    return;
+                }
+            }, true);
 
             // Detectar selección de archivos vía botón [ ↑ ] o clic en selector
             document.addEventListener('change', async (e) => {
@@ -752,10 +1072,15 @@
                 }
             }, true);
 
-            // Limpieza del badge de optimización al vaciar la lista
+            // Limpieza del badge de optimización y reset de cola al vaciar la lista
             document.addEventListener('click', (e) => {
                 const clearBtn = e.target && e.target.closest ? e.target.closest('#btn_clear, .file-upload-zone [aria-label*="Clear"], .file-upload-zone .icon-button-wrapper > button:last-child') : null;
                 if (clearBtn) {
+                    isTranscriptionQueued = false;
+                    isExtractingAudio = false;
+                    isUploadingFiles = false;
+                    activeUploadCount = 0;
+                    updateQueueButtonVisual();
                     renderOptimizationBadge(null, null);
                 }
             }, true);

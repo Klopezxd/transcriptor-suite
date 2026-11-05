@@ -59,6 +59,7 @@ def _enabled_transcribe_button(value: str = "⚡ Iniciar Transcripción") -> gr.
     return gr.Button(
         value=value,
         variant="primary",
+        elem_id="btn_transcribe",
         interactive=True,
         elem_classes=["btn-primary"],
     )
@@ -69,6 +70,7 @@ def _disabled_transcribe_button(value: str = "⚡ Iniciar Transcripción") -> gr
     return gr.Button(
         value=value,
         variant="secondary",
+        elem_id="btn_transcribe",
         interactive=False,
         elem_classes=["btn-primary", "btn-transcribe-disabled"],
     )

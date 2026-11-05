@@ -329,6 +329,7 @@ def render_action_buttons() -> tuple[gr.Button, gr.Button]:
         btn_transcribe = gr.Button(
             "⚡ Iniciar Transcripción",
             variant="primary",
+            elem_id="btn_transcribe",
             elem_classes=["btn-primary"],
             scale=2,
         )

@@ -37,7 +37,7 @@ def get_custom_theme() -> gr.themes.Base:
 
 
 def get_blocks_and_launch_kwargs(
-    custom_css: str, custom_theme: gr.themes.Base
+    custom_css: str, custom_theme: gr.themes.Base, custom_js: str = ""
 ) -> tuple[dict, dict]:
     """Determina los argumentos compatibles según la versión mayor de Gradio instalada."""
     blocks_kwargs = {"title": "Transcriptor Suite"}
@@ -48,11 +48,17 @@ def get_blocks_and_launch_kwargs(
         if gradio_major >= 6:
             launch_kwargs["theme"] = custom_theme
             launch_kwargs["css"] = custom_css
+            if custom_js:
+                launch_kwargs["js"] = custom_js
         else:
             blocks_kwargs["theme"] = custom_theme
             blocks_kwargs["css"] = custom_css
+            if custom_js:
+                blocks_kwargs["js"] = custom_js
     except Exception:
         blocks_kwargs["theme"] = custom_theme
         blocks_kwargs["css"] = custom_css
+        if custom_js:
+            blocks_kwargs["js"] = custom_js
 
     return blocks_kwargs, launch_kwargs
