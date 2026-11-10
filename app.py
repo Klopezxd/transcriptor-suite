@@ -6,6 +6,7 @@ patrón Aurora Boreal Nórdica y gestión limpia de credenciales.
 """
 
 import html
+import os
 import time
 from pathlib import Path
 from typing import Any
@@ -65,7 +66,6 @@ admin_login_limiter = LoginAttemptLimiter()
 
 # Compatibilidad con ZeroGPU en Hugging Face Spaces
 try:
-    import os
     import spaces
 
     zero_gpu_duration = int(os.getenv("ZERO_GPU_DURATION", "60"))
