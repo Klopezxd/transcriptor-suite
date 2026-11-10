@@ -5,6 +5,21 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [2.4.4] - 2026-11-10
+
+### Corregido
+* **Desplazamiento Vertical en Pantalla Dividida (Split Screen / Snap):**
+  * Resuelto el bloqueo de desplazamiento (scroll) en Hugging Face Spaces (`<= 1024px`) y ventanas divididas en PC al sincronizar dinámicamente la altura del iframe (`window.parentIFrame.size`) con la altura acumulada del contenido (`getContentHeight`).
+  * Ajuste de la media query de escritorio a `min-width: 1025px` con `overflow-y: auto`, eliminando la colisión que bloqueaba el scroll en resoluciones intermedias.
+* **Restauración a Pantalla Completa sin Colapso Visual:**
+  * Asignadas alturas mínimas garantizadas en escritorio (`min-height: clamp(160px, 22vh, 240px)` en `.upload-card`, `120px` en `.file-upload-zone` y `80px` en `.file-preview-holder`), impidiendo que flexbox aplaste la zona de subida al maximizar la ventana con credenciales de API visibles.
+  * Implementada la consulta reactiva `requestParentPageInfo()` en cada evento de cambio de viewport para recalcular inmediatamente las dimensiones al alternar entre media pantalla y pantalla completa.
+* **Compatibilidad con Cuotas de Hugging Face ZeroGPU:**
+  * Ajustada la duración por defecto del decorador `@spaces.GPU` a `60` segundos (configurable vía variable de entorno `ZERO_GPU_DURATION`), eliminando el error `'The requested GPU duration (270s) is larger than the maximum allowed'` causado por el multiplicador de reserva 1.5x de Hugging Face sobre el límite de 120s del tier gratuito.
+  * Añadida notificación de ayuda contextual en caso de agotamiento temporal de cuotas GPU.
+* **Actualización del Conector AssemblyAI:**
+  * Migración del parámetro deprecado `speech_model` a la lista prioritaria `speech_models`, estableciendo `universal-3-5-pro` como modelo predeterminado de máxima precisión con respaldo en `universal-2`.
+
 ## [2.4.3] - 2026-11-05
 
 ### Agregado

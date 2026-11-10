@@ -7,397 +7,149 @@
 ![Linter](https://img.shields.io/badge/Linter-Ruff-000000.svg?logo=ruff&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-> High-throughput speech transcription pipeline featuring word-level phoneme alignment and speaker diarization using WhisperX, Pyannote Audio, Deepgram, and AssemblyAI.
+> High-throughput, multi-engine speech transcription pipeline featuring word-level phonetic alignment and speaker diarization. Powered by **WhisperX**, **Pyannote Audio 3.1**, **Deepgram Nova**, and **AssemblyAI Universal-3.5-Pro**.
 
 *Leer este documento en Español: [README.es.md](README.es.md)*
 
 ---
 
-> [!IMPORTANT]
-> ## Credential Architecture & Secret Management
->
-> The system operates across a continuous deployment lifecycle bridging **GitHub** and **Hugging Face Spaces**, supporting both local execution and external cloud foundation services. The configuration breakdown by infrastructure tier is detailed below:
->
-> ### 1. Automated Deployment via GitHub Actions (`HF_TOKEN`)
-> * **Purpose:** Authorizes the automated synchronization pipeline (`.github/workflows/sync-to-hf.yml`) to deploy repository updates directly to the Hugging Face Space repository ([Klopezxd/transcriptor-suite](https://huggingface.co/spaces/Klopezxd/transcriptor-suite)) upon `git push`.
-> * **Token Scope:** Personal Access Token created in [Hugging Face Settings > Access Tokens](https://huggingface.co/settings/tokens) with **Write (`Write`)** role.
-> * **Configuration Steps:**
->   1. Navigate to the GitHub repository: [transcriptor-suite](https://github.com/Klopezxd/transcriptor-suite).
->   2. Go to **Settings** ➔ **Secrets and variables** ➔ **Actions**.
->   3. Click **New repository secret**.
->   4. Set **Name:** `HF_TOKEN` | **Secret:** Your write-scoped token (`hf_...`).
->
-> ---
->
-> ### 2. Diarization Neural Models in Hugging Face Spaces (`HF_TOKEN`)
-> * **Purpose:** Authorizes runtime downloads of pre-trained Pyannote Audio speaker segmentation and diarization weights when using the WhisperX engine under local or ZeroGPU execution.
-> * **Mandatory Model Licenses:** The authenticated account must formally accept user agreements on both model repositories:
->   * [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)
->   * [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0)
-> * **Configuration Steps:**
->   1. Open the Space settings: [huggingface.co/spaces/Klopezxd/transcriptor-suite/settings](https://huggingface.co/spaces/Klopezxd/transcriptor-suite/settings).
->   2. Scroll to **Variables and secrets** ➔ **New secret**.
->   3. Set **Name:** `HF_TOKEN` | **Value:** Your read-scoped token (`hf_...`).
->
-> ---
->
-> ### 3. Cloud Foundation ASR Engines (Optional)
-> * **Deepgram API (`DEEPGRAM_API_KEY`):** Provides sub-minute batch processing powered by Nova speech foundation architectures with integrated word-level diarization. Obtainable at [Deepgram Console](https://console.deepgram.com).
-> * **AssemblyAI API (`ASSEMBLYAI_API_KEY`):** Provides high-precision acoustic speech processing powered by Conformer (Universal-1) and Nano architectures. Obtainable at [AssemblyAI Dashboard](https://www.assemblyai.com).
-> ---
->
-> ### 4. Master Administration PIN (`ADMIN_PIN`)
-> * **Purpose:** Shields your personal Deepgram and AssemblyAI API keys from public consumption when sharing the Space URL.
-> * **Behavior:**
->   * Public visitors are restricted to free WhisperX (ZeroGPU) or supplying their own personal API keys.
->   * Use the **Admin** button and your password to enable the API keys stored as Hugging Face Spaces secrets. URL authentication is disabled. After five failed attempts from the same client, further attempts are blocked for the remainder of a one-minute window.
-> * **Configuration Steps:** Set in Space Secrets (`Settings > Variables and secrets > New secret`) under the key `ADMIN_PIN`.
->
-> ---
->
-> ### Credential Specification Matrix
->
-> | Identifier | Provider | Configuration Scope | Requirement Level | Primary Function |
-> | :--- | :--- | :--- | :--- | :--- |
-> | **`HF_TOKEN`** *(Write)* | Hugging Face | **GitHub Actions Secrets** | Mandatory for CI/CD | Automatic code deployment to Hugging Face Spaces on push. |
-> | **`HF_TOKEN`** *(Read)* | Hugging Face | **HF Space Secrets** or Web UI | Required for WhisperX | Authorizes neural model downloads for Pyannote Audio. |
-> | **`DEEPGRAM_API_KEY`** | Deepgram | **HF Space Secrets**, Web UI or `.env` | Optional | External Nova batch inference bypassing GPU compute limits. |
-> | **`ASSEMBLYAI_API_KEY`** | AssemblyAI | **HF Space Secrets**, Web UI or `.env` | Optional | External Conformer/Nano inference bypassing GPU compute limits. |
-> | **`ADMIN_PIN`** | Space Owner | **HF Space Secrets** or `.env` | Recommended | Authorizes automatic server master credentials without public exposure. |
+### 🚀 Live Interactive Demo
 
-
-## Key Features
-
-* **High-Throughput ASR:** Powered by **WhisperX** (faster-whisper / CTranslate2), delivering up to $5\times$ speedups over vanilla Whisper implementations.
-* **Word-Level Phoneme Alignment:** Incorporates **Wav2Vec2** acoustic models to achieve exact word-boundary timestamp alignment.
-* **Speaker Diarization:** Identifies and segments discrete speakers seamlessly using **Pyannote Audio 3.1**.
-* **Consumer GPU & ZeroGPU Ready:** Architected with `INT8` quantization and explicit VRAM garbage collection between pipeline stages, running efficiently on 4GB VRAM cards (e.g., NVIDIA GeForce GTX 1650) as well as **Hugging Face ZeroGPU** runners.
-* **Queued Multi-File Batching:** Upload or select multiple audio/video files simultaneously. Processed in an orderly sequential FIFO queue with real-time per-file progress tracking, automatic ZIP packaging, and an optional consolidated single-file (`.txt`) download with distinct file dividers.
-* **Client-Side Lossless Video Optimization:** Video files (`.mp4`, `.mov`, `.mkv`, `.webm`, etc.) are processed locally in the browser via the native Web Audio API prior to upload. Audio is demuxed and resampled to 16 kHz Mono WAV PCM, reducing upload payloads by 90-98% without acoustic quality loss.
-* **Lightweight Windows Desktop Extractor (`extraer_audio.bat` - Zero Python):** 1-click companion for Windows. For heavy OBS Studio lecture recordings or large videos (>1.5 GB), simply drag and drop files onto `extraer_audio.bat`. It extracts audio (`.m4a`) in **2 seconds** via Stream Copy (`-c:a copy`) with zero quality loss and zero Python dependency, ready for instant upload.
-* **Dual Interface (Web + CLI):**
-  * **Web UI (Gradio):** Interactive browser application with modular architecture, multi-file drag-and-drop, individual downloads for single files, and dual ZIP + consolidated `.txt` buttons automatically activated exclusively for multi-file batches.
-  * **CLI (Terminal):** Fully featured command-line interface supporting multiple file arguments with interactive graphical multi-file picker fallback and automatic generation of consolidated batch transcripts.
-* **Modular Software Engineering:** Clean separation between presentation (`assets/` & `src/ui/`), domain inference pipelines (`src/`), and test harnesses (90 automated tests). Structured logging and secure environment-based credential handling.
-
----
-
-## Live Interactive Demo
-
-Test the pipeline directly on Hugging Face Spaces:
+Test the pipeline directly in your browser without local setup:
 
 👉 **[Launch on Hugging Face Spaces: Klopezxd/transcriptor-suite](https://huggingface.co/spaces/Klopezxd/transcriptor-suite)**
 
 ---
 
-## System Architecture
+## Key Features
 
-The system workflow consists of two simple, decoupled processes: how audio files are transcribed, and how code is continuously deployed.
-
-### 1. Layered Architecture & Processing Pipeline
-
-```mermaid
-flowchart TD
-    subgraph Ingestion ["1. Presentation & Ingestion Layer"]
-        Audio["Media Input (Audio / Video)"]
-        WebUI["Web Interface (Gradio)"]
-        CLI["Terminal Interface (CLI / Argparse)"]
-        Audio --> WebUI
-        Audio --> CLI
-    end
-
-    subgraph Core ["2. Security & Orchestration Layer"]
-        AuthGuard{"Access Guard (Admin PIN / BYOK)"}
-        Dispatcher["Engine Dispatcher (Factory Pattern)"]
-        WebUI --> AuthGuard
-        CLI --> Dispatcher
-        AuthGuard -->|"Authorized Session / BYOK"| Dispatcher
-    end
-
-    subgraph Engines ["3. ASR Processing Engines (Strategy Pattern)"]
-        subgraph LocalPipeline ["WhisperX Pipeline (ZeroGPU / Local CUDA)"]
-            ASR["Faster-Whisper (CTranslate2 INT8)"]
-            Align["Phonetic Alignment (Wav2Vec2)"]
-            Diarize["Speaker Diarization (Pyannote 3.1)"]
-            ASR --> Align --> Diarize
-        end
-
-        subgraph CloudPipeline ["Cloud Foundation Engines"]
-            Deepgram["Deepgram SDK (Nova-2 / Nova-3)"]
-            Assembly["AssemblyAI SDK (Universal-1 / Nano)"]
-        end
-
-        Dispatcher -->|"WhisperX"| ASR
-        Dispatcher -->|"Deepgram"| Deepgram
-        Dispatcher -->|"AssemblyAI"| Assembly
-    end
-
-    subgraph OutputLayer ["4. Normalization & Export Layer"]
-        Normalizer["Unified Transcript Normalizer"]
-        Exporter["Multi-format Serializer (TXT, SRT, VTT, JSON)"]
-        
-        Diarize --> Normalizer
-        Deepgram --> Normalizer
-        Assembly --> Normalizer
-        Normalizer --> Exporter
-    end
-```
-
-### 2. Continuous Deployment Pipeline (CI/CD)
-
-```mermaid
-flowchart LR
-    subgraph Development ["Development Environment"]
-        Dev["Developer / Local Workstation"]
-        Repo["GitHub Repository (Branch: main)"]
-        Dev -->|"git push"| Repo
-    end
-
-    subgraph Automation ["CI/CD Pipeline"]
-        GHA["GitHub Actions (sync-to-space.yml)"]
-        Secrets["Repository Secrets (HF_TOKEN)"]
-        Repo --> GHA
-        Secrets -.-> GHA
-    end
-
-    subgraph Production ["Production Infrastructure"]
-        Space["Hugging Face Space (ZeroGPU Runtime)"]
-        App["Live Gradio Application"]
-        GHA -->|"Git Mirror Sync"| Space
-        Space --> App
-    end
-```
+* **Multi-Engine ASR Ecosystem:**
+  * **WhisperX (Local / ZeroGPU):** Faster-Whisper (CTranslate2 INT8) with Wav2Vec2 word alignment and Pyannote 3.1 diarization. Up to $5\times$ faster than vanilla Whisper.
+  * **Deepgram (Cloud API):** Sub-minute batch processing with **Nova-3** (robust against noise & accents) and **Nova-2** (cost-effective).
+  * **AssemblyAI (Cloud API):** High-fidelity acoustic accuracy with **Universal-3.5-Pro** and **Universal-2**.
+* **Smart Asynchronous Queue («Leave it Working»):** Click *Start Transcription* at any time—even while files are uploading or optimizing. The task queues automatically and begins processing as soon as uploads finish.
+* **Client-Side Lossless Audio Extraction (Web Audio API):** Video files (`.mp4`, `.mov`, `.mkv`, etc.) are demuxed and resampled in-browser to 16 kHz Mono WAV PCM, reducing upload payloads by **90% to 98%** with zero quality loss.
+* **Zero-Python Desktop Extractor (`extraer_audio.bat`):** Drag & drop heavy OBS or 4K video files (>1.5 GB) onto the script to extract native `.m4a` audio via stream copy in **2 seconds** without needing Python.
+* **Responsive Aurora Boreal UI:** Modular Gradio interface with real-time adaptation between full-screen desktop (2-column symmetrical view) and snap/split-screen mode (`<= 1024px`) with fluid native scrolling.
+* **Batch Processing & Dual Export:** Sequential FIFO queue with per-file progress, batch ZIP download, and consolidated single-file (`.txt`) export with clear separators.
+* **Low VRAM & ZeroGPU Ready:** Runs on consumer GPUs (4 GB VRAM) and Hugging Face ZeroGPU via aggressive phase-by-phase memory flush and INT8 quantization.
 
 ---
 
-## Model Taxonomy & Performance Evaluation
+## Supported Speech Models
 
-Technical and economic comparison of implemented speech recognition models relative to each provider's full catalog:
-
-### 1. Deepgram Models (Nova Foundation Architecture)
-
-| Model | Pipeline Status | Relative Throughput | Word Error Rate (WER) | Estimated Cost | Deployment Profile |
+| Provider | Engine | Model | Throughput | Best For | Compute Cost |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`nova-2`** | **Default** | **~40x Real-Time** | **Benchmark Leader** | ~$0.26 / hour | **Optimal Price-to-Performance.** Best general accuracy and fastest throughput for standard speech. |
-| **`nova-3`** | **Supported** | ~30x Real-Time | Superior in Noise | ~$0.31 / hour | **Acoustic Robustness.** Recommended for accented speech, overlapping speakers, or ambient noise. |
-| `enhanced` | Deprecated | ~15x Real-Time | Inferior to Nova-2 | ~$0.87 / hour | *Not Recommended:* Legacy generation model with 3.3x higher cost and inferior accuracy. |
-| `base` | Deprecated | ~20x Real-Time | Baseline Quality | ~$0.75 / hour | *Not Recommended:* Legacy architecture superseded by Nova-2 across all metrics. |
-
-### 2. AssemblyAI Models (Conformer & Nano Architectures)
-
-| Model | Pipeline Status | Relative Throughput | Word Error Rate (WER) | Estimated Cost | Deployment Profile |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **`best`** *(Universal-1)* | **Default** | ~18x Real-Time | **Editorial Fidelity** | ~$0.39 / hour | **Maximum Precision.** Ideal for specialized vocabulary, academic nomenclature, and strict syntax. |
-| **`nano`** | **Supported** | ~35x Real-Time | Acceptable | ~$0.17 / hour | **Cost-Optimized.** Lightweight model suitable for rough drafts, indexing, and high-volume pipelines. |
-
-### 3. WhisperX Models (CTranslate2 + Wav2Vec2 + Pyannote 3.1)
-
-| Model | Pipeline Status | Parameters | ZeroGPU Throughput | Compute Cost | Deployment Profile |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **`large-v3-turbo`** | **Default** | 809M | **~8x vs Large-v3** | **$0.00** *(ZeroGPU quota)* | **Open-Weights Gold Standard.** Same accuracy as Large-v3 with half the VRAM and compute latency. |
-| **`large-v3`** | **Supported** | 1550M | Standard (~180s/2h) | $0.00 *(ZeroGPU quota)* | High-capacity model recommended for low-resource languages or edge dialects. |
-| **`medium` / `small` / `base`** | **Supported** | 769M / 244M / 74M | Ultra-fast | $0.00 *(Resource-limited)* | Tailored for low-memory environments (<4GB VRAM). |
+| **WhisperX** | Local / ZeroGPU | **`large-v3-turbo`** *(Default)* | ~8x vs Large-v3 | Open-weights gold standard, phonetic alignment | **Free** *(ZeroGPU / Local)* |
+| **WhisperX** | Local / ZeroGPU | `large-v3`, `medium`, `small`, `base` | Fast to Ultra-fast | Low-resource languages or limited hardware (<4GB) | **Free** *(ZeroGPU / Local)* |
+| **AssemblyAI** | Cloud REST | **`universal-3-5-pro`** *(Default)* | ~20x Real-Time | Editorial accuracy, strict terminology, accents | Pay-per-use API |
+| **AssemblyAI** | Cloud REST | `universal-2` | ~25x Real-Time | Balanced high-precision transcription | Pay-per-use API |
+| **Deepgram** | Cloud REST | **`nova-3`** *(Default)* | ~30x Real-Time | Background noise, overlapping speakers, dialects | Pay-per-use API |
+| **Deepgram** | Cloud REST | `nova-2` | ~40x Real-Time | Sub-minute speed and maximum cost efficiency | Pay-per-use API |
 
 ---
 
-### 📂 Project Structure & Module Responsibilities
-
-If you need to audit or manage this repository in the future without a local clone, here is the exact architectural breakdown of each component:
-
-```text
-transcriptor-suite/
-│
-├── app.py                  # Gradio Web Orchestrator: event wiring, reactive state handlers,
-│                           # and execution flow delegating to modular UI components and pipelines.
-│
-├── cli.py                  # Terminal CLI entry point: multi-file batch execution (--input, --model,
-│                           # --diarize) with interactive graphical multi-file picker fallback.
-│
-├── extraer_audio.bat       # Lightweight Windows utility (Zero Python): Drag & Drop heavy videos to extract audio.
-│
-├── assets/                 # Frontend static assets (isolated CSS and JavaScript)
-│   ├── css/theme.css       # Nordic Aurora design skin, flexbox grid, and responsive rules.
-│   └── js/ui_enhancements.js# Client-side Web Audio extraction, drag-and-drop & DPI scaling.
-│
-├── requirements.txt        # Runtime dependencies (torch, whisperx, gradio, requests, pyannote).
-├── CHANGELOG.md            # Formal versioning and release notes conforming to Keep a Changelog.
-├── .env.example            # Environment variable template for local development and secrets testing.
-│
-├── .github/workflows/
-│   ├── lint.yml            # Code Quality: Ruff linter check and 90 automated regression unit tests.
-│   └── sync-to-hf.yml      # CI/CD Workflow: Validates quality and syncs commits to Hugging Face Spaces.
-│
-├── src/
-│   ├── auth.py             # Admin access protection, attempt rate-limiter, and reverse-proxy IP isolation.
-│   ├── config.py           # Strongly typed data models and enums: ProviderType, WhisperModel,
-│   │                       # DeepgramModel, AssemblyAIModel, PROVIDER_MODELS, and TranscriptionConfig.
-│   │
-│   ├── transcriber.py      # Pipeline factory: create_transcription_pipeline, VRAM memory managers,
-│   │                       # Pyannote Audio integration, and local WhisperXPipeline orchestrator.
-│   │
-│   ├── cloud_providers.py  # Lightweight cloud REST connectors: DeepgramPipeline & AssemblyAIPipeline
-│   │                       # featuring word-level diarization, async polling, and ZERO GPU usage.
-│   │
-│   ├── ui/                 # Modular presentation package
-│   │   ├── components.py   # Reusable Gradio components (Navbar, Modal, Upload, Options, Results).
-│   │   ├── helpers.py      # Dynamic button state builders, status badges, and file fingerprinting.
-│   │   ├── theme.py        # Nordic Aurora palette and theme configuration.
-│   │   └── assets.py       # Cached asset loader for CSS and client JavaScript.
-│   │
-│   └── utils.py            # Utility helpers: hierarchical API key resolution, atomic file & zip writes,
-│                           # real-time continuous progress notifier, and VRAM garbage collectors.
-│
-└── tests/                  # Comprehensive suite of 90 automated unit tests (domain, CLI, auth, and web UI).
-```
-
----
-
-### ⚡ Engine Execution Lifecycle
-
-1. **WhisperX Pipeline (Local GPU or Hugging Face ZeroGPU):**
-   * **Compute Cost:** Local GPU VRAM or Hugging Face ZeroGPU minutes (timeout set to 180s for files up to ~2 hours).
-   * **Sequential Stages with VRAM Eviction:**
-     * `Audio Loading` ➔ `WhisperX ASR` (CTranslate2) ➔ `VRAM Flush`
-     * ➔ `Wav2Vec2 Alignment` ➔ `VRAM Flush`
-     * ➔ `Pyannote 3.1 Diarization` (if enabled, authenticated via `HF_TOKEN`) ➔ `VRAM Flush`.
-2. **Cloud Pipelines (Deepgram & AssemblyAI):**
-   * **Compute Cost:** Zero GPU compute (0 seconds consumed from ZeroGPU quotas).
-   * **Stages:** Raw media is streamed or uploaded over HTTPS authenticated with `DEEPGRAM_API_KEY` or `ASSEMBLYAI_API_KEY`. Word/utterance timestamps and speaker labels are normalized into the standard `TranscriptionResult` object.
-
----
-
-## System Requirements
-
-* **OS:** Windows 10/11 or Linux (Ubuntu 20.04+).
-* **Python:** 3.10 (recommended).
-* **FFmpeg:** Installed and exported to system `PATH`.
-* **Hardware GPU (Optional):** NVIDIA GeForce GTX 1650 or greater with CUDA 12.x support (CPU fallback fully supported).
-
----
-
-## Installation & Setup
-
-### Conda Environment (Recommended)
-
-```bash
-# Clone the repository
-git clone https://github.com/Klopezxd/transcriptor-suite.git
-cd transcriptor-suite
-
-# Create and activate isolated Python 3.10 environment
-conda create -n transcriptor python=3.10 -y
-conda activate transcriptor
-
-# Install PyTorch with CUDA 12.x wheel
-pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu126
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Verify CUDA acceleration
-python -c "import torch; print('CUDA Ready:', torch.cuda.is_available())"
-```
-
----
-
-## Hugging Face Authentication (Speaker Diarization)
-
-Speaker diarization leverages gated models from Pyannote. To enable it:
-
-1. Create a free account at [Hugging Face](https://huggingface.co/).
-2. Accept model usage terms:
-   * [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)
-   * [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0)
-3. Generate a read-access token under [Hugging Face Settings](https://huggingface.co/settings/tokens).
-4. Export the token:
-   ```bash
-   cp .env.example .env
-   # Add your token to .env:
-   HF_TOKEN=hf_your_token_here
-   ```
-
----
-
-## Execution Modes: Cloud vs. Local
-
-| Execution Mode | Best For | Key Advantage | Constraints |
-|---|---|---|---|
-| **Hugging Face Spaces (Cloud)** | Short-to-medium files (< 20-30 mins), instant access | Zero install; runs on cloud NVIDIA A10G (24GB VRAM) | Subject to daily ZeroGPU community quotas |
-| **Local Execution (PC)** | Long recordings (1 to 5+ hours), batch jobs, private/sensitive data | Unlimited processing time, 100% offline privacy | Uses local machine hardware (GPU/CPU) |
-
----
-
-## Usage
+## Quick Start
 
 ### 1. Windows One-Click Launcher (Desktop)
 
-Double-click `run_transcriptor.bat` in the project root (or run it via terminal). It automatically activates the `transcriptor` environment and opens the graphical file picker dialog.
+Double-click `run_transcriptor.bat` in the root folder. It activates the environment and opens the graphical picker.
 
----
-
-### 2. Local Web Application (Gradio)
-
-Run the full interactive web application locally on your machine:
+### 2. Web UI (Gradio)
 
 ```bash
+# Clone and enter the repository
+git clone https://github.com/Klopezxd/transcriptor-suite.git
+cd transcriptor-suite
+
+# Install dependencies (Python 3.10 recommended)
+pip install -r requirements.txt
+
+# Run the web application
 python app.py
 ```
-Navigate to `http://127.0.0.1:7860` in any modern web browser.
-
----
+Open `http://localhost:7860` in your browser.
 
 ### 3. Command Line Interface (CLI)
 
 ```bash
-# Interactive mode (opens multi-file selection dialog if no -i argument is provided):
+# Interactive mode (opens multi-file dialog if no file is provided):
 python cli.py
 
-# Direct processing of a single file with turbo model:
-python cli.py -i "lecture.mp4" -m large-v3-turbo
+# Transcribe a single file with WhisperX turbo:
+python cli.py -i "meeting.mp4" -m large-v3-turbo
 
-# Batch transcription of multiple files:
-python cli.py -i "audio1.wav" "audio2.mp3" "video.mp4" -m large-v3-turbo
+# Transcribe with speaker diarization:
+python cli.py -i "interview.mp3" -d -t "hf_your_token_here"
 
-# Enable multi-speaker diarization:
-python cli.py -i "interview.mp4" -d
-
-# Custom output directory with range timestamps:
-python cli.py -i "meeting.wav" --timestamps range -o "./transcripts"
+# Batch transcription with custom output directory:
+python cli.py -i "audio1.wav" "audio2.m4a" --timestamps range -o "./transcripts"
 ```
-
-#### Available CLI Arguments:
-
-| Flag | Type | Description | Default |
-|---|---|---|---|
-| `-i`, `--input` | List | Path to one or more media files (launches multi-file GUI picker if omitted). | `None` |
-| `-m`, `--model` | Choice | `large-v3-turbo`, `large-v3`, `medium`, `small`, `base` | `large-v3-turbo` |
-| `-d`, `--diarize` | Flag | Enables speaker diarization (requires token). | `False` |
-| `--timestamps` | Choice | Timestamp formatting: `simple`, `range`, `none` | `simple` |
-| `-t`, `--token` | String | Hugging Face token override. | `HF_TOKEN` env |
-| `--compute-type` | Choice | Quantization: `int8` (recommended for 4GB), `float16`, `float32` | `int8` |
-| `-o`, `--output-dir` | String | Output folder for `.txt` transcripts. | Source directory |
 
 ---
 
-### 4. Lightweight Audio Extractor (`extraer_audio.bat` - Zero Python)
-
-A simple, native Windows utility to bypass upload bottlenecks for **large OBS Studio lecture recordings** (>1.5 GB):
-
-* **100% Native on Windows (Zero Python):** Requires no Python, Conda, or extra dependencies. Any Windows user can run it.
-* **Drag & Drop Simplicity:** Drag one or multiple video files (`.mp4`, `.mkv`, `.mov`, `.ts`) directly onto `extraer_audio.bat`.
-* **Interactive Double-Click:** If double-clicked without files, it prompts you to paste the video file path.
-* **Massive Bandwidth & Instant Extraction:** Extracts original-quality `.m4a` via Stream Copy in just **2 seconds**, shrinking a 1.5 GB video down to ~140 MB with zero loss (with automatic AAC fallback if needed), ready for instant upload to Transcriptor Suite.
-
-#### When to upload directly vs. using the local extractor?
+## System Architecture
 
 ```mermaid
 flowchart TD
-    A["What file do you have?"] --> B{"Is it already audio?<br>(.mp3, .m4a, .wav, .flac)"}
-    B -->|YES| C["Upload DIRECTLY to Web UI<br>(No conversion needed)"]
-    B -->|NO, it is a Video| D{"Is it > 450 MB,<br>.mkv, or > 45 min long?"}
-    D -->|YES| E["Use extraer_audio.bat<br>⚡ 2 seconds locally, fast upload"]
-    D -->|NO| F["Upload DIRECTLY to Web UI<br>(Web Audio extracts in-tab)"]
+    subgraph Input ["1. Ingestion Layer"]
+        Media["Media Input (Audio / Video)"]
+        Bat["extraer_audio.bat (Windows 2s Extract)"]
+        WebOpt["Web Audio API (Browser WAV 16kHz)"]
+        Media --> Bat
+        Media --> WebOpt
+    end
+
+    subgraph Interface ["2. Presentation Layer"]
+        WebUI["Gradio Web UI (Nordic Aurora Theme)"]
+        CLI["Terminal CLI (Argparse / GUI Picker)"]
+        WebOpt --> WebUI
+        Bat --> WebUI
+        Media --> CLI
+    end
+
+    subgraph Dispatch ["3. Security & Dispatcher"]
+        AuthGuard{"Admin PIN / BYOK"}
+        Factory["Pipeline Factory"]
+        WebUI --> AuthGuard --> Factory
+        CLI --> Factory
+    end
+
+    subgraph Engines ["4. Neural Processing Engines"]
+        WX["WhisperX (CTranslate2 + Wav2Vec2 + Pyannote 3.1)"]
+        DG["Deepgram Nova-3 API"]
+        AA["AssemblyAI Universal-3.5-Pro API"]
+        Factory -->|"Local / ZeroGPU"| WX
+        Factory -->|"Cloud API"| DG
+        Factory -->|"Cloud API"| AA
+    end
+
+    subgraph Output ["5. Export Layer"]
+        Normalizer["Transcript Normalizer"]
+        Files["TXT / Consolidated .txt / ZIP Archive"]
+        WX --> Normalizer
+        DG --> Normalizer
+        AA --> Normalizer
+        Normalizer --> Files
+    end
 ```
+
+---
+
+## Configuration & Credentials
+
+The system supports local `.env` files, web UI dynamic keys (BYOK), and Hugging Face Space secrets:
+
+| Secret | Provider | Scope | Mandatory? | Primary Function |
+| :--- | :--- | :--- | :--- | :--- |
+| **`HF_TOKEN`** | Hugging Face | Space Secrets / Web UI | Only for Diarization | Downloads Pyannote 3.1 diarization models. |
+| **`DEEPGRAM_API_KEY`** | Deepgram | Space Secrets / Web UI / `.env` | Optional | Authorizes Deepgram Nova cloud transcription. |
+| **`ASSEMBLYAI_API_KEY`** | AssemblyAI | Space Secrets / Web UI / `.env` | Optional | Authorizes AssemblyAI Universal cloud transcription. |
+| **`ADMIN_PIN`** | Owner | Space Secrets / `.env` | Recommended | Unlocks server API keys in the Web UI without public exposure. |
+| **`ZERO_GPU_DURATION`** | Space Settings | HF Variables | Optional (Default: `60`) | ZeroGPU timeout allocation in seconds. |
+
+> [!TIP]
+> **Speaker Diarization Note:** To enable Pyannote diarization with WhisperX, accept the model terms on Hugging Face for [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1) and [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0), then provide your read-scoped `HF_TOKEN`.
 
 ---
 
@@ -405,28 +157,21 @@ flowchart TD
 
 ```text
 transcriptor-suite/
-├── .github/
-│   └── workflows/
-│       ├── sync-to-hf.yml       # Continuous Deployment to Hugging Face Spaces
-│       └── lint.yml             # Code quality and regression unit tests via Ruff
+├── app.py                  # Gradio Web Orchestrator (events, UI layout, ZeroGPU hook)
+├── cli.py                  # Command-line interface with interactive picker fallback
+├── extraer_audio.bat       # Zero-Python Windows drag-and-drop audio extractor
+├── run_transcriptor.bat    # Windows desktop launcher
+├── assets/                 # Frontend assets (Aurora theme.css & ui_enhancements.js)
 ├── src/
-│   ├── __init__.py
-│   ├── config.py                # Strongly typed dataclasses & enums
-│   ├── transcriber.py           # Core decoupled WhisperX orchestration pipeline
-│   ├── cloud_providers.py      # Cloud REST connectors (Deepgram & AssemblyAI)
-│   ├── ui/                      # Modular Gradio UI components and assets
-│   └── utils.py                 # Pure helper functions, memory management, and security
-├── extraer_audio.bat            # Lightweight audio extraction utility (Zero Python)
-├── app.py                       # Gradio Web UI entrypoint (Local + ZeroGPU)
-├── cli.py                       # Advanced CLI entrypoint
-├── requirements.txt             # Python dependencies
-├── packages.txt                 # OS packages (FFmpeg for Hugging Face Spaces)
-├── environment.yml              # Conda environment definition
-├── pyproject.toml               # Modern packaging metadata & Ruff configuration
-├── LICENSE                      # MIT License
-├── README.md                    # English documentation (Primary)
-└── README.es.md                 # Spanish documentation
-```
+│   ├── auth.py             # Admin security, brute-force rate limiting, client IP isolation
+│   ├── config.py           # Enums, model catalogs, and typed configuration schemas
+│   ├── transcriber.py      # WhisperX pipeline, Wav2Vec2 alignment, and VRAM management
+│   ├── cloud_providers.py  # Deepgram & AssemblyAI REST connectors (zero GPU usage)
+│   ├── ui/                 # Modular Gradio cards (Navbar, Upload, Options, Results, Modal)
+│   └── utils.py            # Audio validation, ZIP archiver, progress notifier, formatters
+├── tests/                  # Automated test suite (91 regression unit tests)
+├── requirements.txt        # Python package dependencies
+└── pyproject.toml          # Packaging metadata & Ruff linter configuration
 ```
 
 ---
@@ -434,5 +179,4 @@ transcriptor-suite/
 ## License & Authorship
 
 * **Author:** [Klever López](https://github.com/Klopezxd)
-* **License:** MIT License — Open source for academic, professional, and personal use.
-
+* **License:** [MIT License](LICENSE) — Open source for personal, academic, and commercial workflows.
