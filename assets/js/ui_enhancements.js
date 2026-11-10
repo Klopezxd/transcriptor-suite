@@ -156,6 +156,21 @@
                 }
             };
 
+            const requestParentPageInfo = () => {
+                if (window.parentIFrame && typeof window.parentIFrame.getPageInfo === 'function') {
+                    window.parentIFrame.getPageInfo((info) => {
+                        if (!info || !info.clientHeight) return;
+                        const topOffset = Math.max(0, info.offsetTop || 0);
+                        const targetH = Math.max(460, info.clientHeight - topOffset);
+                        if (Math.abs(targetH - lastParentVh) > 2) {
+                            lastParentVh = targetH;
+                            document.documentElement.style.setProperty('--app-vh', `${Math.round(targetH)}px`);
+                        }
+                        syncIframeSize();
+                    });
+                }
+            };
+
             const hookParentIframe = () => {
                 if (window.parentIFrame && !window.__transcriptorHookedParentIframe) {
                     window.__transcriptorHookedParentIframe = true;
@@ -166,20 +181,7 @@
                             return origSize(targetH, customW);
                         };
                     }
-                    if (typeof window.parentIFrame.getPageInfo === 'function') {
-                        window.parentIFrame.getPageInfo((info) => {
-                            if (!info || !info.clientHeight) return;
-                            const topOffset = Math.max(0, info.offsetTop || 0);
-                            const targetH = Math.max(460, info.clientHeight - topOffset);
-                            if (Math.abs(targetH - lastParentVh) > 2) {
-                                lastParentVh = targetH;
-                                document.documentElement.style.setProperty('--app-vh', `${Math.round(targetH)}px`);
-                            }
-                            if (origSize) {
-                                origSize(getContentHeight(targetH));
-                            }
-                        });
-                    }
+                    requestParentPageInfo();
                 }
             };
 
@@ -230,6 +232,7 @@
             const onViewportChange = () => {
                 if (rafId) cancelAnimationFrame(rafId);
                 rafId = requestAnimationFrame(() => {
+                    requestParentPageInfo();
                     syncViewport();
                     hookParentIframe();
                     updateAdminMode();
@@ -237,6 +240,7 @@
                 });
                 if (resizeTimer) clearTimeout(resizeTimer);
                 resizeTimer = setTimeout(() => {
+                    requestParentPageInfo();
                     syncIframeSize();
                 }, 120);
             };

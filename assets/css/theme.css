@@ -111,7 +111,7 @@ main.contain {
     .upload-card,
     .gradio-container .column.upload-card {
         flex: 1 1 0% !important;
-        min-height: 0 !important;
+        min-height: clamp(160px, 22vh, 240px) !important;
         height: 100% !important;
         display: flex !important;
         flex-direction: column !important;
@@ -822,7 +822,7 @@ li[role="option"][aria-selected="true"],
     padding: 0 !important;
     width: 100% !important;
     flex: 1 1 0% !important;
-    min-height: 48px !important;
+    min-height: 120px !important;
     height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
@@ -832,7 +832,7 @@ li[role="option"][aria-selected="true"],
 /* Anula el min-height: var(--size-60) (240px) interno de Gradio 6 en .wrap.svelte-1vmd51o y permite estiramiento */
 .file-upload-zone .wrap:not([data-testid="status-tracker"]),
 .file-upload-zone [data-upload-density] {
-    min-height: 0 !important;
+    min-height: 100px !important;
     height: 100% !important;
     flex: 1 1 0% !important;
     display: flex !important;
@@ -958,7 +958,7 @@ li[role="option"][aria-selected="true"],
     box-shadow: inset 0 0 14px rgba(0, 255, 135, 0.06) !important;
     width: 100% !important;
     flex: 1 1 0% !important;
-    min-height: 48px !important;
+    min-height: 80px !important;
     max-height: none !important;
     height: 100% !important;
     margin: 0 !important;

@@ -65,9 +65,11 @@ admin_login_limiter = LoginAttemptLimiter()
 
 # Compatibilidad con ZeroGPU en Hugging Face Spaces
 try:
+    import os
     import spaces
 
-    GPU_DECORATOR = spaces.GPU(duration=180)
+    zero_gpu_duration = int(os.getenv("ZERO_GPU_DURATION", "60"))
+    GPU_DECORATOR = spaces.GPU(duration=zero_gpu_duration)
 except (ImportError, TypeError, AttributeError):
 
     def GPU_DECORATOR(func):
@@ -294,8 +296,16 @@ def process_transcription(
                         )
                     cached_results[fp] = (file_name, res)
                 except (TranscriptionError, Exception) as err:
-                    logger.error("Error transcribiendo archivo %s: %s", file_name, err)
-                    failed_files.append((file_name, str(err)))
+                    err_msg = str(err)
+                    if "GPU duration" in err_msg or "larger than the maximum allowed" in err_msg:
+                        err_msg = (
+                            f"{err_msg}\n\n"
+                            "💡 Tip: El límite de tiempo en ZeroGPU de Hugging Face fue excedido. "
+                            "Puedes usar los proveedores en la nube 'AssemblyAI' o 'Deepgram' "
+                            "(sin límite de GPU) o configurar ZERO_GPU_DURATION en los Settings del Space."
+                        )
+                    logger.error("Error transcribiendo archivo %s: %s", file_name, err_msg)
+                    failed_files.append((file_name, err_msg))
                     clear_gpu_vram()
 
         # Reconstruir lista ordenada de resultados correspondientes a file_list
