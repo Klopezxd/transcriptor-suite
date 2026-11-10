@@ -101,16 +101,69 @@
                 });
             };
 
+            const getContentHeight = (customH) => {
+                const isStacked = window.innerWidth <= 1024;
+                const bodyScroll = document.body ? document.body.scrollHeight : 0;
+                const docScroll = document.documentElement ? document.documentElement.scrollHeight : 0;
+                const container = document.querySelector('.gradio-container');
+                const containerScroll = container ? (container.scrollHeight + (container.offsetTop || 0)) : 0;
+
+                // Medir la posición inferior de elementos clave para garantizar que nada quede recortado
+                let maxElementBottom = 0;
+                const keyElements = document.querySelectorAll(
+                    '.app-footer, .result-card, .result-column, .actions-row, .output-textbox, .main-body-row'
+                );
+                keyElements.forEach((el) => {
+                    if (el && el.getBoundingClientRect) {
+                        const rect = el.getBoundingClientRect();
+                        const scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+                        const absBottom = rect.bottom + scrollY;
+                        if (absBottom > maxElementBottom) {
+                            maxElementBottom = absBottom;
+                        }
+                    }
+                });
+
+                const naturalHeight = Math.ceil(Math.max(
+                    Number(customH) || 0,
+                    bodyScroll,
+                    docScroll,
+                    containerScroll,
+                    maxElementBottom > 0 ? (maxElementBottom + 35) : 0
+                ));
+
+                // En modo apilado (pantalla dividida, tablet, móvil):
+                // El iframe DEBE crecer para que todo el contenido sea visible y scrolleable.
+                if (isStacked) {
+                    return Math.max(lastParentVh || 0, naturalHeight);
+                }
+
+                // En modo desktop (2 columnas): si el contenido natural excede el alto visible + 30px
+                // (por zoom, pantalla de laptop baja o contenido largo), permitir scroll en lugar de cortar.
+                if (lastParentVh > 0 && naturalHeight > (lastParentVh + 30)) {
+                    return naturalHeight;
+                }
+
+                return lastParentVh > 0 ? lastParentVh : naturalHeight;
+            };
+
+            const syncIframeSize = () => {
+                if (window.parentIFrame && typeof window.parentIFrame.size === 'function') {
+                    const finalH = getContentHeight();
+                    if (finalH > 0) {
+                        window.parentIFrame.size(finalH);
+                    }
+                }
+            };
+
             const hookParentIframe = () => {
                 if (window.parentIFrame && !window.__transcriptorHookedParentIframe) {
                     window.__transcriptorHookedParentIframe = true;
                     const origSize = window.parentIFrame.size ? window.parentIFrame.size.bind(window.parentIFrame) : null;
                     if (origSize) {
                         window.parentIFrame.size = (customH, customW) => {
-                            if (lastParentVh > 0) {
-                                return origSize(lastParentVh, customW);
-                            }
-                            return origSize(customH, customW);
+                            const targetH = getContentHeight(customH);
+                            return origSize(targetH, customW);
                         };
                     }
                     if (typeof window.parentIFrame.getPageInfo === 'function') {
@@ -121,7 +174,9 @@
                             if (Math.abs(targetH - lastParentVh) > 2) {
                                 lastParentVh = targetH;
                                 document.documentElement.style.setProperty('--app-vh', `${Math.round(targetH)}px`);
-                                if (origSize) origSize(targetH);
+                            }
+                            if (origSize) {
+                                origSize(getContentHeight(targetH));
                             }
                         });
                     }
@@ -166,17 +221,24 @@
             syncViewport();
             hookParentIframe();
             updateAdminMode();
-            setTimeout(() => { syncViewport(); hookParentIframe(); updateAdminMode(); }, 120);
-            setTimeout(() => { syncViewport(); hookParentIframe(); updateAdminMode(); }, 500);
+            syncIframeSize();
+            setTimeout(() => { syncViewport(); hookParentIframe(); updateAdminMode(); syncIframeSize(); }, 120);
+            setTimeout(() => { syncViewport(); hookParentIframe(); updateAdminMode(); syncIframeSize(); }, 500);
 
             let rafId = 0;
+            let resizeTimer = null;
             const onViewportChange = () => {
                 if (rafId) cancelAnimationFrame(rafId);
                 rafId = requestAnimationFrame(() => {
                     syncViewport();
                     hookParentIframe();
                     updateAdminMode();
+                    syncIframeSize();
                 });
+                if (resizeTimer) clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    syncIframeSize();
+                }, 120);
             };
 
             window.addEventListener('resize', onViewportChange, { passive: true });

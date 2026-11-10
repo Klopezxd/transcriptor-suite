@@ -57,13 +57,14 @@ main.contain {
 }
 
 /* ── LAYOUT RESPONSIVO DE PANTALLA COMPLETA (ADAPTACIÓN EN VIVO SIN RECARGAR ENTRE MONITOR 24"-27" Y LAPTOP 14"-16") ── */
-@media (min-width: 760px) and (min-height: 460px) {
+@media (min-width: 1025px) and (min-height: 460px) {
     html,
     body,
     gradio-app {
         height: var(--app-vh, 100dvh) !important;
         max-height: var(--app-vh, 100dvh) !important;
-        overflow: hidden !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
     }
 
     .gradio-container,
@@ -79,7 +80,8 @@ main.contain {
         flex-direction: column !important;
         flex: 1 1 0% !important;
         box-sizing: border-box !important;
-        overflow: hidden !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
     }
 
     .main-body-row,
