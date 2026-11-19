@@ -7,7 +7,7 @@
 ![Linter](https://img.shields.io/badge/Linter-Ruff-000000.svg?logo=ruff&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-> Pipeline modular y de alto rendimiento para transcripción de audio/video, alineación fonética a nivel de palabra y diarización de interlocutores. Integra **WhisperX**, **Pyannote Audio 3.1**, **Deepgram Nova** y **AssemblyAI Universal-3.5-Pro**.
+> Pipeline modular y de alto rendimiento para transcripción de audio/video, alineación fonética a nivel de palabra y diarización de interlocutores. Integra **WhisperX**, **Pyannote Audio 3.1**, **Deepgram Nova** y **AssemblyAI STT-3.7**.
 
 *Read this document in English: [README.md](README.md)*
 
@@ -26,7 +26,7 @@ Prueba la aplicación directamente en tu navegador sin necesidad de instalación
 * **Ecosistema Multi-Motor ASR:**
   * **WhisperX (Local / ZeroGPU):** Faster-Whisper (CTranslate2 INT8) con alineación fonética Wav2Vec2 y diarización Pyannote 3.1. Hasta $5\times$ más rápido que Whisper clásico.
   * **Deepgram (Cloud API):** Procesamiento ultra rápido por lotes con **Nova-3** (óptimo para ruido, acentos y solapamiento) y **Nova-2** (económico).
-  * **AssemblyAI (Cloud API):** Máxima fidelidad editorial y comprensión contextual con **Universal-3.5-Pro** y **Universal-2**.
+  * **AssemblyAI (Cloud API):** Máxima fidelidad editorial y comprensión contextual con **AssemblyAI-STT-3.7** y **Universal-2**.
 * **Cola Inteligente de Transcripción («Dejarlo Trabajando»):** Haz clic en *Iniciar Transcripción* en cualquier momento, incluso mientras los archivos se analizan u optimizan. La tarea entra en cola automáticamente y arranca sola al completar la carga.
 * **Extracción de Audio sin Pérdida en Cliente (Web Audio API):** Los videos (`.mp4`, `.mov`, `.mkv`, etc.) se demuxean y remuestrean localmente en el navegador a 16 kHz Mono WAV PCM, reduciendo el peso de subida entre un **90% y 98%** con 0% de pérdida acústica.
 * **Extractor de Escritorio Cero-Python (`extraer_audio.bat`):** Arrastra y suelta grabaciones pesadas de OBS Studio o videos de más de 1.5 GB sobre el archivo para extraer audio nativo `.m4a` por Stream Copy en **2 segundos**, sin tocar Python.
@@ -42,7 +42,7 @@ Prueba la aplicación directamente en tu navegador sin necesidad de instalación
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **WhisperX** | Local / ZeroGPU | **`large-v3-turbo`** *(Por defecto)* | ~8x vs Large-v3 | Estándar de oro open-source y alineación fonética | **Gratis** *(ZeroGPU / Local)* |
 | **WhisperX** | Local / ZeroGPU | `large-v3`, `medium`, `small`, `base` | Rápido a Ultra-rápido | Idiomas poco representados o hardware limitado (<4GB) | **Gratis** *(ZeroGPU / Local)* |
-| **AssemblyAI** | Cloud REST | **`universal-3-5-pro`** *(Por defecto)* | ~20x Tiempo Real | Máxima fidelidad editorial, términos técnicos y acentos | Pago por uso API |
+| **AssemblyAI** | Cloud REST | **`assemblyai-stt-3-7`** *(Por defecto)* | ~20x Tiempo Real | Máxima fidelidad editorial, términos técnicos y acentos | Pago por uso API |
 | **AssemblyAI** | Cloud REST | `universal-2` | ~25x Tiempo Real | Transcripción balanceada de alta precisión | Pago por uso API |
 | **Deepgram** | Cloud REST | **`nova-3`** *(Por defecto)* | ~30x Tiempo Real | Ruido de fondo, múltiples locutores y dialectos | Pago por uso API |
 | **Deepgram** | Cloud REST | `nova-2` | ~40x Tiempo Real | Velocidad en segundos y máxima eficiencia de coste | Pago por uso API |
@@ -118,7 +118,7 @@ flowchart TD
     subgraph Motores ["4. Motores de Inferencia Neuronal"]
         WX["WhisperX (CTranslate2 + Wav2Vec2 + Pyannote 3.1)"]
         DG["Deepgram Nova-3 API"]
-        AA["AssemblyAI Universal-3.5-Pro API"]
+        AA["AssemblyAI STT-3.7 API"]
         Factory -->|"Local / ZeroGPU"| WX
         Factory -->|"Cloud API"| DG
         Factory -->|"Cloud API"| AA
@@ -144,7 +144,7 @@ La plataforma admite variables en archivo local `.env`, claves dinámicas en la 
 | :--- | :--- | :--- | :--- | :--- |
 | **`HF_TOKEN`** | Hugging Face | Secretos Space / Web UI | Solo con Diarización | Descarga los modelos neuronales de Pyannote 3.1. |
 | **`DEEPGRAM_API_KEY`** | Deepgram | Secretos Space / Web UI / `.env` | Opcional | Permite transcripción en la nube con modelos Nova. |
-| **`ASSEMBLYAI_API_KEY`** | AssemblyAI | Secretos Space / Web UI / `.env` | Opcional | Permite transcripción en la nube con Universal-3.5-Pro. |
+| **`ASSEMBLYAI_API_KEY`** | AssemblyAI | Secretos Space / Web UI / `.env` | Opcional | Permite transcripción en la nube con AssemblyAI STT-3.7. |
 | **`ADMIN_PIN`** | Propietario | Secretos Space / `.env` | Recomendado | Desbloquea las claves del servidor en la Web UI de forma segura. |
 | **`ZERO_GPU_DURATION`** | Variables HF | Configuración Space | Opcional (Defecto: `60`) | Tiempo máximo asignado por ejecución en ZeroGPU (segundos). |
 

@@ -225,7 +225,7 @@ def render_options_card() -> tuple[
             )
             model_dropdown = gr.Dropdown(
                 choices=PROVIDER_MODEL_CHOICES[ProviderType.ASSEMBLYAI.value],
-                value=AssemblyAIModel.UNIVERSAL_3_5_PRO.value,
+                value=AssemblyAIModel.ASSEMBLYAI_STT_3_7.value,
                 label="Modelo de Transcripción",
                 allow_custom_value=True,
                 min_width=100,

@@ -28,16 +28,17 @@ class ModelName(str, Enum):
 class DeepgramModel(str, Enum):
     """Modelos de voz de Deepgram."""
 
-    NOVA_2 = "nova-2"  # Recomendado: ultrarrápido y coste óptimo
-    NOVA_3 = "nova-3"  # Nueva generación: máxima precisión contextual
+    NOVA_3 = "nova-3"  # Nueva generación: máxima precisión contextual (por defecto)
+    NOVA_2 = "nova-2"  # Rápido y coste óptimo
 
 
 class AssemblyAIModel(str, Enum):
     """Modelos de voz de AssemblyAI."""
 
-    UNIVERSAL_3_5_PRO = "universal-3-5-pro"  # Flagship: máxima precisión y velocidad (recomendado)
+    ASSEMBLYAI_STT_3_7 = "assemblyai-stt-3-7"  # Flagship nueva generación: 32 idiomas, diarización superior (recomendado)
+    UNIVERSAL_3_5_PRO = "universal-3-5-pro"  # Deprecado (retrocompatibilidad)
     UNIVERSAL_2 = "universal-2"  # Multilingüe: cobertura extendida (99 idiomas)
-    BEST = "best"  # Alias retrocompatible (enruta a universal-3-5-pro + universal-2)
+    BEST = "best"  # Alias retrocompatible (enruta a assemblyai-stt-3-7 + universal-2)
 
 
 class ComputeType(str, Enum):
@@ -75,7 +76,7 @@ class TranscriptionConfig:
     """
 
     provider: str = ProviderType.ASSEMBLYAI.value
-    model_name: str = AssemblyAIModel.UNIVERSAL_3_5_PRO.value
+    model_name: str = AssemblyAIModel.ASSEMBLYAI_STT_3_7.value
     device: str = "cuda"
     compute_type: str = ComputeType.INT8.value
     batch_size: int = 16
@@ -165,7 +166,7 @@ def normalize_provider_name(provider: str) -> str:
 DEFAULT_PROVIDER_MODELS: dict[str, str] = {
     ProviderType.WHISPERX.value: ModelName.LARGE_V3_TURBO.value,
     ProviderType.DEEPGRAM.value: DeepgramModel.NOVA_3.value,
-    ProviderType.ASSEMBLYAI.value: AssemblyAIModel.UNIVERSAL_3_5_PRO.value,
+    ProviderType.ASSEMBLYAI.value: AssemblyAIModel.ASSEMBLYAI_STT_3_7.value,
 }
 
 
@@ -198,8 +199,8 @@ PROVIDER_MODEL_CHOICES: dict[str, list[tuple[str, str]]] = {
     ],
     ProviderType.ASSEMBLYAI.value: [
         (
-            "universal-3-5-pro · Máxima Precisión (Recomendado)",
-            AssemblyAIModel.UNIVERSAL_3_5_PRO.value,
+            "assemblyai-stt-3-7 · Nueva Generación (Recomendado)",
+            AssemblyAIModel.ASSEMBLYAI_STT_3_7.value,
         ),
         (
             "universal-2 · Cobertura Extendida (99 idiomas)",

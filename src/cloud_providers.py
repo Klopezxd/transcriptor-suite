@@ -1,6 +1,6 @@
 """
 Módulo de proveedores en la nube para transcripción y diarización.
-Integra Deepgram (Nova-2/Nova-3) y AssemblyAI (Universal-3.5 Pro/Universal-2) con llamadas REST optimizadas.
+Integra Deepgram (Nova-2/Nova-3) y AssemblyAI (STT-3.7/Universal-2) con llamadas REST optimizadas.
 """
 
 from __future__ import annotations
@@ -341,19 +341,30 @@ class DeepgramPipeline:
 def resolve_assemblyai_speech_models(model_name: str | None) -> list[str]:
     """
     Resuelve la lista de modelos para el parámetro 'speech_models' de AssemblyAI.
-    Para máxima fidelidad y cobertura, 'universal-3-5-pro' incluye 'universal-2' como respaldo.
+    Para máxima fidelidad y cobertura, 'assemblyai-stt-3-7' incluye 'universal-2' como respaldo.
+    Soporta 'universal-3-5-pro' y alias para retrocompatibilidad.
     """
     raw = (model_name or "").strip().lower()
     if raw in {"universal-2", "nano"}:
         return ["universal-2"]
-    if raw in {"universal-3-5-pro", "best", "default", ""}:
+    if raw in {
+        "assemblyai-stt-3-7",
+        "assemblyai-stt-3.7",
+        "stt-3-7",
+        "stt-3.7",
+        "best",
+        "default",
+        "",
+    }:
+        return ["assemblyai-stt-3-7", "universal-2"]
+    if raw in {"universal-3-5-pro", "universal-3.5-pro"}:
         return ["universal-3-5-pro", "universal-2"]
     return [raw]
 
 
 class AssemblyAIPipeline:
     """
-    Cliente optimizado para la API de AssemblyAI (Universal-3.5 Pro y Universal-2).
+    Cliente optimizado para la API de AssemblyAI (STT-3.7 y Universal-2).
     Soporta subida en streaming, sondeo de estado y diarización con etiquetas de interlocutor.
     """
 
@@ -467,7 +478,7 @@ class AssemblyAIPipeline:
     ) -> dict[str, Any]:
         poll_url = f"{self.TRANSCRIPT_URL}/{transcript_id}"
         deadline = time.monotonic() + self.MAX_POLL_SECONDS
-        model_label = self.config.model_name or AssemblyAIModel.UNIVERSAL_3_5_PRO.value
+        model_label = self.config.model_name or AssemblyAIModel.ASSEMBLYAI_STT_3_7.value
 
         with smooth_progress_stage(
             notify=notify,

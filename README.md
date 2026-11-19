@@ -7,7 +7,7 @@
 ![Linter](https://img.shields.io/badge/Linter-Ruff-000000.svg?logo=ruff&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-> High-throughput, multi-engine speech transcription pipeline featuring word-level phonetic alignment and speaker diarization. Powered by **WhisperX**, **Pyannote Audio 3.1**, **Deepgram Nova**, and **AssemblyAI Universal-3.5-Pro**.
+> High-throughput, multi-engine speech transcription pipeline featuring word-level phonetic alignment and speaker diarization. Powered by **WhisperX**, **Pyannote Audio 3.1**, **Deepgram Nova**, and **AssemblyAI STT-3.7**.
 
 *Leer este documento en Español: [README.es.md](README.es.md)*
 
@@ -26,7 +26,7 @@ Test the pipeline directly in your browser without local setup:
 * **Multi-Engine ASR Ecosystem:**
   * **WhisperX (Local / ZeroGPU):** Faster-Whisper (CTranslate2 INT8) with Wav2Vec2 word alignment and Pyannote 3.1 diarization. Up to $5\times$ faster than vanilla Whisper.
   * **Deepgram (Cloud API):** Sub-minute batch processing with **Nova-3** (robust against noise & accents) and **Nova-2** (cost-effective).
-  * **AssemblyAI (Cloud API):** High-fidelity acoustic accuracy with **Universal-3.5-Pro** and **Universal-2**.
+  * **AssemblyAI (Cloud API):** High-fidelity acoustic accuracy with **AssemblyAI-STT-3.7** and **Universal-2**.
 * **Smart Asynchronous Queue («Leave it Working»):** Click *Start Transcription* at any time—even while files are uploading or optimizing. The task queues automatically and begins processing as soon as uploads finish.
 * **Client-Side Lossless Audio Extraction (Web Audio API):** Video files (`.mp4`, `.mov`, `.mkv`, etc.) are demuxed and resampled in-browser to 16 kHz Mono WAV PCM, reducing upload payloads by **90% to 98%** with zero quality loss.
 * **Zero-Python Desktop Extractor (`extraer_audio.bat`):** Drag & drop heavy OBS or 4K video files (>1.5 GB) onto the script to extract native `.m4a` audio via stream copy in **2 seconds** without needing Python.
@@ -42,7 +42,7 @@ Test the pipeline directly in your browser without local setup:
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **WhisperX** | Local / ZeroGPU | **`large-v3-turbo`** *(Default)* | ~8x vs Large-v3 | Open-weights gold standard, phonetic alignment | **Free** *(ZeroGPU / Local)* |
 | **WhisperX** | Local / ZeroGPU | `large-v3`, `medium`, `small`, `base` | Fast to Ultra-fast | Low-resource languages or limited hardware (<4GB) | **Free** *(ZeroGPU / Local)* |
-| **AssemblyAI** | Cloud REST | **`universal-3-5-pro`** *(Default)* | ~20x Real-Time | Editorial accuracy, strict terminology, accents | Pay-per-use API |
+| **AssemblyAI** | Cloud REST | **`assemblyai-stt-3-7`** *(Default)* | ~20x Real-Time | Editorial accuracy, strict terminology, accents | Pay-per-use API |
 | **AssemblyAI** | Cloud REST | `universal-2` | ~25x Real-Time | Balanced high-precision transcription | Pay-per-use API |
 | **Deepgram** | Cloud REST | **`nova-3`** *(Default)* | ~30x Real-Time | Background noise, overlapping speakers, dialects | Pay-per-use API |
 | **Deepgram** | Cloud REST | `nova-2` | ~40x Real-Time | Sub-minute speed and maximum cost efficiency | Pay-per-use API |
@@ -118,7 +118,7 @@ flowchart TD
     subgraph Engines ["4. Neural Processing Engines"]
         WX["WhisperX (CTranslate2 + Wav2Vec2 + Pyannote 3.1)"]
         DG["Deepgram Nova-3 API"]
-        AA["AssemblyAI Universal-3.5-Pro API"]
+        AA["AssemblyAI STT-3.7 API"]
         Factory -->|"Local / ZeroGPU"| WX
         Factory -->|"Cloud API"| DG
         Factory -->|"Cloud API"| AA

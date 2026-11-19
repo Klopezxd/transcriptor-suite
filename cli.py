@@ -82,7 +82,7 @@ def parse_arguments() -> argparse.Namespace:
         "--model",
         type=str,
         default=None,
-        help="Modelo a utilizar (ej. 'universal-3-5-pro' para AssemblyAI, 'nova-3' para Deepgram, 'large-v3-turbo' para WhisperX).",
+        help="Modelo a utilizar (ej. 'assemblyai-stt-3-7' para AssemblyAI, 'nova-3' para Deepgram, 'large-v3-turbo' para WhisperX).",
     )
     parser.add_argument(
         "-d",

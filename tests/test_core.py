@@ -55,7 +55,7 @@ class ConfigTests(unittest.TestCase):
     def test_provider_defaults(self):
         for provider, model in [
             (ProviderType.DEEPGRAM, "nova-3"),
-            (ProviderType.ASSEMBLYAI, "universal-3-5-pro"),
+            (ProviderType.ASSEMBLYAI, "assemblyai-stt-3-7"),
         ]:
             with self.subTest(provider=provider):
                 self.assertEqual(cloud_config(provider.value).model_name, model)
@@ -412,7 +412,7 @@ class CloudTests(unittest.TestCase):
 
     def test_assembly_submit_job_uses_speech_models_list(self):
         pipeline = AssemblyAIPipeline(
-            cloud_config(ProviderType.ASSEMBLYAI.value, model_name="universal-3-5-pro")
+            cloud_config(ProviderType.ASSEMBLYAI.value, model_name="assemblyai-stt-3-7")
         )
         with patch("src.cloud_providers.requests.post", return_value=response({"id": "job-123"})) as post_mock:
             job_id = pipeline._submit_transcript_job("https://example.com/audio.mp3", {"authorization": "test"})
@@ -420,7 +420,16 @@ class CloudTests(unittest.TestCase):
             payload = post_mock.call_args[1]["json"]
             self.assertIn("speech_models", payload)
             self.assertNotIn("speech_model", payload)
-            self.assertEqual(payload["speech_models"], ["universal-3-5-pro", "universal-2"])
+            self.assertEqual(payload["speech_models"], ["assemblyai-stt-3-7", "universal-2"])
+
+        # Verificar retrocompatibilidad con universal-3-5-pro
+        legacy_pipeline = AssemblyAIPipeline(
+            cloud_config(ProviderType.ASSEMBLYAI.value, model_name="universal-3-5-pro")
+        )
+        with patch("src.cloud_providers.requests.post", return_value=response({"id": "job-456"})) as post_mock_legacy:
+            legacy_pipeline._submit_transcript_job("https://example.com/audio.mp3", {"authorization": "test"})
+            legacy_payload = post_mock_legacy.call_args[1]["json"]
+            self.assertEqual(legacy_payload["speech_models"], ["universal-3-5-pro", "universal-2"])
 
     def test_assembly_terminal_errors_fail_immediately(self):
         for status in [401, 403, 404]:
