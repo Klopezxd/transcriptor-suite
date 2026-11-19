@@ -15,7 +15,6 @@ from src.ui.helpers import (
     PROVIDER_INFO_HTML,
     _build_status_badges,
 )
-from src.ui.template import get_transcriptor_html
 
 
 @dataclass
@@ -67,151 +66,398 @@ class UIComponents:
     btn_copy: gr.Button
 
 
-def render_transcriptor_ui(custom_css: str) -> UIComponents:
-    """Ensambla el shell visual nativo HTML5 y el contenedor headless bridge con los componentes Gradio."""
-    # Inyectar estilos CSS globales e instrucción display: none estricta para el headless bridge
-    bridge_style = (
-        f"<style>\n"
-        f"{custom_css}\n"
-        f"#headless-bridge {{ display: none !important; }}\n"
-        f"</style>"
-    )
-    gr.HTML(bridge_style)
+def render_navbar() -> tuple[gr.Button, gr.Button]:
+    """Renderiza la barra de navegación superior con marca y botón de acceso admin."""
+    with gr.Row(elem_classes=["app-navbar"]):
+        gr.HTML(
+            """
+            <div class="nav-brand">
+                <div class="brand-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" x2="12" y1="19" y2="22"/>
+                    </svg>
+                </div>
+                <div class="brand-titles">
+                    <h1>Transcriptor Suite</h1>
+                    <p>Suite Neuronal de Reconocimiento de Voz · WhisperX, Deepgram & AssemblyAI</p>
+                </div>
+            </div>
+            """
+        )
 
-    # Renderizar shell HTML5 semántico nativo
-    gr.HTML(get_transcriptor_html())
+        with gr.Row(elem_classes=["nav-actions"]):
+            btn_open_login = gr.Button(
+                "🔐 Admin",
+                size="sm",
+                variant="secondary",
+                elem_classes=["btn-secondary", "btn-login-compact"],
+            )
+            btn_logout = gr.Button(
+                "🔓 Salir",
+                size="sm",
+                variant="secondary",
+                elem_classes=["btn-secondary", "btn-login-compact"],
+                visible=False,
+            )
+    return btn_open_login, btn_logout
 
-    # Estados reactivos de sesión
-    admin_state = gr.State(value=False)
-    batch_cache_state = gr.State(value={"cached_results": {}})
 
-    # Contenedor Headless Bridge (oculto visualmente con display: none !important)
-    with gr.Column(elem_id="headless-bridge"):
-        # Controles de navegación y autenticación
-        btn_open_login = gr.Button("Admin", elem_id="bridge_btn_open_login")
-        btn_logout = gr.Button("Salir", visible=False, elem_id="bridge_btn_logout")
+def render_login_modal() -> tuple[
+    gr.Column, gr.Button, gr.Textbox, gr.HTML, gr.Button, gr.Button
+]:
+    """Renderiza el diálogo modal flotante de inicio de sesión de administrador."""
+    with gr.Column(visible=False, elem_classes=["modal-overlay"]) as modal_login:
+        with gr.Column(elem_classes=["modal-dialog"]):
+            with gr.Row(elem_classes=["modal-title-row"]):
+                gr.HTML('<h3 class="modal-title">Acceso de Administrador</h3>')
+                btn_close_login = gr.Button(
+                    "✕",
+                    size="sm",
+                    variant="secondary",
+                    min_width=32,
+                    scale=0,
+                    elem_classes=["btn-modal-close"],
+                )
 
-        with gr.Column(visible=False, elem_id="bridge_modal_login") as modal_login:
-            btn_close_login = gr.Button("✕", elem_id="bridge_btn_close_login")
+            gr.HTML(
+                '<p class="modal-subtext">Ingresa tu PIN de acceso para activar las credenciales maestras del servidor.</p>'
+            )
+
             input_pin = gr.Textbox(
                 type="password",
-                placeholder="Ingresa PIN...",
-                elem_id="bridge_input_pin",
+                placeholder="Ingresa PIN o contraseña...",
+                show_label=False,
+                container=False,
             )
-            login_msg = gr.HTML("", visible=False, elem_id="bridge_login_msg")
-            btn_cancel_login = gr.Button("Cancelar", elem_id="bridge_btn_cancel_login")
-            btn_submit_login = gr.Button("Ingresar", elem_id="bridge_btn_submit_login")
 
-        # Entrada de archivos multimedia
+            login_msg = gr.HTML("", visible=False)
+
+            with gr.Row(elem_classes=["actions-row"]):
+                btn_cancel_login = gr.Button(
+                    "Cancelar",
+                    variant="secondary",
+                    elem_classes=["btn-secondary"],
+                    min_width=80,
+                    scale=1,
+                )
+                btn_submit_login = gr.Button(
+                    "Ingresar",
+                    variant="primary",
+                    elem_classes=["btn-primary"],
+                    min_width=120,
+                    scale=2,
+                )
+
+    return (
+        modal_login,
+        btn_close_login,
+        input_pin,
+        login_msg,
+        btn_cancel_login,
+        btn_submit_login,
+    )
+
+
+def render_media_upload_card() -> gr.File:
+    """Renderiza la tarjeta de subida de archivos multimedia con soporte Drag & Drop."""
+    with gr.Column(min_width=0, elem_classes=["module-card", "upload-card"]):
+        gr.HTML(
+            """
+            <div class="module-header">
+                <div class="module-title">
+                    <span class="module-title-icon">📁</span>
+                    <span>Archivo Multimedia</span>
+                </div>
+            </div>
+            """
+        )
         media_input = gr.File(
-            label="Archivos multimedia",
+            label="Arrastra o selecciona tus archivos multimedia",
+            show_label=False,
             file_types=["audio", "video"],
             file_count="multiple",
-            elem_id="bridge_media_input",
+            container=False,
+            elem_classes=["file-upload-zone"],
         )
+        gr.HTML(
+            """
+            <div class="file-status-strip">
+                <div class="status-strip-content">
+                    <span class="status-formats">Formatos: WAV, FLAC, M4A, MP3, MP4, MKV, WEBM</span>
+                    <span class="status-dot">·</span>
+                    <span class="status-hint">⚡ Audio sin pérdida (Lossless)</span>
+                </div>
+            </div>
+            """
+        )
+    return media_input
 
-        # Opciones de motor
-        provider_dropdown = gr.Dropdown(
-            choices=[
-                ProviderType.ASSEMBLYAI.value,
-                ProviderType.DEEPGRAM.value,
-                ProviderType.WHISPERX.value,
-            ],
-            value=ProviderType.ASSEMBLYAI.value,
-            label="Proveedor",
-            allow_custom_value=True,
-            elem_id="bridge_provider",
-        )
-        model_dropdown = gr.Dropdown(
-            choices=PROVIDER_MODEL_CHOICES[ProviderType.ASSEMBLYAI.value],
-            value=AssemblyAIModel.ASSEMBLYAI_STT_3_7.value,
-            label="Modelo",
-            allow_custom_value=True,
-            elem_id="bridge_model",
-        )
-        diarize_checkbox = gr.Checkbox(
-            value=False,
-            label="Diarización",
-            elem_id="bridge_diarize",
-        )
-        timestamps_dropdown = gr.Dropdown(
-            choices=TIMESTAMP_CHOICES,
-            value=TIMESTAMP_CHOICES[0],
-            label="Marcas de tiempo",
-            allow_custom_value=True,
-            elem_id="bridge_timestamps",
-        )
-        provider_info_box = gr.HTML(
-            PROVIDER_INFO_HTML[ProviderType.ASSEMBLYAI.value],
-            elem_id="bridge_provider_info",
-        )
 
-        # Credenciales de API
-        with gr.Column(visible=True, elem_id="bridge_guest_keys_panel") as guest_keys_panel:
-            whisperx_notice = gr.HTML(
-                "",
-                visible=False,
-                elem_id="bridge_whisperx_notice",
+def render_options_card() -> tuple[
+    gr.Dropdown, gr.Dropdown, gr.Checkbox, gr.Dropdown, gr.HTML
+]:
+    """Renderiza la tarjeta de selección de motor de transcripción, modelo y opciones."""
+    with gr.Column(min_width=0, elem_classes=["module-card", "options-card"]):
+        gr.HTML(
+            """
+            <div class="module-header">
+                <div class="module-title">
+                    <span class="module-title-icon">⚙️</span>
+                    <span>Motor y Opciones</span>
+                </div>
+            </div>
+            """
+        )
+        with gr.Row():
+            provider_dropdown = gr.Dropdown(
+                choices=[
+                    ProviderType.ASSEMBLYAI.value,
+                    ProviderType.DEEPGRAM.value,
+                    ProviderType.WHISPERX.value,
+                ],
+                value=ProviderType.ASSEMBLYAI.value,
+                label="Proveedor de Transcripción",
+                allow_custom_value=True,
+                min_width=100,
+                scale=1,
             )
-            hf_token_box = gr.Textbox(
-                label="HF Token",
-                type="password",
-                visible=False,
-                elem_id="bridge_hf_token",
-            )
-            deepgram_key_box = gr.Textbox(
-                label="Deepgram API Key",
-                type="password",
-                visible=False,
-                elem_id="bridge_deepgram_key",
-            )
-            assemblyai_key_box = gr.Textbox(
-                label="AssemblyAI API Key",
-                type="password",
-                visible=True,
-                elem_id="bridge_assemblyai_key",
+            model_dropdown = gr.Dropdown(
+                choices=PROVIDER_MODEL_CHOICES[ProviderType.ASSEMBLYAI.value],
+                value=AssemblyAIModel.ASSEMBLYAI_STT_3_7.value,
+                label="Modelo de Transcripción",
+                allow_custom_value=True,
+                min_width=100,
+                scale=1,
             )
 
-        # Acciones de transcripción
-        btn_clear = gr.Button("Limpiar", elem_id="bridge_btn_clear")
+        with gr.Row():
+            diarize_checkbox = gr.Checkbox(
+                value=False,
+                label="Identificar quién habla (Diarización)",
+                min_width=100,
+                scale=1,
+            )
+            timestamps_dropdown = gr.Dropdown(
+                choices=TIMESTAMP_CHOICES,
+                value=TIMESTAMP_CHOICES[0],
+                label="Formato de Marcas de Tiempo",
+                allow_custom_value=True,
+                min_width=100,
+                scale=1,
+            )
+
+        provider_info_box = gr.HTML(PROVIDER_INFO_HTML[ProviderType.ASSEMBLYAI.value])
+
+    return (
+        provider_dropdown,
+        model_dropdown,
+        diarize_checkbox,
+        timestamps_dropdown,
+        provider_info_box,
+    )
+
+
+def render_credentials_card() -> tuple[
+    gr.Column, gr.HTML, gr.Textbox, gr.Textbox, gr.Textbox
+]:
+    """Renderiza el panel de credenciales de API para modo invitado y avisos informativos."""
+    with gr.Column(
+        visible=True, min_width=0, elem_classes=["module-card", "keys-card"]
+    ) as guest_keys_panel:
+        gr.HTML(
+            """
+            <div class="module-header">
+                <div class="module-title">
+                    <span class="module-title-icon">🔑</span>
+                    <span>Credenciales de API</span>
+                </div>
+            </div>
+            """
+        )
+
+        whisperx_notice = gr.HTML(
+            """
+            <div class="info-notice info-free">
+                <span>✨</span>
+                <span>WhisperX en GPU es 100% gratuito y no requiere ninguna clave de API externa.</span>
+            </div>
+            """,
+            visible=False,
+        )
+
+        hf_token_box = gr.Textbox(
+            label="Token de Hugging Face (HF_TOKEN)",
+            placeholder="hf_...",
+            type="password",
+            info="Requerido al activar Diarización con WhisperX. Rol 'Read' con términos de pyannote aceptados.",
+            visible=False,
+        )
+
+        deepgram_key_box = gr.Textbox(
+            label="Deepgram API Key",
+            placeholder="Pega tu clave de API de Deepgram...",
+            type="password",
+            info="Obtén tu clave con créditos iniciales gratuitos en console.deepgram.com",
+            visible=False,
+        )
+
+        assemblyai_key_box = gr.Textbox(
+            label="AssemblyAI API Key",
+            placeholder="Pega tu clave de API de AssemblyAI...",
+            type="password",
+            info="Obtén tu clave gratuita en assemblyai.com",
+            visible=True,
+        )
+
+    return (
+        guest_keys_panel,
+        whisperx_notice,
+        hf_token_box,
+        deepgram_key_box,
+        assemblyai_key_box,
+    )
+
+
+def render_action_buttons() -> tuple[gr.Button, gr.Button]:
+    """Renderiza la fila de botones de acción rápida (Limpiar y Transcribir)."""
+    with gr.Row(elem_classes=["actions-row"]):
+        btn_clear = gr.Button(
+            "🗑️ Limpiar", variant="secondary", elem_classes=["btn-secondary"], scale=1
+        )
         btn_transcribe = gr.Button(
             "⚡ Iniciar Transcripción",
             variant="primary",
             elem_id="btn_transcribe",
             elem_classes=["btn-primary"],
+            scale=2,
         )
+    return btn_clear, btn_transcribe
 
-        # Resultados y descargas
-        status_badge = gr.HTML(
-            _build_status_badges(
-                '<span class="status-badge status-warning">En espera</span>'
-            ),
-            elem_id="bridge_status_badge",
-        )
+
+def render_results_card() -> tuple[
+    gr.HTML, gr.Textbox, gr.DownloadButton, gr.DownloadButton, gr.Button
+]:
+    """Renderiza la tarjeta del visor de resultados, insignias y botones de descarga."""
+    with gr.Column(min_width=0, elem_classes=["module-card", "result-card"]):
+        with gr.Row(elem_classes=["module-header"]):
+            gr.HTML(
+                """
+                <div class="module-title">
+                    <span class="module-title-icon">📝</span>
+                    <span>Resultado de la Transcripción</span>
+                </div>
+                """
+            )
+            status_badge = gr.HTML(
+                _build_status_badges(
+                    '<span class="status-badge status-warning">En espera</span>'
+                ),
+                elem_classes=["status-badge-container"],
+            )
+
         output_textbox = gr.Textbox(
             show_label=False,
-            elem_id="bridge_output_textbox",
+            placeholder="El texto transcrito con locutores y marcas de tiempo aparecerá aquí...",
+            container=False,
+            elem_classes=["output-textbox"],
         )
-        btn_download = gr.DownloadButton(
-            label=EMPTY_DOWNLOAD_LABEL,
-            value=None,
-            interactive=False,
-            elem_id="bridge_btn_download",
-            elem_classes=["btn-secondary"],
-        )
-        btn_download_consolidated = gr.DownloadButton(
-            label="📄 Descargar Consolidado (.txt)",
-            value=None,
-            interactive=False,
-            visible=False,
-            elem_id="bridge_btn_download_consolidated",
-            elem_classes=["btn-secondary"],
-        )
-        btn_copy = gr.Button(
-            "Copiar texto",
-            interactive=False,
-            elem_id="bridge_btn_copy",
-        )
+
+        with gr.Row(elem_classes=["actions-row"]):
+            btn_download = gr.DownloadButton(
+                label=EMPTY_DOWNLOAD_LABEL,
+                value=None,
+                interactive=False,
+                variant="secondary",
+                elem_classes=["btn-secondary"],
+                scale=2,
+            )
+            btn_download_consolidated = gr.DownloadButton(
+                label="📄 Descargar Consolidado (.txt)",
+                value=None,
+                interactive=False,
+                visible=False,
+                variant="secondary",
+                elem_classes=["btn-secondary"],
+                scale=2,
+            )
+            btn_copy = gr.Button(
+                "📋 Copiar texto",
+                variant="secondary",
+                elem_classes=["btn-secondary"],
+                interactive=False,
+                scale=1,
+            )
+
+    return (
+        status_badge,
+        output_textbox,
+        btn_download,
+        btn_download_consolidated,
+        btn_copy,
+    )
+
+
+def render_footer() -> None:
+    """Renderiza el pie de página institucional de la aplicación."""
+    gr.HTML(
+        """
+        <footer class="app-footer">
+            Transcriptor Suite · Modelos neuronales ASR con alineación fonética fonema a fonema y diarización de hablantes.
+        </footer>
+        """
+    )
+
+
+def render_transcriptor_ui(custom_css: str) -> UIComponents:
+    """Ensambla el diseño completo de dos columnas de la suite."""
+    gr.HTML(f"<style>{custom_css}</style>")
+
+    admin_state = gr.State(value=False)
+    batch_cache_state = gr.State(value={"cached_results": {}})
+
+    btn_open_login, btn_logout = render_navbar()
+    (
+        modal_login,
+        btn_close_login,
+        input_pin,
+        login_msg,
+        btn_cancel_login,
+        btn_submit_login,
+    ) = render_login_modal()
+
+    with gr.Row(elem_classes=["main-body-row"]):
+        # Columna Izquierda: Entrada y Opciones
+        with gr.Column(scale=5, elem_classes=["left-column"]):
+            media_input = render_media_upload_card()
+            (
+                provider_dropdown,
+                model_dropdown,
+                diarize_checkbox,
+                timestamps_dropdown,
+                provider_info_box,
+            ) = render_options_card()
+            (
+                guest_keys_panel,
+                whisperx_notice,
+                hf_token_box,
+                deepgram_key_box,
+                assemblyai_key_box,
+            ) = render_credentials_card()
+            btn_clear, btn_transcribe = render_action_buttons()
+
+        # Columna Derecha: Resultado y Descargas
+        with gr.Column(scale=6, elem_classes=["result-column"]):
+            (
+                status_badge,
+                output_textbox,
+                btn_download,
+                btn_download_consolidated,
+                btn_copy,
+            ) = render_results_card()
+
+    render_footer()
 
     return UIComponents(
         admin_state=admin_state,
@@ -243,6 +489,3 @@ def render_transcriptor_ui(custom_css: str) -> UIComponents:
         btn_download_consolidated=btn_download_consolidated,
         btn_copy=btn_copy,
     )
-
-
-__all__ = ["UIComponents", "render_transcriptor_ui"]

@@ -27,20 +27,53 @@ def get_ui_enhancements_js() -> str:
 
 
 MODAL_OPEN_JS = """(...args) => {
+    const updateModalCenter = () => {
+        const overlay = document.querySelector('.modal-overlay');
+        const dialog = document.querySelector('.modal-dialog');
+        if (!overlay || !dialog) return;
+        const applyCenter = (centerY, centerX) => {
+            dialog.style.setProperty('--visible-center-y', `${Math.round(centerY)}px`);
+            dialog.style.setProperty('top', `${Math.round(centerY)}px`, 'important');
+            dialog.style.setProperty('left', `${Math.round(centerX)}px`, 'important');
+            dialog.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
+        };
+        const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+        const offsetTop = window.visualViewport ? window.visualViewport.offsetTop : 0;
+        const offsetLeft = window.visualViewport ? window.visualViewport.offsetLeft : 0;
+        applyCenter(offsetTop + vh / 2, offsetLeft + vw / 2);
+
+        if ('IntersectionObserver' in window) {
+            const io = new IntersectionObserver((entries) => {
+                for (const entry of entries) {
+                    if (entry.intersectionRect && entry.intersectionRect.height > 0) {
+                        const cy = entry.intersectionRect.top + entry.intersectionRect.height / 2;
+                        const cx = entry.intersectionRect.left + entry.intersectionRect.width / 2;
+                        applyCenter(cy, cx);
+                    }
+                }
+                io.disconnect();
+            }, { root: null });
+            io.observe(document.documentElement);
+        }
+    };
+
     const overlay = document.querySelector('.modal-overlay');
-    if (overlay) {
-        overlay.classList.remove('hide');
+    if (overlay) overlay.classList.remove('hide');
+    updateModalCenter();
+    setTimeout(updateModalCenter, 30);
+
+    if (!window.__transcriptorModalListeners) {
+        window.__transcriptorModalListeners = true;
+        window.addEventListener('scroll', updateModalCenter, { passive: true, capture: true });
+        window.addEventListener('resize', updateModalCenter, { passive: true });
     }
-    const input = document.querySelector('.modal-dialog input, input[type="password"]');
-    if (input) setTimeout(() => input.focus(), 50);
     return args;
 }"""
 
 MODAL_CLOSE_JS = """(...args) => {
     const overlay = document.querySelector('.modal-overlay');
-    if (overlay) {
-        overlay.classList.add('hide');
-    }
+    if (overlay) overlay.classList.add('hide');
     return args;
 }"""
 
@@ -62,15 +95,3 @@ COPY_CLIPBOARD_JS = """(text) => {
         document.body.removeChild(ta);
     }
 }"""
-
-__all__ = [
-    "ROOT_DIR",
-    "ASSETS_DIR",
-    "CSS_THEME_FILE",
-    "JS_ENHANCEMENTS_FILE",
-    "get_custom_css",
-    "get_ui_enhancements_js",
-    "MODAL_OPEN_JS",
-    "MODAL_CLOSE_JS",
-    "COPY_CLIPBOARD_JS",
-]

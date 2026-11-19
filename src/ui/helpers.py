@@ -131,16 +131,3 @@ def on_media_files_changed(media_files, batch_cache: dict | None = None) -> gr.B
     else:
         # Todos los archivos en el componente ya están transcritos
         return _disabled_transcribe_button()
-
-
-__all__ = [
-    "EMPTY_DOWNLOAD_LABEL",
-    "PROVIDER_INFO_HTML",
-    "_build_status_badges",
-    "_disabled_download_button",
-    "_disabled_consolidated_button",
-    "_enabled_transcribe_button",
-    "_disabled_transcribe_button",
-    "_get_file_fingerprint",
-    "on_media_files_changed",
-]
