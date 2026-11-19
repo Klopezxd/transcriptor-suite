@@ -84,7 +84,7 @@
             const syncViewport = () => {
                 const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
                 const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
-                const effectiveVh = lastParentVh > 0 ? lastParentVh : vh;
+                const effectiveVh = (window.parentIFrame && lastParentVh > 0) ? lastParentVh : vh;
 
                 if (effectiveVh > 0) {
                     document.documentElement.style.setProperty('--app-vh', `${Math.round(effectiveVh)}px`);
@@ -129,22 +129,22 @@
                     bodyScroll,
                     docScroll,
                     containerScroll,
-                    maxElementBottom > 0 ? (maxElementBottom + 35) : 0
+                    maxElementBottom > 0 ? (maxElementBottom + 16) : 0
                 ));
 
-                // En modo apilado (pantalla dividida, tablet, móvil):
+                // En modo apilado (pantalla dividida, tablet, móvil <= 1024px):
                 // El iframe DEBE crecer para que todo el contenido sea visible y scrolleable.
                 if (isStacked) {
                     return Math.max(lastParentVh || 0, naturalHeight);
                 }
 
-                // En modo desktop (2 columnas): si el contenido natural excede el alto visible + 30px
-                // (por zoom, pantalla de laptop baja o contenido largo), permitir scroll en lugar de cortar.
-                if (lastParentVh > 0 && naturalHeight > (lastParentVh + 30)) {
-                    return naturalHeight;
+                // En modo desktop (2 columnas): si el alto disponible es suficiente (>= 560px),
+                // anclar el iframe a lastParentVh para evitar cualquier barra de scroll vertical en monitor grande.
+                if (lastParentVh >= 560) {
+                    return lastParentVh;
                 }
 
-                return lastParentVh > 0 ? lastParentVh : naturalHeight;
+                return lastParentVh > 0 ? Math.max(lastParentVh, naturalHeight) : naturalHeight;
             };
 
             const syncIframeSize = () => {
@@ -249,10 +249,7 @@
             if (window.visualViewport) {
                 window.visualViewport.addEventListener('resize', onViewportChange, { passive: true });
             }
-            if ('ResizeObserver' in window) {
-                const ro = new ResizeObserver(onViewportChange);
-                ro.observe(document.documentElement);
-            }
+            window.addEventListener('orientationchange', onViewportChange, { passive: true });
 
             // Observer reactivo para la columna izquierda (modo admin)
             let colMoRaf = 0;
