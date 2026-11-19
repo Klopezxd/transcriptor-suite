@@ -1,2367 +1,870 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
+/* ==========================================================================
+   TRANSCRIPTOR SUITE - AURORA BOREAL NÓRDICA (~15 KB)
+   Layout desacoplado HTML5 nativo + CSS Grid / Flexbox. Cero clases .svelte-*
+   ========================================================================== */
+
 :root {
+    --bg-deep: #050B1A;
+    --bg-surface: #0A1628;
+    --bg-surface-elevated: #0E1E38;
+    --bg-input: #060E1D;
+    --bg-input-focus: #081426;
+
+    --emerald: #00D4AA;
+    --cyan: #00D4FF;
     --aurora-green: #00FF87;
-    --arctic-blue: #0A1628;
-    --deep-midnight: #050B1A;
-    --ice-cyan: #00D4FF;
-    --violet-sky: #7B2FBE;
+    --violet: #7B2FBE;
     --glacier-pink: #FF6EC7;
-    --frost-white: #E8F4F8;
-    --snow: #FAFBFC;
-    --arctic-input: #060E1D;
+    --warning-amber: #FFB800;
+    --error-red: #F87171;
+
+    --text-main: #E8F4F8;
+    --text-secondary: #88A2C2;
+    --text-muted: #536B88;
+
+    --border-subtle: rgba(0, 212, 255, 0.12);
+    --border-medium: rgba(0, 212, 255, 0.24);
+    --border-focus: rgba(0, 212, 255, 0.6);
+    --border-emerald: rgba(0, 212, 170, 0.45);
+
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+    --shadow-glow-cyan: 0 0 20px rgba(0, 212, 255, 0.22);
+    --shadow-glow-emerald: 0 0 20px rgba(0, 212, 170, 0.26);
+
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+
+    --font-main: 'Montserrat', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --transition: 0.2s ease;
 
     --block-border-width: 0px !important;
     --block-background-fill: transparent !important;
     --block-shadow: none !important;
     --panel-border-width: 0px !important;
     --form-gap-width: 0px !important;
-    --checkbox-label-border-width: 0px !important;
-    --checkbox-label-background-fill: transparent !important;
 }
 
 *, *::before, *::after {
     box-sizing: border-box !important;
+    margin: 0;
+    padding: 0;
 }
 
-body, html {
-    background-color: var(--deep-midnight) !important;
+html, body {
+    background-color: var(--bg-deep) !important;
     background-image:
-        radial-gradient(circle at 18% 12%, rgba(0, 255, 135, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 18% 12%, rgba(0, 212, 170, 0.08) 0%, transparent 45%),
         radial-gradient(circle at 82% 10%, rgba(123, 47, 190, 0.10) 0%, transparent 45%),
         radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.04) 0%, transparent 50%),
         radial-gradient(circle at 80% 90%, rgba(255, 110, 199, 0.04) 0%, transparent 40%) !important;
     background-attachment: fixed !important;
-    color: var(--frost-white) !important;
-    font-family: 'Montserrat', system-ui, -apple-system, sans-serif !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    color: var(--text-main) !important;
+    font-family: var(--font-main) !important;
     -webkit-font-smoothing: antialiased;
 }
 
-.gradio-container,
-.gradio-container > .main,
-.gradio-container .contain,
-main.contain {
-    max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 auto !important;
-    box-sizing: border-box !important;
-}
-
-.gradio-container {
-    padding: clamp(4px, 1vh, 14px) clamp(10px, 1.6vw, 28px) !important;
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
-
-/* ── LAYOUT RESPONSIVO DE PANTALLA COMPLETA (ADAPTACIÓN EN VIVO SIN RECARGAR ENTRE MONITOR 24"-27" Y LAPTOP 14"-16") ── */
-@media (min-width: 1025px) and (min-height: 560px) {
-    html,
-    body,
-    gradio-app {
-        height: var(--app-vh, 100dvh) !important;
-        max-height: var(--app-vh, 100dvh) !important;
-        overflow: hidden !important;
-    }
-
-    .gradio-container,
-    .gradio-container > .main,
-    .gradio-container > .main > .wrap,
-    main.contain,
-    main.contain > .wrap,
-    .gradio-container div:has(> .main-body-row) {
-        height: 100% !important;
-        max-height: 100% !important;
-        min-height: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        flex: 1 1 0% !important;
-        box-sizing: border-box !important;
-        overflow: hidden !important;
-    }
-
-    .main-body-row,
-    .gradio-container .row.main-body-row {
-        flex: 1 1 0% !important;
-        height: auto !important;
-        max-height: none !important;
-        min-height: 0 !important;
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        align-items: stretch !important;
-        gap: clamp(8px, 1.1vw, 18px) !important;
-        overflow: visible !important;
-    }
-
-    .left-column,
-    .gradio-container .column.left-column {
-        display: flex !important;
-        flex-direction: column !important;
-        flex-wrap: nowrap !important;
-        justify-content: space-between !important;
-        height: 100% !important;
-        min-height: 0 !important;
-        gap: clamp(4px, 0.9vh, 14px) !important;
-        overflow: visible !important;
-    }
-
-    .upload-card,
-    .gradio-container .column.upload-card {
-        flex: 1 1 0% !important;
-        min-height: clamp(80px, 16vh, 220px) !important;
-        height: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
-        flex-wrap: nowrap !important;
-        justify-content: space-between !important;
-        overflow: visible !important;
-        z-index: 5 !important;
-    }
-
-    .options-card,
-    .gradio-container .column.options-card {
-        flex: 0 0 auto !important;
-        flex-shrink: 0 !important;
-        height: fit-content !important;
-        min-height: fit-content !important;
-        max-height: none !important;
-        overflow: visible !important;
-        overflow-x: visible !important;
-        overflow-y: visible !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: flex-start !important;
-        gap: clamp(6px, 1.15vh, 14px) !important;
-        z-index: 40 !important;
-    }
-
-    /* En modo Admin (cuando Credenciales de API está oculto), dar más aire natural a Motor y Opciones y expandir Archivo Multimedia a pantalla completa */
-    body.admin-mode .left-column,
-    .left-column.admin-mode,
-    .left-column:has(.keys-card.hide),
-    .left-column:has(.keys-card[style*="display: none"]),
-    .left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) {
-        display: flex !important;
-        flex-direction: column !important;
-        flex-wrap: nowrap !important;
-        justify-content: space-between !important;
-        height: 100% !important;
-        min-height: 100% !important;
-    }
-
-    body.admin-mode .options-card,
-    .left-column.admin-mode .options-card,
-    .left-column:has(.keys-card.hide) .options-card,
-    .left-column:has(.keys-card[style*="display: none"]) .options-card,
-    .left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .options-card,
-    .gradio-container .column.left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .options-card {
-        padding: clamp(12px, 2vh, 24px) clamp(16px, 1.7vw, 26px) !important;
-        gap: clamp(8px, 1.6vh, 18px) !important;
-        flex: 0 0 auto !important;
-    }
-
-    body.admin-mode .upload-card,
-    .left-column.admin-mode .upload-card,
-    .left-column:has(.keys-card.hide) .upload-card,
-    .left-column:has(.keys-card[style*="display: none"]) .upload-card,
-    .left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .upload-card,
-    .gradio-container .column.left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .upload-card {
-        flex: 1 1 0% !important;
-        height: 100% !important;
-        min-height: 200px !important;
-        display: flex !important;
-        flex-direction: column !important;
-        flex-wrap: nowrap !important;
-        justify-content: space-between !important;
-    }
-
-    body.admin-mode .upload-card .file-upload-zone,
-    .left-column.admin-mode .upload-card .file-upload-zone,
-    body.admin-mode .upload-card .file-preview-holder,
-    .left-column.admin-mode .upload-card .file-preview-holder {
-        flex: 1 1 0% !important;
-        height: 100% !important;
-        min-height: 50px !important;
-    }
-
-    body.admin-mode .actions-row,
-    .left-column.admin-mode .actions-row,
-    .left-column:has(.keys-card.hide) .actions-row,
-    .left-column:has(.keys-card[style*="display: none"]) .actions-row,
-    .left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .actions-row {
-        margin-top: auto !important;
-        flex: 0 0 auto !important;
-    }
-
-    body.admin-mode .keys-card,
-    .keys-card.hide,
-    .keys-card[style*="display: none"],
-    .gradio-container .column.keys-card.hide,
-    .gradio-container .column.keys-card[style*="display: none"] {
-        display: none !important;
-        height: 0 !important;
-        min-height: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        border: none !important;
-    }
-
-    body:not(.admin-mode) .keys-card:not(.hide):not([style*="display: none"]),
-    .keys-card:not(.hide):not([style*="display: none"]),
-    .gradio-container .column.keys-card:not(.hide):not([style*="display: none"]) {
-        flex: 0 0 auto !important;
-        flex-shrink: 0 !important;
-        height: fit-content !important;
-        min-height: fit-content !important;
-        max-height: none !important;
-        overflow: visible !important;
-        overflow-x: visible !important;
-        overflow-y: visible !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: flex-start !important;
-        gap: clamp(5px, 0.95vh, 12px) !important;
-        z-index: 10 !important;
-    }
-}
-
-/* Ocultar loaders invisibles de Gradio, bloques <style> sin contenido visual y el footer por defecto */
-.wrap.default.full.hide,
-.module-card > .wrap.hide,
-.modal-overlay > .wrap.hide,
-.modal-dialog .wrap.default.full,
-.block:has(> .html-container > div > style),
-.block:has(> div > style),
-footer:not(.app-footer) {
-    display: none !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* Gaps responsivos de filas y columnas de Gradio */
-.gradio-container .row,
-.gradio-container .gradio-row {
-    gap: clamp(8px, 1.1vw, 16px) !important;
-}
-
-.gradio-container .column,
-.gradio-container .gradio-column {
-    gap: clamp(6px, 1vh, 12px) !important;
-}
-
-/* ── ELIMINA LA CAJA EXTERIOR QUE CUBRE A TODOS LOS MÓDULOS Y PADDING EXTRA ── */
-.gradio-container,
-.gradio-container-6-30-0,
-.gradio-container > .main,
-.gradio-container .main,
-.gradio-container .wrap,
-.gradio-container .contain,
-main.contain,
-gradio-app {
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
-
-.gradio-container > .main,
-.gradio-container > .main > .wrap,
-main.contain,
-main.contain > .wrap {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-}
-
-/* ── PREVIENE QUE CONTENEDORES PADRE CAPTUREN POSITION: FIXED ── */
-html,
-body,
-gradio-app,
-.gradio-container,
-.gradio-container > .main,
-.main,
-.wrap,
-.contain,
-main.contain {
-    transform: none !important;
-    filter: none !important;
-    perspective: none !important;
-    contain: none !important;
-}
-
-/* ── NAVBAR HEADER (RESPONSIVO Y LEGIBLE) ──────────── */
-.app-navbar {
-    flex: 0 0 auto !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: clamp(7px, 1.15vh, 14px) clamp(14px, 1.6vw, 24px) !important;
-    background: rgba(10, 22, 40, 0.82) !important;
-    backdrop-filter: blur(18px) !important;
-    -webkit-backdrop-filter: blur(18px) !important;
-    border: 1px solid rgba(0, 212, 255, 0.14) !important;
-    border-radius: 13px !important;
-    margin-bottom: clamp(5px, 0.9vh, 12px) !important;
-    box-shadow: 0 4px 16px rgba(5, 11, 26, 0.5), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
-}
-
-.app-navbar .html-container,
-.app-navbar .prose {
-    padding: 0 !important;
-    margin: 0 !important;
-    min-height: 0 !important;
-}
-
-.nav-brand {
-    display: flex !important;
-    align-items: center !important;
-    gap: clamp(10px, 1.1vw, 16px) !important;
-}
-
-.brand-icon {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: clamp(32px, 4.5vh, 44px) !important;
-    height: clamp(32px, 4.5vh, 44px) !important;
-    background: rgba(0, 255, 135, 0.1) !important;
-    border: 1px solid rgba(0, 255, 135, 0.35) !important;
-    border-radius: 9px !important;
-    color: var(--aurora-green) !important;
-    box-shadow: 0 0 10px rgba(0, 255, 135, 0.18) !important;
-    flex-shrink: 0 !important;
-}
-
-.brand-titles h1 {
-    font-size: clamp(1.18rem, 2.5vh, 1.55rem) !important;
-    font-weight: 800 !important;
-    margin: 0 !important;
-    line-height: 1.15 !important;
-    background: linear-gradient(135deg, #FAFBFC 15%, #00FF87 55%, #00D4FF 100%) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-}
-
-.brand-titles p {
-    font-size: clamp(0.82rem, 1.65vh, 1.0rem) !important;
-    color: #9BB2CE !important;
-    margin: 0 !important;
-    line-height: 1.2 !important;
-}
-
-.nav-actions {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-end !important;
-    flex: 0 0 auto !important;
-    width: auto !important;
-    margin: 0 !important;
-}
-
-/* ── BOTÓN DE LOGIN ADMIN / SALIR (ESQUINA SUPERIOR DERECHA) ── */
-.btn-login-compact {
-    width: auto !important;
-    min-width: unset !important;
-    max-width: 145px !important;
-    height: clamp(34px, 4.5vh, 44px) !important;
-    padding: 5px 18px !important;
-    font-size: clamp(0.88rem, 1.75vh, 1.04rem) !important;
-    font-weight: 600 !important;
-    border-radius: 9px !important;
-    background: rgba(232, 244, 248, 0.05) !important;
-    border: 1px solid rgba(0, 212, 255, 0.22) !important;
-    color: var(--frost-white) !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    white-space: nowrap !important;
-    transition: all 0.25s ease !important;
-    cursor: pointer !important;
-}
-
-.btn-login-compact:hover {
-    background: rgba(0, 212, 255, 0.1) !important;
-    border-color: rgba(0, 255, 135, 0.45) !important;
-    color: var(--aurora-green) !important;
-    box-shadow: 0 0 14px rgba(0, 255, 135, 0.22) !important;
-    transform: translateY(-1px) !important;
-}
-
-/* ── MODULOS EN CUADROS REDONDEADOS (AURORA BOREAL RESPONSIVOS) ── */
-.module-card {
-    background: #0A1628 !important;
-    border: 1px solid rgba(0, 212, 255, 0.14) !important;
-    border-radius: 14px !important;
-    padding: clamp(9px, 1.45vh, 20px) clamp(14px, 1.6vw, 24px) !important;
-    margin-bottom: 0 !important;
-    gap: clamp(5px, 0.9vh, 12px) !important;
-    box-shadow: 0 4px 16px rgba(5, 11, 26, 0.6), 0 0 1px 1px rgba(0, 212, 255, 0.08) !important;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
-    position: relative !important;
-    overflow: visible !important;
-    box-sizing: border-box !important;
-}
-
-.module-card:hover {
-    border-color: rgba(0, 255, 135, 0.35) !important;
-    box-shadow: 0 6px 22px rgba(5, 11, 26, 0.7), 0 0 14px rgba(0, 255, 135, 0.12) !important;
-}
-
-/* ── CERO CUADROS ANIDADOS Y CERO PADDING EXTRA EN BLOQUES INTERNOS ── */
-.module-card .block,
-.module-card .gr-block,
-.module-card .form,
-.module-card fieldset,
-.module-card .gradio-group,
-.module-card .group,
-.module-card div[class*="block"],
-.module-card div[class*="form"],
-.module-card div[class*="group"],
-.module-card div[data-testid*="block"],
-.module-card div[data-testid*="group"],
-.module-card div[data-testid*="form"],
-.module-card .container,
-.module-card .html-container,
-.module-card .prose {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    min-height: 0 !important;
-    outline: none !important;
-    overflow: visible !important;
-}
-
-.module-card > div,
-.module-card .gradio-row,
-.module-card .gradio-form {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-}
-
-/* Mantener la cuadrícula 2x2 de Motor y Opciones sin envolver al cambiar de monitor */
-.options-card .row,
-.options-card .form {
-    flex-wrap: nowrap !important;
-    overflow: visible !important;
-}
-
-.options-card .row > .block,
-.options-card .form > .block {
-    min-width: 0 !important;
-    flex: 1 1 0% !important;
-    overflow: visible !important;
-}
-
-.options-card .block:focus-within,
-.options-card .row:focus-within,
-.options-card .block:has(input[role="combobox"][aria-expanded="true"]),
-.options-card .row:has(input[role="combobox"][aria-expanded="true"]) {
-    position: relative !important;
-    z-index: 9999 !important;
-}
-
-.module-header,
-.gradio-container .row.module-header,
-.module-card .row.module-header {
-    flex: 0 0 auto !important;
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    width: 100% !important;
-    margin-bottom: clamp(3px, 0.55vh, 8px) !important;
-    padding-bottom: clamp(4px, 0.65vh, 9px) !important;
-    border-bottom: 1px solid rgba(0, 212, 255, 0.12) !important;
-}
-
-/* En encabezados con múltiples elementos (como Resultado + "En espera"), alinear extremos en la misma fila */
-.module-header > div:first-child,
-.row.module-header > .block:first-child {
-    flex: 0 1 auto !important;
-    width: auto !important;
-    min-width: 0 !important;
-    margin-right: auto !important;
-}
-
-.status-badge-container,
-.row.module-header > .status-badge-container,
-.module-header .status-badge-container,
-.status-badge-container .html-container,
-.status-badge-container .prose {
-    flex: 0 0 auto !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: fit-content !important;
-    margin-left: auto !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-end !important;
-    text-align: right !important;
-}
-
-.module-title {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    font-size: clamp(1.0rem, 2.1vh, 1.26rem) !important;
-    font-weight: 700 !important;
-    color: var(--frost-white) !important;
-    letter-spacing: -0.01em !important;
-    line-height: 1.2 !important;
-}
-
-.module-title-icon {
-    font-size: clamp(1.08rem, 2.2vh, 1.32rem) !important;
-}
-
-/* ── FORM ELEMENTS SUAVES, GRANDES Y LEGIBLES ──────────── */
-.gradio-container label span,
-.module-card span[data-testid="block-info"] {
-    font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.80rem, 1.62vh, 0.96rem) !important;
-    font-weight: 700 !important;
-    color: #A3BBD6 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.03em !important;
-    margin-bottom: clamp(3px, 0.5vh, 6px) !important;
-    line-height: 1.2 !important;
-}
-
-.module-card .info,
-.module-card div[class*="info"] {
-    font-size: clamp(0.78rem, 1.55vh, 0.94rem) !important;
-    color: #88A2C2 !important;
-    margin-top: 3px !important;
-    margin-bottom: 0 !important;
-    line-height: 1.22 !important;
-}
-
-.gradio-container input[type="text"]:not([role="combobox"]),
-.gradio-container input[type="password"]:not([role="combobox"]),
-.gradio-container select {
-    background-color: var(--arctic-input) !important;
-    border: 1px solid rgba(0, 212, 255, 0.16) !important;
-    border-radius: 9px !important;
-    color: var(--frost-white) !important;
-    font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.90rem, 1.82vh, 1.08rem) !important;
-    height: clamp(35px, 4.8vh, 46px) !important;
-    min-height: clamp(35px, 4.8vh, 46px) !important;
-    padding: 4px 12px !important;
-    transition: all 0.2s ease !important;
-}
-
-.gradio-container input[type="text"]:not([role="combobox"]):focus,
-.gradio-container input[type="password"]:not([role="combobox"]):focus,
-.gradio-container select:focus {
-    border-color: var(--aurora-green) !important;
-    box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.22), 0 0 12px rgba(0, 255, 135, 0.15) !important;
-    outline: none !important;
-}
-
-/* ── DROPDOWNS Y MENÚS DESPLEGABLES (AURORA BOREAL, BORDE ÚNICO Y DESPLIEGUE INFERIOR) ── */
-.module-card .wrap:has(> .wrap-inner > .secondary-wrap),
-.module-card .gradio-dropdown .wrap {
-    background: var(--arctic-input) !important;
-    border: 1px solid rgba(0, 212, 255, 0.18) !important;
-    border-radius: 9px !important;
-    min-height: clamp(35px, 4.8vh, 46px) !important;
-    height: clamp(35px, 4.8vh, 46px) !important;
-    transition: all 0.2s ease !important;
-    position: relative !important;
-    cursor: pointer !important;
-    overflow: visible !important;
-}
-
-.module-card .wrap-inner,
-.module-card .gradio-dropdown .wrap-inner {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-    min-height: 100% !important;
-    height: 100% !important;
-    padding: 0 !important;
-    position: relative !important;
-    cursor: pointer !important;
-}
-
-/* El contenedor envolvente de la página NUNCA debe tener borde ni fondo */
-.main > .wrap,
-.contain > .wrap,
-div.wrap.svelte-zxu34v,
-div.wrap:not(.module-card *) {
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-    background: transparent !important;
-}
-
-.module-card .secondary-wrap {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    width: 100% !important;
-    height: 100% !important;
-    padding: 2px 12px !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    position: relative !important;
-    cursor: pointer !important;
-}
-
-.module-card .secondary-wrap .icon-wrap {
-    position: absolute !important;
-    right: 11px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    pointer-events: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.module-card .wrap:has(> .wrap-inner > .secondary-wrap):focus-within,
-.module-card .gradio-dropdown .wrap:focus-within,
-.module-card .wrap:has(> .wrap-inner.show_options) {
-    border-color: var(--aurora-green) !important;
-    box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.22), 0 0 12px rgba(0, 255, 135, 0.15) !important;
-}
-
-.module-card input[role="combobox"],
-.gradio-container input[role="combobox"],
-.module-card input[role="combobox"]:focus,
-.gradio-container input[role="combobox"]:focus {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    color: var(--frost-white) !important;
-    font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.90rem, 1.82vh, 1.08rem) !important;
-    font-weight: 500 !important;
-    outline: none !important;
-    width: 100% !important;
-    padding: 2px 26px 2px 0 !important;
-    margin: 0 !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    cursor: pointer !important;
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    caret-color: transparent !important;
-}
-
-.module-card input[role="combobox"]::selection,
-.gradio-container input[role="combobox"]::selection {
-    background: transparent !important;
-    color: var(--frost-white) !important;
-}
-
-.dropdown-arrow,
-.module-card .dropdown-arrow,
-.gradio-container .dropdown-arrow {
-    fill: #9BB2CE !important;
-    color: #9BB2CE !important;
-    width: 16px !important;
-    height: 16px !important;
-    min-width: 16px !important;
-    flex-shrink: 0 !important;
-    margin: 0 !important;
-    transition: transform 0.2s ease, fill 0.2s ease !important;
-}
-
-.module-card .wrap:has(> .wrap-inner > .secondary-wrap):hover .dropdown-arrow,
-.module-card .wrap-inner.show_options .dropdown-arrow,
-.module-card .wrap:has(> .wrap-inner input[role="combobox"][aria-expanded="true"]) .dropdown-arrow {
-    fill: var(--aurora-green) !important;
-    color: var(--aurora-green) !important;
-}
-
-.module-card .wrap-inner.show_options .dropdown-arrow,
-.module-card .wrap:has(> .wrap-inner input[role="combobox"][aria-expanded="true"]) .dropdown-arrow {
-    transform: rotate(180deg) !important;
-}
-
-/* ── MENÚ DE OPCIONES DESPLEGABLE (SIEMPRE DEBAJO DEL CUADRO CON CAJITAS ESTILIZADAS) ── */
-.module-card .wrap > .options,
-.gradio-container .wrap > .options,
-div.options.svelte-1ou0lab {
-    position: absolute !important;
-    top: calc(100% + 5px) !important;
-    bottom: auto !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-    background: #060E1D !important;
-    border: 1px solid rgba(0, 212, 255, 0.28) !important;
-    border-radius: 10px !important;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 18px rgba(0, 212, 255, 0.18) !important;
-    z-index: 999999 !important;
-    color: var(--frost-white) !important;
-    max-height: 260px !important;
-    overflow-y: auto !important;
-    margin: 0 !important;
-    padding: 6px !important;
-}
-
-.option-list,
-ul.option-list,
-ul[role="listbox"] {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    max-height: 248px !important;
-    overflow-y: auto !important;
-}
-
-li[role="option"],
-.item,
-.option-list li,
-ul.options > li,
-.options .item,
-[role="listbox"] > li,
-[role="option"] {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 9px 13px !important;
-    font-size: clamp(0.88rem, 1.75vh, 1.04rem) !important;
-    font-family: 'Montserrat', sans-serif !important;
-    color: var(--frost-white) !important;
-    cursor: pointer !important;
-    border: 1px solid rgba(0, 212, 255, 0.15) !important;
-    border-radius: 8px !important;
-    margin-bottom: 5px !important;
-    background: rgba(10, 22, 40, 0.85) !important;
-    transition: all 0.15s ease !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    box-sizing: border-box !important;
-}
-
-li[role="option"] > *,
-[role="option"] > * {
-    pointer-events: none !important;
-}
-
-li[role="option"]:last-child,
-.item:last-child,
-ul.options > li:last-child,
-[role="listbox"] > :last-child {
-    margin-bottom: 0 !important;
-}
-
-li[role="option"]:hover,
-li[role="option"].selected,
-li[role="option"][aria-selected="true"],
-.item:hover,
-.item.selected,
-[role="option"]:hover,
-[role="option"].selected,
-[role="option"][aria-selected="true"] {
-    background: rgba(0, 255, 135, 0.18) !important;
-    border-color: var(--aurora-green) !important;
-    color: var(--aurora-green) !important;
-    font-weight: 600 !important;
-    box-shadow: 0 0 12px rgba(0, 255, 135, 0.18) !important;
-}
-
-.module-card label:has(input[type="checkbox"]) {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    padding: 4px 0 !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    cursor: pointer !important;
-    margin-top: clamp(14px, 2.1vh, 23px) !important;
-}
-
-.module-card label:has(input[type="checkbox"]) span {
-    font-size: clamp(0.76rem, 1.4vh, 0.88rem) !important;
-    letter-spacing: 0.01em !important;
-    line-height: 1.2 !important;
-    margin-bottom: 0 !important;
-}
-
-.module-card input[type="checkbox"] {
-    width: clamp(17px, 2.2vh, 21px) !important;
-    height: clamp(17px, 2.2vh, 21px) !important;
-    flex-shrink: 0 !important;
-}
-
-.module-card label:has(input[type="checkbox"]):hover {
-    color: var(--aurora-green) !important;
-}
-
-/* ── MODULO 1: ARRASTRAR ARCHIVO (RESPONSIVO Y ADAPTABLE A TODO EL ALTO DISPONIBLE) ── */
-.file-upload-zone,
-.upload-card .file-upload-zone,
-.upload-card .file-upload-zone > div:not([data-testid="status-tracker"]):not(.file-preview-holder):not(.icon-button-wrapper):not(.upload-loading-overlay) {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    width: 100% !important;
-    flex: 1 1 0% !important;
-    min-height: 50px !important;
-    height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    position: relative !important;
-}
-
-/* Anula el min-height: var(--size-60) (240px) interno de Gradio 6 en .wrap.svelte-1vmd51o y permite estiramiento */
-.file-upload-zone .wrap:not([data-testid="status-tracker"]),
-.file-upload-zone [data-upload-density] {
-    min-height: 50px !important;
-    height: 100% !important;
-    flex: 1 1 0% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important;
-}
-
-.file-upload-zone .icon-wrap,
-.file-upload-zone [data-testid="upload-icon"] {
-    min-height: 0 !important;
-    height: auto !important;
-    width: auto !important;
-    flex: 0 0 auto !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* Zona de subida vacía (solo aplica al botón dropzone .boundedheight, NUNCA al botón X de borrar) */
-.file-upload-zone button.boundedheight,
-.file-upload-zone [aria-label*="upload"] {
-    background: rgba(6, 14, 29, 0.6) !important;
-    border: 1.5px dashed rgba(0, 212, 255, 0.28) !important;
-    border-radius: 10px !important;
-    width: 100% !important;
-    flex: 1 1 0% !important;
-    min-height: 44px !important;
-    height: 100% !important;
-    padding: 10px 14px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
-    cursor: pointer !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-    transition: all 0.25s ease !important;
-}
-
-.file-upload-zone button.boundedheight:hover,
-.file-upload-zone [aria-label*="upload"]:hover,
-.file-upload-zone.drag-over-active,
-.upload-card.drag-over-active,
-.upload-card:has(.drag-over-active) {
-    border-color: var(--aurora-green) !important;
-    background: rgba(0, 255, 135, 0.08) !important;
-    box-shadow: 0 0 18px rgba(0, 255, 135, 0.35) !important;
-}
-
-/* Reemplazo limpio del texto nativo sin overflow (solo en el dropzone vacío) */
-.file-upload-zone [data-testid="upload-text"],
-.file-upload-zone button.boundedheight > div {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 0 !important;
-    font-size: 0 !important;
-    color: transparent !important;
-    line-height: 0 !important;
-    width: 100% !important;
-    min-height: 0 !important;
-    height: auto !important;
-    flex: 0 0 auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.file-upload-zone [data-testid="upload-icon"] svg,
-.file-upload-zone svg.feather-upload,
-.file-upload-zone button.boundedheight svg {
-    display: inline-block !important;
-    width: clamp(22px, 3.2vh, 32px) !important;
-    height: clamp(22px, 3.2vh, 32px) !important;
-    margin: 0 !important;
-    color: var(--ice-cyan) !important;
-    flex-shrink: 0 !important;
-}
-
-.file-upload-zone .or,
-.file-upload-zone span.or {
-    display: none !important;
-}
-
-.file-upload-zone [data-testid="upload-text"]::after,
-.file-upload-zone button.boundedheight > div::after {
-    content: "Arrastre el archivo aquí o haga clic para cargar" !important;
-    font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.92rem, 1.8vh, 1.15rem) !important;
-    line-height: 1.25 !important;
-    font-weight: 600 !important;
-    color: var(--frost-white) !important;
-    text-align: center !important;
-    display: block !important;
-    margin: 0 !important;
-}
-
-/* Estado con archivo cargado: tarjeta adaptable a toda la altura disponible, con barrita Aurora y sin scroll nativo duplicado */
-.file-upload-zone,
-.file-upload-zone > div:not(.icon-button-wrapper),
-.file-upload-zone div:has(> .file-preview-holder),
-.file-upload-zone div:has(> table.file-preview),
-.file-upload-zone .file-preview-holder {
-    flex: 1 1 0% !important;
-    height: 100% !important;
-    min-height: 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    box-sizing: border-box !important;
-}
-
-/* ── LISTA DE ARCHIVOS CON BARRA LATERAL NATIVA Y FLUIDA ── */
-.file-upload-zone .file-preview-holder {
-    position: relative !important;
-    background: rgba(6, 14, 29, 0.82) !important;
-    border: 1px solid rgba(0, 255, 135, 0.35) !important;
-    border-radius: 10px !important;
-    box-shadow: inset 0 0 14px rgba(0, 255, 135, 0.06) !important;
-    width: 100% !important;
-    flex: 1 1 0% !important;
-    min-height: 50px !important;
-    max-height: none !important;
-    height: 100% !important;
-    margin: 0 !important;
-    padding: 6px 6px 6px 12px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: flex-start !important;
-    box-sizing: border-box !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    scrollbar-width: thin !important;
-    scrollbar-color: rgba(0, 212, 255, 0.35) rgba(4, 10, 24, 0.5) !important;
-    -webkit-overflow-scrolling: touch !important;
-    overscroll-behavior: contain !important;
-}
-
-/* Barra lateral nativa del navegador para la lista de archivos (suave, funcional y sin neón invasivo) */
-.file-upload-zone .file-preview-holder::-webkit-scrollbar {
-    width: 6px !important;
-    display: block !important;
-}
-
-.file-upload-zone .file-preview-holder::-webkit-scrollbar-track {
-    background: rgba(4, 10, 24, 0.5) !important;
-    border-radius: 4px !important;
-}
-
-.file-upload-zone .file-preview-holder::-webkit-scrollbar-thumb {
-    background: rgba(0, 212, 255, 0.35) !important;
-    border-radius: 4px !important;
-    min-height: 24px !important;
-}
-
-.file-upload-zone .file-preview-holder::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 212, 255, 0.7) !important;
-}
-
-/* 1. Global: Toda barra lateral de navegación con scrolleo vertical en la interfaz */
-*::-webkit-scrollbar {
-    width: 8px !important;
-    height: 8px !important;
-    display: block !important;
-}
-
-*::-webkit-scrollbar-track {
-    background: rgba(4, 10, 24, 0.6) !important;
-    border-radius: 6px !important;
-    border: 1px solid rgba(0, 212, 255, 0.15) !important;
-}
-
-*::-webkit-scrollbar-thumb {
-    background: rgba(0, 212, 255, 0.35) !important;
-    border-radius: 6px !important;
-    border: 1px solid rgba(0, 212, 255, 0.4) !important;
-    min-height: 28px !important;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 212, 255, 0.65) !important;
-    border-color: rgba(0, 212, 255, 0.7) !important;
-}
-
-*::-webkit-scrollbar-corner {
-    background: transparent !important;
-}
-
-*::-webkit-scrollbar-button {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-}
-
-/* Fallback Firefox */
-@supports (-moz-appearance: none) {
-    * {
-        scrollbar-width: thin !important;
-        scrollbar-color: rgba(0, 212, 255, 0.35) rgba(4, 10, 24, 0.6) !important;
-    }
-}
-
-/* Anular scroll redundante en la tabla interna para que el scroll nativo ocurra en .file-preview-holder */
-.file-upload-zone table.file-preview,
-.file-upload-zone .file-preview,
-.file-upload-zone table.file-preview tbody {
-    width: 100% !important;
-    max-height: none !important;
-    height: auto !important;
-    display: table !important;
-    table-layout: fixed !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    background: transparent !important;
-    overflow: visible !important;
-    scrollbar-width: none !important;
-}
-
-.file-upload-zone table.file-preview tbody {
-    display: table-row-group !important;
-}
-
-.file-upload-zone table.file-preview::-webkit-scrollbar,
-.file-upload-zone .file-preview::-webkit-scrollbar,
-.file-upload-zone table.file-preview tbody::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-}
-
-.file-upload-zone tr.file {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    width: 100% !important;
-    height: auto !important;
-    min-height: 28px !important;
-    gap: 10px !important;
-    padding: 4px 6px 4px 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    border-bottom: 1px solid rgba(0, 212, 255, 0.08) !important;
-    background: transparent !important;
-    box-sizing: border-box !important;
-}
-
-.file-upload-zone tr.file:last-child {
-    border-bottom: none !important;
-}
-
-.file-upload-zone button.label-clear-button {
-    background: transparent !important;
-    border: none !important;
-    color: #F87171 !important;
-    opacity: 0.7 !important;
-    cursor: pointer !important;
-    font-size: 1.1rem !important;
-    line-height: 1 !important;
-    padding: 2px 6px !important;
-    transition: opacity 0.2s ease, transform 0.2s ease !important;
-}
-
-.file-upload-zone button.label-clear-button:hover {
-    opacity: 1 !important;
-    transform: scale(1.15) !important;
-    color: #FF5252 !important;
-}
-
-.file-upload-zone td.filename {
-    display: flex !important;
-    align-items: center !important;
-    font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.84rem, 1.6vh, 0.96rem) !important;
-    font-weight: 600 !important;
-    color: var(--aurora-green) !important;
-    padding: 0 !important;
-    border: none !important;
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-}
-
-.file-upload-zone td.filename .stem,
-.file-upload-zone td.filename span {
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-}
-
-.file-upload-zone td.download,
-.file-upload-zone td.download a {
-    display: inline-flex !important;
-    align-items: center !important;
-    flex-shrink: 0 !important;
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: clamp(0.76rem, 1.4vh, 0.88rem) !important;
-    font-weight: 600 !important;
-    color: #8CE0FF !important;
-    text-decoration: none !important;
-    padding: 0 !important;
-    border: none !important;
-}
-
-/* Reubicación limpia de los botones Gradio ([↑] y [X]) en la cabecera superior derecha del módulo */
-.upload-card .icon-button-wrapper,
-.file-upload-zone .icon-button-wrapper {
-    position: absolute !important;
-    top: -36px !important;
-    right: 0 !important;
-    transform: none !important;
-    z-index: 35 !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    width: auto !important;
-    height: 28px !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-end !important;
-    gap: 8px !important;
-    pointer-events: auto !important;
-}
-
-/* Solo los botones directos del wrapper son botones de acción */
-.upload-card .icon-button-wrapper > button,
-.file-upload-zone .icon-button-wrapper > button {
-    width: 28px !important;
-    height: 28px !important;
-    min-width: 28px !important;
-    min-height: 28px !important;
-    max-width: 28px !important;
-    max-height: 28px !important;
-    flex: 0 0 28px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border-radius: 8px !important;
-    opacity: 1 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    box-shadow: none !important;
-    transition: all 0.2s ease !important;
-    position: relative !important;
-    overflow: visible !important;
-}
-
-.upload-card .icon-button-wrapper button::after,
-.file-upload-zone .icon-button-wrapper button::after {
-    display: none !important;
-    content: none !important;
-}
-
-/* El contenedor interno de subida (.upload-container) no debe tener borde ni fondo para no duplicar la caja */
-.upload-card .icon-button-wrapper .upload-container,
-.file-upload-zone .icon-button-wrapper .upload-container {
-    all: unset !important;
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    z-index: 2 !important;
-}
-
-.upload-card .icon-button-wrapper > button > div,
-.file-upload-zone .icon-button-wrapper > button > div {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 100% !important;
-    height: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    position: relative !important;
-}
-
-.upload-card .icon-button-wrapper > button svg,
-.file-upload-zone .icon-button-wrapper > button svg {
-    width: 15px !important;
-    height: 15px !important;
-    display: block !important;
-    flex-shrink: 0 !important;
-    pointer-events: none !important;
-}
-
-/* Botón 1: Subida Manual [↑] - Estilo cyan limpio y nítido */
-.upload-card .icon-button-wrapper > button:first-child,
-.file-upload-zone .icon-button-wrapper > button:first-child {
-    background: rgba(0, 212, 255, 0.16) !important;
-    border: 1.5px solid rgba(0, 212, 255, 0.8) !important;
-    color: #00D4FF !important;
-    box-shadow: 0 0 8px rgba(0, 212, 255, 0.35) !important;
-}
-
-.upload-card .icon-button-wrapper > button:first-child:hover,
-.file-upload-zone .icon-button-wrapper > button:first-child:hover {
-    background: rgba(0, 212, 255, 0.32) !important;
-    border-color: #00F0FF !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 0 16px rgba(0, 212, 255, 0.75) !important;
-    transform: scale(1.06) !important;
-}
-
-.upload-card .icon-button-wrapper > button:first-child svg,
-.file-upload-zone .icon-button-wrapper > button:first-child svg,
-.upload-card .icon-button-wrapper > button:first-child path,
-.file-upload-zone .icon-button-wrapper > button:first-child path,
-.upload-card .icon-button-wrapper > button:first-child polyline,
-.file-upload-zone .icon-button-wrapper > button:first-child polyline,
-.upload-card .icon-button-wrapper > button:first-child line,
-.file-upload-zone .icon-button-wrapper > button:first-child line {
-    stroke: #00D4FF !important;
-    color: #00D4FF !important;
-    filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.85)) !important;
-}
-
-.upload-card .icon-button-wrapper > button:first-child:hover svg,
-.file-upload-zone .icon-button-wrapper > button:first-child:hover svg,
-.upload-card .icon-button-wrapper > button:first-child:hover path,
-.file-upload-zone .icon-button-wrapper > button:first-child:hover path {
-    stroke: #FFFFFF !important;
-    color: #FFFFFF !important;
-    filter: drop-shadow(0 0 8px rgba(0, 212, 255, 1)) !important;
-}
-
-/* Botón 2: Borrar / Limpiar [X] - En rojo coral limpio y brillante */
-.upload-card .icon-button-wrapper > button:last-child,
-.file-upload-zone .icon-button-wrapper > button:last-child {
-    background: rgba(239, 68, 68, 0.14) !important;
-    border: 1.5px solid rgba(239, 68, 68, 0.7) !important;
-    color: #F87171 !important;
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.28) !important;
-}
-
-.upload-card .icon-button-wrapper > button:last-child:hover,
-.file-upload-zone .icon-button-wrapper > button:last-child:hover {
-    background: rgba(239, 68, 68, 0.28) !important;
-    border-color: #EF4444 !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 0 16px rgba(239, 68, 68, 0.7) !important;
-    transform: scale(1.06) !important;
-}
-
-.upload-card .icon-button-wrapper > button:last-child svg,
-.file-upload-zone .icon-button-wrapper > button:last-child svg,
-.upload-card .icon-button-wrapper > button:last-child path,
-.file-upload-zone .icon-button-wrapper > button:last-child path,
-.upload-card .icon-button-wrapper > button:last-child line,
-.file-upload-zone .icon-button-wrapper > button:last-child line {
-    stroke: #F87171 !important;
-    color: #F87171 !important;
-    filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.8)) !important;
-}
-
-.upload-card .icon-button-wrapper > button:last-child:hover svg,
-.file-upload-zone .icon-button-wrapper > button:last-child:hover svg,
-.upload-card .icon-button-wrapper > button:last-child:hover path,
-.file-upload-zone .icon-button-wrapper > button:last-child:hover path {
-    stroke: #FFFFFF !important;
-    color: #FFFFFF !important;
-    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 1)) !important;
-}
-
-/* Badge de resultado de optimización local en navegador */
-.optimization-result-badge {
-    margin-top: 10px !important;
-    padding: 10px 14px !important;
-    background: rgba(15, 23, 42, 0.85) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-    border: 1px solid rgba(0, 255, 135, 0.35) !important;
-    border-radius: 8px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    box-shadow: 0 0 15px rgba(0, 255, 135, 0.15) !important;
-    animation: fadeInBadge 0.25s ease-out !important;
-    box-sizing: border-box !important;
-    width: 100% !important;
-}
-
-.optimization-result-badge.warning {
-    border-color: rgba(245, 158, 11, 0.4) !important;
-    box-shadow: 0 0 12px rgba(245, 158, 11, 0.12) !important;
-}
-
-.opt-badge-left {
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
-    width: 100% !important;
-}
-
-.opt-badge-icon {
-    font-size: 1.15rem !important;
-    line-height: 1 !important;
-    flex-shrink: 0 !important;
-}
-
-.opt-badge-content {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 2px !important;
-    width: 100% !important;
-}
-
-.opt-badge-title {
-    display: flex !important;
-    align-items: center !important;
-    flex-wrap: wrap !important;
-    gap: 6px !important;
-    font-size: 0.82rem !important;
-    color: var(--frost-white) !important;
-}
-
-.opt-badge-pill {
-    background: rgba(0, 255, 135, 0.15) !important;
-    color: #00FF87 !important;
-    border: 1px solid rgba(0, 255, 135, 0.4) !important;
-    border-radius: 9999px !important;
-    padding: 1px 8px !important;
-    font-size: 0.72rem !important;
-    font-weight: 700 !important;
-    font-family: 'JetBrains Mono', monospace !important;
-}
-
-.opt-badge-pill.warn {
-    background: rgba(245, 158, 11, 0.15) !important;
-    color: #F59E0B !important;
-    border-color: rgba(245, 158, 11, 0.4) !important;
-}
-
-.opt-badge-desc {
-    font-size: 0.74rem !important;
-    color: #94A3B8 !important;
-}
-
-.opt-badge-desc b {
-    color: #38BDF8 !important;
-    font-family: 'JetBrains Mono', monospace !important;
-}
-
-@keyframes fadeInBadge {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Overlay de subida y optimización de archivos multimedia con indicador visual en tiempo real */
-.upload-card .file-upload-zone .upload-loading-overlay,
-.upload-card .upload-loading-overlay,
-.file-upload-zone .upload-loading-overlay,
-.upload-loading-overlay {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    min-height: 48px !important;
-    background: rgba(6, 14, 29, 0.96) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-    border: 1.5px solid var(--aurora-green) !important;
-    border-radius: 10px !important;
-    z-index: 100 !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 12px !important;
-    padding: 8px 36px 8px 14px !important;
-    box-sizing: border-box !important;
-    box-shadow: 0 0 20px rgba(0, 255, 135, 0.35) !important;
-    animation: fadeInOverlay 0.2s ease-out !important;
-    pointer-events: all !important;
-}
-
-.upload-overlay-body {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 12px !important;
-    width: 100% !important;
-    min-width: 0 !important;
-}
-
-.upload-loading-info {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    justify-content: center !important;
-    gap: 2px !important;
-    min-width: 0 !important;
-    flex: 1 1 auto !important;
-    overflow: hidden !important;
-}
-
-.upload-loading-queue-badge {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-    font-size: 0.76rem !important;
-    font-weight: 700 !important;
-    color: #FFB800 !important;
-    background: rgba(255, 184, 0, 0.12) !important;
-    border: 1px solid rgba(255, 184, 0, 0.4) !important;
-    border-radius: 6px !important;
-    padding: 1px 7px !important;
-    margin-top: 2px !important;
-    letter-spacing: 0.2px !important;
-    animation: fadeInOverlay 0.2s ease-out !important;
-}
-
-.btn-skip-optimization {
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(0, 212, 255, 0.35) !important;
-    color: #00D4FF !important;
-    font-size: 0.74rem !important;
-    font-weight: 600 !important;
-    border-radius: 5px !important;
-    padding: 2px 8px !important;
-    margin-top: 4px !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-    display: inline-block !important;
-}
-
-.btn-skip-optimization:hover {
-    background: rgba(0, 212, 255, 0.2) !important;
-    border-color: #00FF87 !important;
-    color: #ffffff !important;
-}
-
-.overlay-dismiss-btn {
-    position: absolute !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    right: 8px !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    color: #88A2C2 !important;
-    border-radius: 4px !important;
-    width: 20px !important;
-    height: 20px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 11px !important;
-    line-height: 1 !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-    z-index: 105 !important;
-}
-
-.overlay-dismiss-btn:hover {
-    background: rgba(239, 68, 68, 0.4) !important;
-    color: #FFFFFF !important;
-    border-color: rgba(239, 68, 68, 0.8) !important;
-}
-
-.upload-spinner {
-    flex: 0 0 22px !important;
-    width: 22px !important;
-    height: 22px !important;
-    border: 2.5px solid rgba(0, 212, 255, 0.25) !important;
-    border-top-color: var(--aurora-green) !important;
-    border-right-color: var(--ice-cyan) !important;
-    border-radius: 50% !important;
-    animation: spin-pulse 0.8s linear infinite !important;
-}
-
-.upload-loading-text {
-    font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.78rem, 1.4vh, 0.88rem) !important;
-    font-weight: 700 !important;
-    color: var(--frost-white) !important;
-    text-align: left !important;
-    max-width: 100% !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    line-height: 1.25 !important;
-}
-
-.upload-loading-subtext {
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: clamp(0.68rem, 1.2vh, 0.78rem) !important;
-    color: #00D4FF !important;
-    text-align: left !important;
-    max-width: 100% !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    line-height: 1.2 !important;
-}
-
-@keyframes spin-pulse {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-@keyframes fadeInOverlay {
-    from { opacity: 0; transform: scale(0.98); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-.file-upload-zone button.icon-button > div {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 100% !important;
-    height: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-.file-upload-zone button.icon-button > div::after {
-    content: none !important;
-    display: none !important;
-}
-
-.file-upload-zone button.icon-button svg {
-    width: 14px !important;
-    height: 14px !important;
-    color: currentColor !important;
-    stroke: currentColor !important;
-}
-
-.file-upload-zone input[type="file"],
-.file-upload-zone [type="file"] {
-    display: none !important;
-}
-
-/* ── BARRA ULTRA-COMPACTA DE ESTADO Y FORMATOS DE ARCHIVO ── */
-.file-status-strip {
-    flex: 0 0 auto !important;
-    margin-top: 4px !important;
-    padding: 2px 4px !important;
-    min-height: 22px !important;
-    max-height: 26px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-    white-space: nowrap !important;
-    text-overflow: ellipsis !important;
-}
-
-.status-strip-content {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    font-size: clamp(0.72rem, 1.35vh, 0.80rem) !important;
-    line-height: 1.2 !important;
-    white-space: nowrap !important;
-    text-overflow: ellipsis !important;
-    overflow: hidden !important;
-}
-
-.status-strip-content .status-formats {
-    color: #64748B !important;
-    font-weight: 400 !important;
-}
-
-.status-strip-content .status-dot {
-    color: #475569 !important;
-    font-weight: 700 !important;
-    opacity: 0.7 !important;
-}
-
-.status-strip-content .status-hint {
-    color: var(--ice-cyan) !important;
-    font-weight: 500 !important;
-    opacity: 0.9 !important;
-}
-
-.status-strip-content .status-pill {
-    display: inline-flex !important;
-    align-items: center !important;
-    padding: 1px 7px !important;
-    border-radius: 9999px !important;
-    font-size: 0.69rem !important;
-    font-weight: 700 !important;
-    font-family: 'JetBrains Mono', monospace !important;
-    line-height: 1.2 !important;
-    letter-spacing: 0.02em !important;
-}
-
-.status-strip-content .status-pill.success {
-    background: rgba(0, 255, 135, 0.12) !important;
-    color: var(--aurora-green) !important;
-    border: 1px solid rgba(0, 255, 135, 0.35) !important;
-    box-shadow: 0 0 8px rgba(0, 255, 135, 0.2) !important;
-}
-
-.status-strip-content .status-pill.server {
-    background: rgba(0, 212, 255, 0.12) !important;
-    color: var(--ice-cyan) !important;
-    border: 1px solid rgba(0, 212, 255, 0.35) !important;
-    box-shadow: 0 0 8px rgba(0, 212, 255, 0.2) !important;
-}
-
-.status-strip-content .status-text {
-    color: var(--frost-white) !important;
-    font-size: 0.75rem !important;
-}
-
-.status-strip-content .status-text b {
-    color: var(--ice-cyan) !important;
-    font-family: 'JetBrains Mono', monospace !important;
-    font-weight: 600 !important;
-}
-
-.status-strip-content .status-strip-link {
-    color: var(--aurora-green) !important;
-    text-decoration: underline !important;
-    text-underline-offset: 2px !important;
-    font-weight: 600 !important;
-    transition: color 0.15s ease !important;
-    cursor: pointer !important;
-}
-
-.status-strip-content .status-strip-link:hover {
-    color: var(--ice-cyan) !important;
-    text-decoration: underline !important;
-}
-
-.file-hint,
-.file-hint-formats,
-.file-hint-optimization,
-.optimization-result-badge {
-    display: none !important;
-}
-
-/* ── MODULO 4: RESULTADO DE LA TRANSCRIPCIÓN (ALTURA SIMÉTRICA Y RESPONSIVA) ── */
-.result-column,
-.gradio-container .column.result-column {
-    display: flex !important;
-    flex-direction: column !important;
-    flex-wrap: nowrap !important;
-    height: 100% !important;
-    min-height: 0 !important;
-}
-
-.result-card,
-.gradio-container .column.result-card {
-    flex: 1 1 0% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    flex-wrap: nowrap !important;
-    justify-content: space-between !important;
-    height: 100% !important;
-    min-height: 0 !important;
-    gap: clamp(6px, 1vh, 14px) !important;
-}
-
-.output-textbox,
-.output-textbox > div:not([data-testid="status-tracker"]),
-.output-textbox .container,
-.output-textbox label,
-.output-textbox .input-container {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    flex: 1 1 0% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100% !important;
-    min-height: 0 !important;
-    position: relative !important;
-}
-
-/* Ocultar trackers duplicados en el badge superior y en la fila de botones */
-.status-badge-container [data-testid="status-tracker"],
-.module-header [data-testid="status-tracker"],
-.actions-row [data-testid="status-tracker"],
-[data-testid="status-tracker"].hide {
+#headless-bridge,
+.headless-bridge,
+.gradio-container #headless-bridge {
     display: none !important;
     visibility: hidden !important;
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+    width: 0 !important;
+    height: 0 !important;
     opacity: 0 !important;
     pointer-events: none !important;
 }
 
-/* Overlay limpio y opaco para el progreso de transcripción dentro del área de resultado */
-.output-textbox [data-testid="status-tracker"]:not(.hide),
-.file-upload-zone [data-testid="status-tracker"]:not(.hide) {
+.gradio-container,
+.gradio-container > .main,
+.gradio-container .contain {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+.transcriptor-app {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.visually-hidden {
     position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: rgba(4, 8, 19, 0.95) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-    border: 1px solid rgba(0, 212, 255, 0.25) !important;
-    border-radius: 10px !important;
-    z-index: 40 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 12px !important;
-    padding: 20px !important;
-    box-sizing: border-box !important;
-}
-
-.output-textbox [data-testid="status-tracker"] .progress-level {
-    order: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 12px !important;
-    width: 100% !important;
-    max-width: 440px !important;
-    margin: 0 !important;
-}
-
-.output-textbox [data-testid="status-tracker"] .progress-level-inner {
-    font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.95rem, 1.9vh, 1.12rem) !important;
-    font-weight: 600 !important;
-    color: var(--frost-white) !important;
-    text-align: center !important;
-    line-height: 1.35 !important;
-    margin: 0 !important;
-}
-
-.output-textbox [data-testid="status-tracker"] .progress-bar-wrap {
-    width: 100% !important;
-    max-width: 380px !important;
-    height: 10px !important;
-    border-radius: 999px !important;
-    background: rgba(10, 22, 40, 0.95) !important;
-    border: 1px solid rgba(0, 212, 255, 0.32) !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
     overflow: hidden !important;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6) !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
 }
 
-.output-textbox [data-testid="status-tracker"] .progress-bar {
-    height: 100% !important;
-    background: linear-gradient(90deg, #00FF87 0%, #00D4FF 100%) !important;
-    border-radius: 999px !important;
-    box-shadow: 0 0 12px rgba(0, 255, 135, 0.45) !important;
-    transition: width 0.22s ease-out !important;
+/* ── Navbar ─────────────────────────────────────────────────────────────── */
+.app-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10, 22, 40, 0.82);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: clamp(6px, 1vh, 10px) clamp(12px, 1.4vw, 18px);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-card);
+    flex: 0 0 auto;
 }
 
-.output-textbox [data-testid="status-tracker"] .meta-text,
-.output-textbox [data-testid="status-tracker"] .meta-text-center {
-    order: 2 !important;
-    position: static !important;
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: clamp(0.85rem, 1.7vh, 1.0rem) !important;
-    font-weight: 600 !important;
-    color: var(--aurora-green) !important;
-    background: rgba(0, 255, 135, 0.08) !important;
-    border: 1px solid rgba(0, 255, 135, 0.25) !important;
-    border-radius: 6px !important;
-    padding: 3px 10px !important;
-    margin: 2px 0 0 0 !important;
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: clamp(8px, 1vw, 14px);
+    min-width: 0;
 }
 
-.output-textbox textarea {
-    flex: 1 1 0% !important;
-    height: 0 !important;
-    min-height: 110px !important;
-    max-height: none !important;
-    background-color: #040813 !important;
-    border: 1px solid rgba(0, 212, 255, 0.14) !important;
-    border-radius: 10px !important;
-    color: var(--frost-white) !important;
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: clamp(0.92rem, 1.82vh, 1.12rem) !important;
-    line-height: 1.6 !important;
-    padding: clamp(10px, 1.4vh, 18px) clamp(12px, 1.4vw, 20px) !important;
-    resize: none !important;
-    overflow-y: auto !important;
-    box-sizing: border-box !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+.brand-icon {
+    width: clamp(32px, 4.4vh, 38px);
+    height: clamp(32px, 4.4vh, 38px);
+    border-radius: 9px;
+    background: linear-gradient(135deg, rgba(0, 212, 170, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%);
+    border: 1px solid rgba(0, 212, 255, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--emerald);
+    box-shadow: var(--shadow-glow-cyan);
+    flex-shrink: 0;
 }
 
-.output-textbox textarea:focus {
-    border-color: rgba(0, 255, 135, 0.4) !important;
-    box-shadow: 0 0 16px rgba(0, 212, 255, 0.12) !important;
+.brand-titles h1 {
+    font-size: clamp(0.96rem, 1.8vh, 1.22rem);
+    font-weight: 800;
+    line-height: 1.2;
+    background: linear-gradient(90deg, #FAFBFC 0%, var(--cyan) 60%, var(--emerald) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
 }
 
-.output-textbox textarea::-webkit-scrollbar {
-    width: 6px;
-}
-.output-textbox textarea::-webkit-scrollbar-track {
-    background: rgba(4, 8, 19, 0.4);
-    border-radius: 8px;
-}
-.output-textbox textarea::-webkit-scrollbar-thumb {
-    background: rgba(0, 212, 255, 0.22);
-    border-radius: 8px;
-}
-.output-textbox textarea::-webkit-scrollbar-thumb:hover {
-    background: var(--aurora-green);
-    box-shadow: 0 0 8px rgba(0, 255, 135, 0.5);
+.brand-titles p {
+    font-size: clamp(0.66rem, 1.15vh, 0.76rem);
+    color: var(--text-secondary);
+    white-space: nowrap;
 }
 
-/* ── BOTONES DE ACCIÓN (RESPONSIVOS Y MÁS GRANDES) ─────────────── */
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-login-compact {
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 12px !important;
+    font-size: 0.8rem !important;
+}
+
+/* ── Tarjetas Modulares ─────────────────────────────────────────────────── */
+.module-card {
+    background: rgba(10, 22, 40, 0.82);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: clamp(8px, 1.2vh, 14px) clamp(10px, 1.2vw, 16px);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: border-color var(--transition);
+}
+
+.module-card:hover { border-color: var(--border-medium); }
+
+.module-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: clamp(4px, 0.8vh, 8px);
+}
+
+.module-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: clamp(0.82rem, 1.45vh, 0.94rem);
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+/* ── Upload Zone ────────────────────────────────────────────────────────── */
+.file-upload-zone {
+    border: 2px dashed rgba(0, 212, 255, 0.28);
+    border-radius: var(--radius-sm);
+    background: rgba(6, 14, 29, 0.65);
+    padding: clamp(8px, 1.2vh, 14px) 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    user-select: none;
+}
+
+.file-upload-zone:hover,
+.file-upload-zone.drag-over {
+    border-color: var(--emerald);
+    background: rgba(0, 212, 170, 0.08);
+    box-shadow: var(--shadow-glow-emerald);
+}
+
+.upload-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+}
+
+.upload-icon {
+    color: var(--cyan);
+    margin-bottom: 4px;
+    transition: transform var(--transition);
+}
+
+.file-upload-zone:hover .upload-icon {
+    transform: translateY(-2px);
+    color: var(--emerald);
+}
+
+.upload-text-main {
+    font-size: clamp(0.78rem, 1.4vh, 0.88rem);
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.upload-text-sub {
+    font-size: clamp(0.66rem, 1.15vh, 0.74rem);
+    color: var(--text-secondary);
+}
+
+.file-preview-holder {
+    width: 100%;
+    overflow-y: auto;
+    max-height: 140px;
+}
+
+.file-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.file-preview-table tr {
+    border-bottom: 1px solid rgba(0, 212, 255, 0.08);
+}
+
+.file-preview-table td {
+    padding: 3px 6px;
+    font-size: 0.76rem;
+    color: var(--text-main);
+}
+
+.file-name-cell {
+    font-family: var(--font-mono);
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-badge-lossless {
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    background: rgba(0, 212, 170, 0.15);
+    color: var(--emerald);
+    border: 1px solid rgba(0, 212, 170, 0.35);
+}
+
+.file-remove-btn {
+    background: transparent;
+    border: none;
+    color: var(--error-red);
+    cursor: pointer;
+    font-size: 0.85rem;
+    opacity: 0.75;
+}
+
+.file-status-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: clamp(0.64rem, 1.1vh, 0.72rem);
+    color: var(--text-muted);
+    padding-top: 4px;
+}
+
+.status-strip-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.status-hint {
+    color: var(--emerald);
+    font-weight: 600;
+}
+
+/* ── Formularios ────────────────────────────────────────────────────────── */
+.form-row {
+    display: flex;
+    gap: clamp(6px, 1vw, 10px);
+    width: 100%;
+}
+
+.flex-1 { flex: 1 1 0%; min-width: 0; }
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: clamp(3px, 0.7vh, 6px);
+}
+
+.form-group label {
+    font-size: clamp(0.68rem, 1.2vh, 0.76rem);
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.form-input,
+.form-select {
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xs);
+    color: var(--text-main);
+    font-family: var(--font-main);
+    font-size: clamp(0.76rem, 1.35vh, 0.84rem);
+    height: clamp(30px, 4.2vh, 36px);
+    padding: 0 10px;
+    outline: none;
+    transition: all var(--transition);
+    width: 100%;
+}
+
+.form-select {
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2300D4FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+}
+
+.form-select option { background: var(--bg-surface); color: var(--text-main); }
+
+.form-input:focus,
+.form-select:focus {
+    border-color: var(--cyan);
+    background: var(--bg-input-focus);
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.22);
+}
+
+.form-help {
+    font-size: clamp(0.62rem, 1.05vh, 0.70rem);
+    color: var(--text-muted);
+}
+
+.checkbox-group { display: flex; align-items: center; }
+
+.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: clamp(0.70rem, 1.25vh, 0.80rem);
+    color: var(--text-secondary);
+    height: clamp(30px, 4.2vh, 36px);
+}
+
+.checkbox-label input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
+
+.checkbox-custom {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border-medium);
+    background: var(--bg-input);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--transition);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom {
+    background: linear-gradient(135deg, var(--emerald) 0%, var(--cyan) 100%);
+    border-color: var(--emerald);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
+    content: "✓";
+    font-size: 11px;
+    font-weight: 800;
+    color: #050B1A;
+}
+
+/* ── Avisos ─────────────────────────────────────────────────────────────── */
+.info-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: clamp(4px, 0.8vh, 8px) 10px;
+    border-radius: var(--radius-xs);
+    font-size: clamp(0.68rem, 1.2vh, 0.78rem);
+    line-height: 1.3;
+    background: rgba(0, 212, 255, 0.08);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    color: #8CE0FF;
+    margin-top: 2px;
+}
+
+.info-notice code {
+    font-family: var(--font-mono);
+    background: rgba(0, 212, 255, 0.15);
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: #FAFBFC;
+}
+
+.info-free {
+    background: rgba(0, 212, 170, 0.08) !important;
+    border-color: rgba(0, 212, 170, 0.28) !important;
+    color: var(--emerald) !important;
+}
+
+/* ── Botones ────────────────────────────────────────────────────────────── */
 .actions-row {
-    flex: 0 0 auto !important;
-    margin-top: 0 !important;
-    gap: clamp(8px, 0.9vw, 14px) !important;
+    display: flex;
+    gap: clamp(6px, 1vw, 10px);
+    align-items: center;
+}
+
+.btn-primary, .btn-secondary {
+    font-family: var(--font-main) !important;
+    border-radius: var(--radius-sm) !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    transition: all var(--transition) !important;
+    user-select: none;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #00FF87 0%, #00D4FF 100%) !important;
+    background: linear-gradient(135deg, var(--emerald) 0%, var(--cyan) 100%) !important;
     color: #050B1A !important;
-    font-family: 'Montserrat', sans-serif !important;
     font-weight: 700 !important;
-    font-size: clamp(0.95rem, 1.9vh, 1.15rem) !important;
+    font-size: clamp(0.82rem, 1.55vh, 0.95rem) !important;
     border: none !important;
-    border-radius: 10px !important;
-    height: clamp(38px, 5.1vh, 50px) !important;
-    min-height: clamp(38px, 5.1vh, 50px) !important;
-    padding: 6px 16px !important;
-    box-shadow: 0 4px 14px rgba(0, 255, 135, 0.28) !important;
-    transition: all 0.25s ease !important;
-    cursor: pointer !important;
+    height: clamp(35px, 4.8vh, 44px) !important;
+    min-height: clamp(35px, 4.8vh, 44px) !important;
+    padding: 0 16px !important;
+    box-shadow: 0 4px 14px rgba(0, 212, 170, 0.28) !important;
 }
 
-.btn-primary:hover {
-    background: linear-gradient(135deg, #00D4FF 0%, #7B2FBE 100%) !important;
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--cyan) 0%, var(--violet) 100%) !important;
     color: #FAFBFC !important;
-    box-shadow: 0 6px 20px rgba(0, 212, 255, 0.45), 0 0 14px rgba(123, 47, 190, 0.3) !important;
+    box-shadow: 0 6px 20px rgba(0, 212, 255, 0.45) !important;
     transform: translateY(-1px) !important;
 }
 
-/* ── BOTÓN DE TRANSCRIPCIÓN EN COLA (AUTO-START TRAS SUBIDA) ── */
-.btn-transcribe-queued,
-#btn_transcribe.btn-transcribe-queued {
-    background: linear-gradient(135deg, #FFB800 0%, #FF8A00 100%) !important;
-    color: #050B1A !important;
-    border: 1px solid rgba(255, 184, 0, 0.6) !important;
-    box-shadow: 0 4px 18px rgba(255, 184, 0, 0.45), 0 0 16px rgba(255, 138, 0, 0.35) !important;
-    animation: pulseTranscribeQueued 1.8s infinite ease-in-out !important;
-    cursor: pointer !important;
-}
-
-.btn-transcribe-queued:hover,
-#btn_transcribe.btn-transcribe-queued:hover {
-    background: linear-gradient(135deg, #FFC837 0%, #FF8008 100%) !important;
-    box-shadow: 0 6px 24px rgba(255, 184, 0, 0.65), 0 0 20px rgba(255, 138, 0, 0.5) !important;
-    transform: translateY(-1px) !important;
-}
-
-@keyframes pulseTranscribeQueued {
-    0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 4px 18px rgba(255, 184, 0, 0.45), 0 0 16px rgba(255, 138, 0, 0.35);
-    }
-    50% {
-        transform: scale(1.02);
-        box-shadow: 0 6px 24px rgba(255, 184, 0, 0.7), 0 0 22px rgba(255, 138, 0, 0.55);
-    }
+.btn-primary:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+    filter: grayscale(0.6) !important;
+    box-shadow: none !important;
 }
 
 .btn-secondary {
-    background: rgba(232, 244, 248, 0.04) !important;
-    border: 1px solid rgba(0, 212, 255, 0.18) !important;
-    color: var(--frost-white) !important;
-    font-family: 'Montserrat', sans-serif !important;
+    background: rgba(14, 30, 56, 0.85) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-subtle) !important;
+    height: clamp(34px, 4.6vh, 42px) !important;
+    min-height: clamp(34px, 4.6vh, 42px) !important;
+    padding: 0 14px !important;
     font-weight: 600 !important;
-    font-size: clamp(0.90rem, 1.8vh, 1.08rem) !important;
-    border-radius: 10px !important;
-    height: clamp(38px, 5.1vh, 50px) !important;
-    min-height: clamp(38px, 5.1vh, 50px) !important;
-    padding: 6px 14px !important;
-    transition: all 0.25s ease !important;
-    cursor: pointer !important;
+    font-size: clamp(0.76rem, 1.35vh, 0.84rem) !important;
 }
 
-.btn-secondary:hover {
-    background: rgba(0, 212, 255, 0.08) !important;
-    border-color: rgba(0, 255, 135, 0.4) !important;
-    color: var(--aurora-green) !important;
-    box-shadow: 0 0 12px rgba(0, 255, 135, 0.15) !important;
+.btn-secondary:hover:not(:disabled) {
+    background: rgba(20, 42, 78, 0.95) !important;
+    border-color: var(--border-medium) !important;
+    color: var(--cyan) !important;
 }
 
-/* ── BOTONES DE DESCARGA ILUMINADOS (GLOW DINÁMICO) ──────────────── */
-.btn-glow-single,
-.btn-glow-single button,
-.btn-glow-single a {
-    background: linear-gradient(135deg, #00FF87 0%, #00D4FF 100%) !important;
-    color: #050B1A !important;
-    font-family: 'Montserrat', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: clamp(0.90rem, 1.8vh, 1.08rem) !important;
-    border: 1px solid rgba(0, 255, 135, 0.6) !important;
-    border-radius: 10px !important;
-    box-shadow: 0 4px 18px rgba(0, 255, 135, 0.45), 0 0 16px rgba(0, 212, 255, 0.35) !important;
-    animation: pulse-glow-single 2.5s infinite ease-in-out !important;
-    transition: all 0.25s ease !important;
-    cursor: pointer !important;
-}
-
-.btn-glow-single:hover,
-.btn-glow-single button:hover,
-.btn-glow-single a:hover {
-    background: linear-gradient(135deg, #00D4FF 0%, #00FF87 100%) !important;
-    color: #050B1A !important;
-    box-shadow: 0 6px 26px rgba(0, 255, 135, 0.7), 0 0 22px rgba(0, 212, 255, 0.55) !important;
-    transform: translateY(-2px) !important;
-}
-
-/* Lote Multiarchivo - Descargar Lote (.zip): Color Aurora Emerald / Verde Neón */
-.btn-glow-zip,
-.btn-glow-zip button,
-.btn-glow-zip a {
-    background: linear-gradient(135deg, #00FF87 0%, #00E5FF 100%) !important;
-    color: #050B1A !important;
-    font-family: 'Montserrat', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: clamp(0.90rem, 1.8vh, 1.08rem) !important;
-    border: 1px solid rgba(0, 255, 135, 0.7) !important;
-    border-radius: 10px !important;
-    box-shadow: 0 4px 20px rgba(0, 255, 135, 0.5), 0 0 16px rgba(0, 229, 255, 0.35) !important;
-    animation: pulse-glow-zip 2.5s infinite ease-in-out !important;
-    transition: all 0.25s ease !important;
-    cursor: pointer !important;
-}
-
-.btn-glow-zip:hover,
-.btn-glow-zip button:hover,
-.btn-glow-zip a:hover {
-    background: linear-gradient(135deg, #00E5FF 0%, #00FF87 100%) !important;
-    color: #050B1A !important;
-    box-shadow: 0 6px 28px rgba(0, 255, 135, 0.75), 0 0 24px rgba(0, 229, 255, 0.55) !important;
-    transform: translateY(-2px) !important;
-}
-
-/* Lote Multiarchivo - Descargar Consolidado (.txt): Color Violet Sky / Glacier Pink Neón */
-.btn-glow-txt,
-.btn-glow-txt button,
-.btn-glow-txt a {
-    background: linear-gradient(135deg, #7B2FBE 0%, #FF1493 100%) !important;
-    color: #FAFBFC !important;
-    font-family: 'Montserrat', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: clamp(0.90rem, 1.8vh, 1.08rem) !important;
-    border: 1px solid rgba(255, 20, 147, 0.7) !important;
-    border-radius: 10px !important;
-    box-shadow: 0 4px 20px rgba(255, 20, 147, 0.5), 0 0 18px rgba(123, 47, 190, 0.45) !important;
-    animation: pulse-glow-txt 2.5s infinite ease-in-out !important;
-    transition: all 0.25s ease !important;
-    cursor: pointer !important;
-}
-
-.btn-glow-txt:hover,
-.btn-glow-txt button:hover,
-.btn-glow-txt a:hover {
-    background: linear-gradient(135deg, #FF1493 0%, #7B2FBE 100%) !important;
-    color: #FAFBFC !important;
-    box-shadow: 0 6px 28px rgba(255, 20, 147, 0.75), 0 0 24px rgba(123, 47, 190, 0.6) !important;
-    transform: translateY(-2px) !important;
-}
-
-@keyframes pulse-glow-single {
-    0%, 100% {
-        box-shadow: 0 4px 18px rgba(0, 255, 135, 0.45), 0 0 14px rgba(0, 212, 255, 0.3);
-    }
-    50% {
-        box-shadow: 0 6px 26px rgba(0, 255, 135, 0.7), 0 0 22px rgba(0, 212, 255, 0.55);
-    }
-}
-
-@keyframes pulse-glow-zip {
-    0%, 100% {
-        box-shadow: 0 4px 18px rgba(0, 255, 135, 0.45), 0 0 14px rgba(0, 229, 255, 0.3);
-    }
-    50% {
-        box-shadow: 0 6px 28px rgba(0, 255, 135, 0.75), 0 0 22px rgba(0, 229, 255, 0.55);
-    }
-}
-
-@keyframes pulse-glow-txt {
-    0%, 100% {
-        box-shadow: 0 4px 18px rgba(255, 20, 147, 0.45), 0 0 14px rgba(123, 47, 190, 0.35);
-    }
-    50% {
-        box-shadow: 0 6px 28px rgba(255, 20, 147, 0.7), 0 0 24px rgba(123, 47, 190, 0.55);
-    }
-}
-
-/* Deshabilitado para botón Iniciar Transcripción */
-.btn-primary:disabled,
-.btn-primary[disabled],
-button:disabled.btn-primary,
-button[disabled].btn-primary,
-.btn-transcribe-disabled {
-    background: rgba(255, 255, 255, 0.04) !important;
-    color: rgba(250, 251, 252, 0.25) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: none !important;
-    cursor: not-allowed !important;
+.btn-secondary:disabled {
     opacity: 0.45 !important;
-    transform: none !important;
-    filter: grayscale(1) !important;
-}
-
-.btn-secondary:disabled,
-.btn-secondary[disabled],
-button:disabled.btn-secondary,
-button[disabled].btn-secondary {
-    opacity: 0.35 !important;
     cursor: not-allowed !important;
-    box-shadow: none !important;
 }
 
-/* ── STATUS BADGES & AVISOS ──────────────────────── */
+.btn-action-clear { flex: 1 1 0%; }
+.btn-action-transcribe { flex: 2 1 0%; }
+
+/* ── Resultados e Insignias ─────────────────────────────────────────────── */
 .status-badges-group {
     display: inline-flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    flex-wrap: nowrap;
+    gap: 6px;
 }
 
 .status-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 12px;
-    border-radius: 7px;
-    font-size: clamp(0.82rem, 1.6vh, 0.96rem);
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: clamp(0.66rem, 1.15vh, 0.74rem);
     font-weight: 600;
-    white-space: nowrap;
-}
-
-.status-time {
-    background: rgba(0, 212, 255, 0.12);
-    color: var(--ice-cyan);
-    border: 1px solid rgba(0, 212, 255, 0.35);
-    box-shadow: 0 0 10px rgba(0, 212, 255, 0.16);
-    font-variant-numeric: tabular-nums;
-}
-
-.status-time-idle {
-    background: rgba(155, 178, 206, 0.07);
-    color: #88A2C2;
-    border: 1px solid rgba(0, 212, 255, 0.18);
-    box-shadow: none;
-}
-
-.status-success {
-    background: rgba(0, 255, 135, 0.12);
-    color: var(--aurora-green);
-    border: 1px solid rgba(0, 255, 135, 0.35);
-    box-shadow: 0 0 10px rgba(0, 255, 135, 0.18);
-}
-
-.status-error {
-    background: rgba(239, 68, 68, 0.14);
-    color: #F87171;
-    border: 1px solid rgba(239, 68, 68, 0.35);
 }
 
 .status-warning {
-    background: rgba(255, 110, 199, 0.12);
-    color: var(--glacier-pink);
-    border: 1px solid rgba(255, 110, 199, 0.35);
+    background: rgba(255, 184, 0, 0.12);
+    color: var(--warning-amber);
+    border: 1px solid rgba(255, 184, 0, 0.35);
 }
 
-.info-notice {
+.status-success {
+    background: rgba(0, 212, 170, 0.12);
+    color: var(--emerald);
+    border: 1px solid rgba(0, 212, 170, 0.40);
+    box-shadow: 0 0 10px rgba(0, 212, 170, 0.18);
+}
+
+.status-info {
+    background: rgba(0, 212, 255, 0.12);
+    color: var(--cyan);
+    border: 1px solid rgba(0, 212, 255, 0.35);
+}
+
+.status-error {
+    background: rgba(248, 113, 113, 0.14);
+    color: var(--error-red);
+    border: 1px solid rgba(248, 113, 113, 0.40);
+}
+
+.time-badge {
+    font-family: var(--font-mono);
+    font-size: clamp(0.66rem, 1.15vh, 0.74rem);
+    color: var(--cyan);
+    background: rgba(0, 212, 255, 0.08);
+    padding: 2px 7px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 212, 255, 0.22);
+}
+
+.textarea-container {
+    width: 100%;
+    flex: 1 1 0%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.output-textarea {
+    width: 100%;
+    height: 100%;
+    min-height: 120px;
+    background: #040813;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    font-family: var(--font-mono);
+    font-size: clamp(0.80rem, 1.45vh, 0.92rem);
+    line-height: 1.6;
+    padding: clamp(8px, 1.2vh, 12px);
+    resize: none;
+    outline: none;
+    transition: border-color var(--transition);
+}
+
+.output-textarea:focus {
+    border-color: rgba(0, 212, 170, 0.45);
+    box-shadow: 0 0 16px rgba(0, 212, 170, 0.14);
+}
+
+.result-actions #btn_download,
+.result-actions #btn_download_consolidated { flex: 2 1 0%; }
+.result-actions #btn_copy { flex: 1 1 0%; }
+
+.app-footer {
+    flex: 0 0 auto;
+    text-align: center;
+    padding-top: clamp(3px, 0.6vh, 6px);
+    font-size: clamp(0.62rem, 1.05vh, 0.70rem);
+    color: var(--text-muted);
+}
+
+/* ── Modal Flotante Admin ───────────────────────────────────────────────── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 11, 26, 0.82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: clamp(6px, 0.95vh, 11px) clamp(10px, 1.1vw, 15px);
-    border-radius: 9px;
-    font-size: clamp(0.82rem, 1.62vh, 0.96rem);
-    line-height: 1.34;
-    background: rgba(0, 212, 255, 0.08);
-    border: 1px solid rgba(0, 212, 255, 0.22);
-    color: #8CE0FF;
-    margin-top: 2px;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--transition), visibility var(--transition);
 }
 
-.info-free {
-    background: rgba(0, 255, 135, 0.08) !important;
-    border-color: rgba(0, 255, 135, 0.28) !important;
-    color: var(--aurora-green) !important;
-    box-shadow: 0 0 12px rgba(0, 255, 135, 0.12) !important;
+.modal-overlay.hide {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
-/* Ajuste compacto de espaciados verticales para pantallas bajas (<= 720px de alto) manteniendo letras grandes */
-@media (max-height: 720px) {
-    .gradio-container {
-        padding: 4px clamp(10px, 1.5vw, 22px) !important;
-    }
-    .app-navbar {
-        padding: 5px 14px !important;
-        margin-bottom: 4px !important;
-    }
-    .left-column,
-    .gradio-container .column.left-column {
-        gap: 5px !important;
-    }
-    .module-card {
-        padding: 6px 14px !important;
-        gap: 4px !important;
-    }
-    .options-card,
-    .gradio-container .column.options-card {
-        gap: 4px !important;
-    }
-    .module-header,
-    .gradio-container .row.module-header,
-    .module-card .row.module-header {
-        margin-bottom: 2px !important;
-        padding-bottom: 2px !important;
-    }
-    .gradio-container input[type="text"]:not([role="combobox"]),
-    .gradio-container input[type="password"]:not([role="combobox"]),
-    .gradio-container select,
-    .module-card .wrap:has(> .wrap-inner > .secondary-wrap),
-    .module-card .gradio-dropdown .wrap {
-        height: 33px !important;
-        min-height: 33px !important;
-    }
-    .btn-primary,
-    .btn-secondary {
-        height: 35px !important;
-        min-height: 35px !important;
-    }
-    .info-notice {
-        padding: 4px 9px !important;
-        line-height: 1.2 !important;
-    }
-    .app-footer {
-        padding-top: 2px !important;
-        margin-top: 2px !important;
-    }
+.modal-dialog {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-medium);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65), 0 0 32px rgba(0, 212, 255, 0.18);
+    border-radius: var(--radius-lg);
+    padding: clamp(16px, 2.5vh, 24px);
+    max-width: 440px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── MODAL ADMIN (CENTRADO EN PESTAÑA VISIBLE Y CIERRE INSTANTÁNEO SIN CONGELAMIENTO) ── */
-.modal-overlay.hide,
-div.modal-overlay.hide,
-.gradio-container .modal-overlay.hide,
-.gradio-container div.modal-overlay.hide,
-.modal-overlay[hidden],
-.modal-overlay.hide .modal-dialog {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
-
-.modal-overlay:not(.hide),
-div.modal-overlay:not(.hide),
-.gradio-container .modal-overlay:not(.hide),
-.gradio-container div.modal-overlay:not(.hide) {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    inset: 0 !important;
-    width: 100vw !important;
-    height: 100dvh !important;
-    background: rgba(3, 7, 18, 0.82) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
-    z-index: 2147483640 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin: 0 !important;
-    padding: 20px !important;
-    border: none !important;
-    box-sizing: border-box !important;
-}
-
-.modal-overlay:not(.hide) .modal-dialog,
-.gradio-container .modal-overlay:not(.hide) .modal-dialog {
-    position: fixed !important;
-    top: var(--visible-center-y, 50dvh) !important;
-    left: 50vw !important;
-    transform: translate(-50%, -50%) !important;
-    background: #0A1628 !important;
-    border: 1px solid rgba(0, 212, 255, 0.28) !important;
-    border-radius: 16px !important;
-    width: 90vw !important;
-    max-width: 420px !important;
-    height: auto !important;
-    min-height: unset !important;
-    max-height: fit-content !important;
-    flex: 0 0 auto !important;
-    margin: 0 !important;
-    padding: 24px !important;
-    z-index: 2147483647 !important;
-    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.92), 0 0 24px rgba(0, 212, 255, 0.22) !important;
-    box-sizing: border-box !important;
-}
-
-.modal-dialog .html-container,
-.modal-dialog .prose {
-    padding: 0 !important;
-    margin: 0 !important;
-    min-height: 0 !important;
+@keyframes modalScaleIn {
+    from { opacity: 0; transform: scale(0.94) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .modal-title-row {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    margin-bottom: 8px !important;
-    flex-wrap: nowrap !important;
-    width: 100% !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .modal-title {
-    font-size: 1.12rem !important;
-    font-weight: 700 !important;
-    color: var(--frost-white) !important;
-    margin: 0 !important;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-main);
 }
 
 .btn-modal-close {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    max-width: 32px !important;
-    flex: 0 0 32px !important;
-    padding: 0 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 8px !important;
-    font-size: 0.92rem !important;
-    color: #9BB2CE !important;
-    background: rgba(232, 244, 248, 0.05) !important;
-    border: 1px solid rgba(0, 212, 255, 0.15) !important;
-    cursor: pointer !important;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-xs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--transition);
 }
 
-.btn-modal-close:hover {
-    color: #F87171 !important;
-    background: rgba(239, 68, 68, 0.12) !important;
-    border-color: rgba(239, 68, 68, 0.35) !important;
-}
+.btn-modal-close:hover { color: var(--cyan); }
 
 .modal-subtext {
-    font-size: 0.88rem !important;
-    color: #9BB2CE !important;
-    margin: 0 0 12px 0 !important;
-    line-height: 1.4 !important;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
 }
 
-.block:has(.app-footer) {
-    flex: 0 0 auto !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    min-height: 0 !important;
+.modal-pin-input {
+    font-family: var(--font-mono);
+    text-align: center;
+    letter-spacing: 0.2em;
+    font-size: 1.05rem;
+    height: 42px;
 }
 
-.app-footer {
-    flex: 0 0 auto !important;
-    text-align: center !important;
-    font-size: clamp(0.78rem, 1.48vh, 0.92rem) !important;
-    color: #88A2C2 !important;
-    padding: clamp(4px, 0.65vh, 8px) 0 0 0 !important;
-    border-top: 1px solid rgba(0, 212, 255, 0.08) !important;
-    margin-top: clamp(4px, 0.65vh, 8px) !important;
+.login-msg {
+    font-size: 0.78rem;
+    color: var(--error-red);
+    text-align: center;
+    padding: 4px 8px;
+    border-radius: var(--radius-xs);
+    background: rgba(248, 113, 113, 0.10);
+    border: 1px solid rgba(248, 113, 113, 0.25);
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   RESPONSIVIDAD AVANZADA PARA TABLETS Y DISPOSITIVOS MÓVILES
-   (Preserva intacta la vista de escritorio en pantallas de computadoras)
-   ═══════════════════════════════════════════════════════════════════════════ */
+.modal-actions button { flex: 1 1 0%; }
 
-/* ── 1. TABLETS (PORTRAIT Y PANTALLAS HASTA 1024px) ───────────────────────── */
-@media (max-width: 1024px) {
-    html,
-    body,
-    gradio-app {
-        height: auto !important;
-        min-height: 100% !important;
-        max-height: none !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        -webkit-overflow-scrolling: touch !important;
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(4, 10, 24, 0.6); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--emerald); }
+@supports (-moz-appearance: none) {
+    * { scrollbar-width: thin; scrollbar-color: rgba(0, 212, 255, 0.3) rgba(4, 10, 24, 0.6); }
+}
+
+/* ==========================================================================
+   DESKTOP 2-COLUMN LAYOUT (100VH, OVERFLOW: HIDDEN, CERO SCROLLBAR EN LOAD)
+   ========================================================================== */
+@media (min-width: 1025px) {
+    html, body, gradio-app, .gradio-container {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
     }
 
-    .gradio-container,
-    .gradio-container > .main,
-    .gradio-container > .main > .wrap,
-    main.contain,
-    main.contain > .wrap,
-    .gradio-container div:has(> .main-body-row) {
+    .transcriptor-app {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        padding: clamp(6px, 1vh, 12px) clamp(10px, 1.4vw, 22px) clamp(4px, 0.8vh, 10px) clamp(10px, 1.4vw, 22px) !important;
+        gap: clamp(4px, 0.8vh, 8px);
+    }
+
+    .main-body-row {
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
         height: auto !important;
         max-height: none !important;
-        min-height: 100% !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        gap: clamp(10px, 1.2vw, 16px) !important;
+        overflow: hidden !important;
+    }
+
+    .left-column {
+        flex: 0 0 46% !important;
+        width: 46% !important;
+        min-width: 0 !important;
+        height: 100% !important;
+        max-height: 100% !important;
         display: flex !important;
         flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        justify-content: space-between !important;
+        gap: clamp(5px, 0.8vh, 8px) !important;
         overflow: visible !important;
     }
 
-    .gradio-container {
-        padding: 10px 14px 24px 14px !important;
+    .upload-card {
+        flex: 1 1 0% !important;
+        min-height: clamp(80px, 15vh, 180px) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        overflow: visible !important;
     }
 
-    .main-body-row,
-    .gradio-container .row.main-body-row {
+    .upload-card .file-upload-zone {
+        flex: 1 1 0% !important;
+        min-height: 60px !important;
+    }
+
+    .options-card, .keys-card {
+        flex: 0 0 auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: clamp(3px, 0.6vh, 6px) !important;
+    }
+
+    body.admin-mode .keys-card,
+    .keys-card.hide,
+    .keys-card[style*="display: none"] {
+        display: none !important;
+    }
+
+    body.admin-mode .upload-card,
+    .left-column:has(.keys-card.hide) .upload-card,
+    .left-column:has(.keys-card[style*="display: none"]) .upload-card {
+        flex: 1 1 0% !important;
+        min-height: 180px !important;
+    }
+
+    .left-column .actions-row {
+        margin-top: auto !important;
+        flex: 0 0 auto !important;
+    }
+
+    .result-column {
+        flex: 1 1 54% !important;
+        width: 54% !important;
+        min-width: 0 !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+    }
+
+    .result-card {
+        flex: 1 1 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        overflow: hidden !important;
+        gap: clamp(6px, 1vh, 10px) !important;
+    }
+
+    .textarea-container {
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        height: 100% !important;
+    }
+
+    .output-textarea {
+        flex: 1 1 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+    }
+}
+
+/* ==========================================================================
+   MOBILE & TABLET (LAYOUT FLUIDO DE UNA COLUMNA)
+   ========================================================================== */
+@media (max-width: 1024px) {
+    html, body, gradio-app, .gradio-container {
+        height: auto !important;
+        max-height: none !important;
+        min-height: 100vh !important;
+        overflow-y: auto !important;
+    }
+
+    .transcriptor-app {
+        height: auto !important;
+        min-height: 100vh !important;
+        padding: 10px 14px 24px 14px !important;
+        gap: 14px !important;
+    }
+
+    .main-body-row {
         display: flex !important;
         flex-direction: column !important;
         flex-wrap: wrap !important;
@@ -2372,10 +875,7 @@ div.modal-overlay:not(.hide),
         overflow: visible !important;
     }
 
-    .left-column,
-    .gradio-container .column.left-column,
-    .result-column,
-    .gradio-container .column.result-column {
+    .left-column, .result-column {
         width: 100% !important;
         max-width: 100% !important;
         flex: 1 1 auto !important;
@@ -2386,430 +886,25 @@ div.modal-overlay:not(.hide),
         overflow: visible !important;
     }
 
-    /* Módulo 1: Archivo Multimedia */
-    .upload-card,
-    .gradio-container .column.upload-card,
-    body.admin-mode .upload-card,
-    .left-column.admin-mode .upload-card,
-    .left-column:has(.keys-card.hide) .upload-card,
-    .left-column:has(.keys-card[style*="display: none"]) .upload-card,
-    .left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .upload-card,
-    .gradio-container .column.left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .upload-card {
-        height: auto !important;
-        min-height: 180px !important;
-        max-height: none !important;
-        flex: 1 1 auto !important;
-    }
+    .upload-card { min-height: 180px !important; height: auto !important; }
+    .file-upload-zone { min-height: 140px !important; }
 
-    .file-upload-zone,
-    .upload-card .file-upload-zone,
-    body.admin-mode .upload-card .file-upload-zone,
-    .left-column.admin-mode .upload-card .file-upload-zone {
-        height: auto !important;
-        min-height: 160px !important;
-        flex: 1 1 auto !important;
-    }
-
-    .file-upload-zone button.boundedheight,
-    .file-upload-zone [aria-label*="upload"] {
-        height: auto !important;
-        min-height: 150px !important;
-        padding: 24px 16px !important;
-    }
-
-    .file-upload-zone [data-testid="upload-text"]::after,
-    .file-upload-zone button.boundedheight > div::after {
-        content: "Toca para seleccionar o arrastra archivos multimedia aquí" !important;
-    }
-
-    .file-upload-zone .file-preview-holder,
-    body.admin-mode .upload-card .file-preview-holder,
-    .left-column.admin-mode .upload-card .file-preview-holder {
-        height: auto !important;
-        min-height: 130px !important;
-        max-height: 260px !important;
-        overflow-y: auto !important;
-    }
-
-    /* Módulo 2 & 3: Opciones y Credenciales */
-    .options-card,
-    .gradio-container .column.options-card,
-    body.admin-mode .options-card,
-    .left-column.admin-mode .options-card,
-    .left-column:has(.keys-card.hide) .options-card,
-    .left-column:has(.keys-card[style*="display: none"]) .options-card,
-    .left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .options-card,
-    .gradio-container .column.left-column:not(:has(.keys-card:not(.hide):not([style*="display: none"]))) .options-card,
-    .keys-card,
-    .gradio-container .column.keys-card {
-        height: auto !important;
-        max-height: none !important;
-        flex: 1 1 auto !important;
-        padding: 16px 18px !important;
-        gap: 12px !important;
-    }
-
-    .gradio-container input[type="text"]:not([role="combobox"]),
-    .gradio-container input[type="password"]:not([role="combobox"]),
-    .gradio-container select,
-    .module-card .wrap:has(> .wrap-inner > .secondary-wrap),
-    .module-card .gradio-dropdown .wrap {
-        height: 44px !important;
-        min-height: 44px !important;
-    }
-
-    /* Botones de acción */
-    .actions-row,
-    .left-column .actions-row,
-    body.admin-mode .actions-row,
-    .left-column.admin-mode .actions-row {
-        height: auto !important;
-        min-height: auto !important;
-        gap: 12px !important;
-        margin-top: 4px !important;
-    }
-
-    .btn-primary,
-    .btn-secondary {
-        height: 48px !important;
-        min-height: 48px !important;
-        font-size: 1.0rem !important;
-    }
-
-    /* Módulo 4: Resultado */
-    .result-card,
-    .gradio-container .column.result-card {
-        height: auto !important;
-        min-height: auto !important;
-        max-height: none !important;
-        flex: 1 1 auto !important;
-        padding: 16px 18px !important;
-        gap: 14px !important;
-    }
-
-    .output-textbox,
-    .output-textbox > div:not([data-testid="status-tracker"]),
-    .output-textbox .container,
-    .output-textbox label,
-    .output-textbox .input-container {
-        height: auto !important;
-        min-height: auto !important;
-        max-height: none !important;
-        flex: 1 1 auto !important;
-    }
-
-    .output-textbox textarea {
+    .output-textarea {
         height: 380px !important;
-        min-height: 320px !important;
+        min-height: 280px !important;
         max-height: 600px !important;
-        font-size: 0.95rem !important;
-        line-height: 1.55 !important;
-        padding: 14px 16px !important;
         resize: vertical !important;
     }
 
-    .result-card .actions-row {
-        flex-wrap: wrap !important;
-        gap: 10px !important;
-    }
-
-    .btn-glow-single,
-    .btn-glow-zip,
-    .btn-glow-txt,
-    .result-card .actions-row .btn-secondary {
-        height: 48px !important;
-        min-height: 48px !important;
-        font-size: 0.96rem !important;
-    }
+    .result-actions { flex-wrap: wrap !important; gap: 10px !important; }
+    .result-actions button { height: 44px !important; min-height: 44px !important; }
 }
 
-/* ── 2. DISPOSITIVOS MÓVILES (TELÉFONOS HASTA 767px) ───────────────────────── */
-@media (max-width: 767px) {
-    .gradio-container {
-        padding: 6px 8px 18px 8px !important;
-    }
-
-    /* Navbar optimizado para móvil */
-    .app-navbar {
-        padding: 8px 12px !important;
-        margin-bottom: 8px !important;
-        border-radius: 11px !important;
-        gap: 8px !important;
-    }
-
-    .nav-brand {
-        gap: 8px !important;
-        min-width: 0 !important;
-        flex: 1 1 auto !important;
-        overflow: hidden !important;
-    }
-
-    .brand-icon {
-        width: 32px !important;
-        height: 32px !important;
-        min-width: 32px !important;
-        border-radius: 8px !important;
-    }
-
-    .brand-icon svg {
-        width: 15px !important;
-        height: 15px !important;
-    }
-
-    .brand-titles {
-        min-width: 0 !important;
-        overflow: hidden !important;
-    }
-
-    .brand-titles h1 {
-        font-size: 1.05rem !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-    }
-
-    .brand-titles p {
-        font-size: 0.72rem !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        max-width: 175px !important;
-    }
-
-    .btn-login-compact {
-        height: 32px !important;
-        min-height: 32px !important;
-        padding: 4px 10px !important;
-        font-size: 0.80rem !important;
-        border-radius: 7px !important;
-    }
-
-    /* Módulos compactos y suaves */
-    .module-card {
-        padding: 12px 12px !important;
-        border-radius: 12px !important;
-        gap: 10px !important;
-    }
-
-    .module-header,
-    .gradio-container .row.module-header,
-    .module-card .row.module-header {
-        flex-wrap: wrap !important;
-        gap: 6px !important;
-        margin-bottom: 6px !important;
-        padding-bottom: 4px !important;
-    }
-
-    .module-title {
-        font-size: 0.98rem !important;
-        gap: 6px !important;
-    }
-
-    .module-title-icon {
-        font-size: 1.05rem !important;
-    }
-
-    .status-badge-container,
-    .row.module-header > .status-badge-container,
-    .module-header .status-badge-container {
-        margin-left: auto !important;
-    }
-
-    /* Módulo 1: Subida de archivo */
-    .upload-card,
-    .gradio-container .column.upload-card {
-        min-height: 140px !important;
-    }
-
-    .file-upload-zone,
-    .upload-card .file-upload-zone {
-        min-height: 130px !important;
-    }
-
-    .file-upload-zone button.boundedheight,
-    .file-upload-zone [aria-label*="upload"] {
-        min-height: 50px !important;
-        padding: 16px 10px !important;
-        gap: 6px !important;
-    }
-
-    .file-upload-zone [data-testid="upload-icon"] svg,
-    .file-upload-zone button.boundedheight svg {
-        width: 24px !important;
-        height: 24px !important;
-    }
-
-    .file-upload-zone [data-testid="upload-text"]::after,
-    .file-upload-zone button.boundedheight > div::after {
-        font-size: 0.88rem !important;
-        line-height: 1.25 !important;
-    }
-
-    .file-status-strip {
-        white-space: normal !important;
-        height: auto !important;
-        max-height: none !important;
-        min-height: 0 !important;
-        padding: 4px 0 !important;
-    }
-
-    .status-strip-content {
-        white-space: normal !important;
-        flex-wrap: wrap !important;
-        font-size: 0.72rem !important;
-        gap: 4px 6px !important;
-        line-height: 1.25 !important;
-        overflow: visible !important;
-    }
-
-    .file-upload-zone .file-preview-holder {
-        min-height: 110px !important;
-        max-height: 200px !important;
-    }
-
-    /* Módulo 2: Opciones en columna completa en móvil */
-    .options-card .row,
-    .options-card .gradio-row {
-        flex-direction: column !important;
-        gap: 8px !important;
-    }
-
-    .module-card label:has(input[type="checkbox"]) {
-        margin-top: 4px !important;
-        min-height: 42px !important;
-        padding: 4px 0 !important;
-    }
-
-    .info-notice {
-        padding: 6px 10px !important;
-        font-size: 0.78rem !important;
-        line-height: 1.3 !important;
-    }
-
-    /* Fila de acción en columna izquierda (Limpiar y Transcribir) */
-    .left-column .actions-row {
-        display: flex !important;
-        flex-direction: row !important;
-        gap: 8px !important;
-        width: 100% !important;
-    }
-
-    .left-column .actions-row .btn-secondary {
-        flex: 1 1 0% !important;
-        height: 48px !important;
-        min-height: 48px !important;
-        font-size: 0.90rem !important;
-        padding: 6px 8px !important;
-    }
-
-    .left-column .actions-row .btn-primary {
-        flex: 2 1 0% !important;
-        height: 48px !important;
-        min-height: 48px !important;
-        font-size: 0.94rem !important;
-        padding: 6px 10px !important;
-    }
-
-    /* Módulo 4: Textarea de resultados espacioso y botones apilados */
-    .output-textbox textarea {
-        height: 310px !important;
-        min-height: 250px !important;
-        max-height: 500px !important;
-        font-size: 0.88rem !important;
-        padding: 10px 12px !important;
-        line-height: 1.5 !important;
-    }
-
-    .result-card .actions-row {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 8px !important;
-        width: 100% !important;
-    }
-
-    .result-card .actions-row > *,
-    .result-card .actions-row button,
-    .result-card .actions-row a {
-        width: 100% !important;
-        flex: 1 1 auto !important;
-        height: 46px !important;
-        min-height: 46px !important;
-        font-size: 0.90rem !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-
-    /* Modal de Administrador en móvil */
-    .modal-overlay:not(.hide) .modal-dialog,
-    .gradio-container .modal-overlay:not(.hide) .modal-dialog {
-        width: 92vw !important;
-        max-width: 350px !important;
-        padding: 18px 14px !important;
-        border-radius: 14px !important;
-        max-height: 85dvh !important;
-        overflow-y: auto !important;
-    }
-
-    .modal-title {
-        font-size: 1.02rem !important;
-    }
-
-    .modal-subtext {
-        font-size: 0.80rem !important;
-        margin-bottom: 10px !important;
-    }
-
-    .modal-dialog .actions-row {
-        gap: 8px !important;
-        margin-top: 10px !important;
-    }
-
-    .app-footer {
-        font-size: 0.72rem !important;
-        padding: 6px 2px 0 2px !important;
-        line-height: 1.3 !important;
-    }
+@media (max-width: 640px) {
+    .app-navbar { padding: 8px 10px !important; }
+    .brand-titles h1 { font-size: 0.95rem !important; }
+    .brand-titles p { display: none !important; }
+    .form-row { flex-direction: column !important; gap: 8px !important; }
+    .result-actions { flex-direction: column !important; }
+    .result-actions button { width: 100% !important; }
 }
-
-/* ── 3. PANTALLAS ULTRA COMPACTAS (MÓVILES PEQUEÑOS HASTA 420px) ─────────── */
-@media (max-width: 420px) {
-    .brand-titles p {
-        display: none !important;
-    }
-
-    .brand-titles h1 {
-        font-size: 0.98rem !important;
-    }
-
-    .output-textbox textarea {
-        height: 270px !important;
-        min-height: 220px !important;
-        font-size: 0.84rem !important;
-    }
-}
-
-/* ── 4. OPTIMIZACIONES ESPECÍFICAS PARA DISPOSITIVOS TÁCTILES ─────────────── */
-@media (hover: none) and (pointer: coarse) {
-    * {
-        -webkit-tap-highlight-color: rgba(0, 255, 135, 0.15) !important;
-    }
-
-    .btn-primary:active,
-    .btn-secondary:active,
-    .btn-glow-single:active,
-    .btn-glow-zip:active,
-    .btn-glow-txt:active,
-    .btn-login-compact:active {
-        transform: scale(0.98) !important;
-    }
-
-    li[role="option"],
-    .item,
-    .option-list li,
-    [role="option"] {
-        min-height: 44px !important;
-        padding: 10px 14px !important;
-    }
-}
-

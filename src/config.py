@@ -209,6 +209,3 @@ PROVIDER_MODEL_CHOICES: dict[str, list[tuple[str, str]]] = {
     ],
 }
 
-PROVIDER_MODELS: dict[str, list[str]] = {
-    provider: [val for _, val in choices] for provider, choices in PROVIDER_MODEL_CHOICES.items()
-}

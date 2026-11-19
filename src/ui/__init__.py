@@ -19,6 +19,7 @@ from src.ui.helpers import (
     _get_file_fingerprint,
     on_media_files_changed,
 )
+from src.ui.template import get_transcriptor_html
 from src.ui.theme import get_blocks_and_launch_kwargs, get_custom_theme
 
 __all__ = [
@@ -40,4 +41,5 @@ __all__ = [
     "on_media_files_changed",
     "UIComponents",
     "render_transcriptor_ui",
+    "get_transcriptor_html",
 ]
