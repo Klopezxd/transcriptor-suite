@@ -5,7 +5,7 @@ from typing import Any
 
 import gradio as gr
 
-from src.config import ProviderType
+from src.config import TIMESTAMP_LABEL_MAP, ProviderType, TimestampMode, normalize_provider_name
 
 EMPTY_DOWNLOAD_LABEL = "📥 Descargar Documento (.txt)"
 
@@ -54,6 +54,29 @@ def _disabled_consolidated_button() -> gr.DownloadButton:
     )
 
 
+def build_config_signature(
+    provider: str,
+    model_name: str,
+    enable_diarization: bool,
+    timestamp_option: str,
+) -> str:
+    """Genera una firma estable de configuración para evitar mezclar resultados de motores distintos."""
+    try:
+        canonical_provider = normalize_provider_name(provider)
+    except ValueError:
+        canonical_provider = str(provider or "").strip()
+
+    ts_mode = TIMESTAMP_LABEL_MAP.get(timestamp_option)
+    if ts_mode is not None:
+        ts_value = ts_mode.value
+    elif isinstance(timestamp_option, TimestampMode):
+        ts_value = timestamp_option.value
+    else:
+        ts_value = str(timestamp_option or TimestampMode.SIMPLE.value)
+
+    return f"{canonical_provider}|{str(model_name or '').strip()}|{int(bool(enable_diarization))}|{ts_value}"
+
+
 def _enabled_transcribe_button(value: str = "⚡ Iniciar Transcripción") -> gr.Button:
     """Genera el botón de transcripción en estado activo."""
     return gr.Button(
@@ -61,6 +84,7 @@ def _enabled_transcribe_button(value: str = "⚡ Iniciar Transcripción") -> gr.
         variant="primary",
         elem_id="btn_transcribe",
         interactive=True,
+        visible=True,
         elem_classes=["btn-primary"],
     )
 
@@ -72,7 +96,63 @@ def _disabled_transcribe_button(value: str = "⚡ Iniciar Transcripción") -> gr
         variant="secondary",
         elem_id="btn_transcribe",
         interactive=False,
+        visible=True,
         elem_classes=["btn-primary", "btn-transcribe-disabled"],
+    )
+
+
+def _hidden_transcribe_button() -> gr.Button:
+    """Oculta temporalmente el botón principal mientras se muestra el botón de parada."""
+    return gr.Button(
+        value="⚡ Iniciar Transcripción",
+        variant="primary",
+        elem_id="btn_transcribe",
+        interactive=False,
+        visible=False,
+        elem_classes=["btn-primary"],
+    )
+
+
+def _resumable_transcribe_button(remaining_count: int) -> gr.Button:
+    """Genera el botón para reanudar un lote pausado indicando cuántos archivos faltan."""
+    label = (
+        "▶️ Reanudar (1 pendiente)"
+        if remaining_count == 1
+        else f"▶️ Reanudar ({remaining_count} pendientes)"
+    )
+    return _enabled_transcribe_button(label)
+
+
+def _visible_stop_button(stopping: bool = False) -> gr.Button:
+    """Muestra el botón de parada elegante durante un lote de múltiples archivos."""
+    if stopping:
+        return gr.Button(
+            value="↩️ Cancelar pausa (seguir con la cola)",
+            variant="secondary",
+            elem_id="btn_stop_transcribe",
+            interactive=True,
+            visible=True,
+            elem_classes=["btn-stop-transcribe", "is-stopping"],
+        )
+    return gr.Button(
+        value="🛑 Detener tras este archivo",
+        variant="stop",
+        elem_id="btn_stop_transcribe",
+        interactive=True,
+        visible=True,
+        elem_classes=["btn-stop-transcribe"],
+    )
+
+
+def _hidden_stop_button() -> gr.Button:
+    """Oculta el botón de parada elegante cuando no hay un lote pausable en curso."""
+    return gr.Button(
+        value="🛑 Detener tras este archivo",
+        variant="stop",
+        elem_id="btn_stop_transcribe",
+        interactive=False,
+        visible=False,
+        elem_classes=["btn-stop-transcribe"],
     )
 
 
@@ -88,13 +168,32 @@ def _get_file_fingerprint(item: Any) -> tuple[str, str]:
     return file_name, f"{file_name}_{size}"
 
 
-def on_media_files_changed(media_files, batch_cache: dict | None = None) -> gr.Button:
+def on_media_files_changed(
+    media_files,
+    batch_cache: dict | None = None,
+    provider: str | None = None,
+    model_name: str | None = None,
+    enable_diarization: bool | None = None,
+    timestamp_option: str | None = None,
+    *,
+    allow_empty_disable: bool = True,
+) -> gr.Button:
     """
-    Detecta si se agregaron archivos nuevos a la cola y reactiva el botón de transcripción
-    mostrando cuántos archivos nuevos están pendientes de transcribir.
+    Detecta si se agregaron archivos nuevos o pendientes en la cola y reactiva el botón
+    de transcripción mostrando cuántos archivos están pendientes de transcribir.
     """
     cache = batch_cache if isinstance(batch_cache, dict) else {}
-    cached_results = cache.get("cached_results", {})
+    cached_results = cache.get("cached_results") or {}
+
+    if provider is not None and cache.get("config_signature"):
+        current_sig = build_config_signature(
+            provider=provider,
+            model_name=model_name or "",
+            enable_diarization=bool(enable_diarization),
+            timestamp_option=timestamp_option or "",
+        )
+        if current_sig != cache.get("config_signature"):
+            cached_results = {}
 
     file_list = (
         media_files
@@ -104,7 +203,7 @@ def on_media_files_changed(media_files, batch_cache: dict | None = None) -> gr.B
     file_list = [f for f in file_list if f]
 
     if not file_list:
-        if cached_results:
+        if cached_results and allow_empty_disable and not cache.get("cleared"):
             return _disabled_transcribe_button()
         return _enabled_transcribe_button("⚡ Iniciar Transcripción")
 
@@ -119,6 +218,8 @@ def on_media_files_changed(media_files, batch_cache: dict | None = None) -> gr.B
             new_files_count += 1
 
     if new_files_count > 0:
+        if cached_results and cache.get("paused"):
+            return _resumable_transcribe_button(new_files_count)
         if cached_results:
             label = (
                 f"⚡ Transcribir {new_files_count} archivo nuevo"

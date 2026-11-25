@@ -53,7 +53,5 @@ hf_cache/
 htmlcov/
 .audit-temp/
 
-# Binarios ejecutables pesados (FFmpeg portatil)
-bin/*.exe
+# Binarios ejecutables
 *.exe
-!bin/.gitkeep

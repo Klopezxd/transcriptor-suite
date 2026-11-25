@@ -1,8 +1,8 @@
-torch
-torchaudio
-git+https://github.com/m-bain/whisperX.git
+torch~=2.8.0
+torchaudio~=2.8.0
+git+https://github.com/m-bain/whisperX.git@8d8e43bf3698dd1df4b011c0f1a8dd1d468ae365
 gradio>=6.0.0,<7.0.0
-spaces
-pyannote.audio
-requests
+spaces>=0.28.0
+pyannote.audio>=4.0.0,<5.0.0
+requests>=2.31.0,<3.0.0
 

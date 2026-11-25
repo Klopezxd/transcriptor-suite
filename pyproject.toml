@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "transcriptor-suite"
-version = "2.4.4"
+version = "2.4.5"
 description = "Transcriptor Suite — Pipeline modular de transcripción, alineación fonética y diarización de audio."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -14,13 +14,21 @@ authors = [
 license = { text = "MIT" }
 keywords = ["whisper", "whisperx", "transcription", "diarization", "speech-to-text", "pytorch", "cuda"]
 dependencies = [
-    "torch",
-    "torchaudio",
+    "torch~=2.8.0",
+    "torchaudio~=2.8.0",
     "whisperx",
     "gradio>=6.0.0,<7.0.0",
-    "pyannote.audio",
-    "requests",
+    "pyannote.audio>=4.0.0,<5.0.0",
+    "requests>=2.31.0,<3.0.0",
 ]
+
+[project.optional-dependencies]
+hf = ["spaces>=0.28.0"]
+dev = ["ruff>=0.11.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
 
 [tool.ruff]
 line-length = 100

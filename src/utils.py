@@ -6,10 +6,13 @@ Aplica principios de Clean Code con funciones puras y manejo de recursos.
 import contextlib
 import contextvars
 import gc
+import hashlib
 import hmac
+import io
 import logging
 import math
 import os
+import secrets
 import sys
 import tempfile
 import threading
@@ -20,6 +23,46 @@ from pathlib import Path
 from typing import Any, BinaryIO
 
 from src.config import TimestampMode
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+SUPPORTED_MEDIA_EXTENSIONS: frozenset[str] = frozenset(
+    {
+        ".wav",
+        ".mp3",
+        ".m4a",
+        ".flac",
+        ".ogg",
+        ".oga",
+        ".opus",
+        ".aac",
+        ".wma",
+        ".aiff",
+        ".aif",
+        ".amr",
+        ".ac3",
+        ".m4b",
+        ".weba",
+        ".caf",
+        ".mp4",
+        ".mkv",
+        ".mov",
+        ".avi",
+        ".flv",
+        ".wmv",
+        ".m4v",
+        ".webm",
+        ".mpeg",
+        ".mpg",
+        ".ts",
+        ".mts",
+        ".m2ts",
+        ".3gp",
+        ".3g2",
+        ".ogv",
+        ".vob",
+    }
+)
 
 # --- Excepciones de Dominio ---
 
@@ -76,25 +119,22 @@ def make_progress_notifier(
     """
     last_logged_msg: str | None = None
     last_p: float = 0.0
-    lock = threading.Lock()
+    lock = threading.RLock()
 
     def notify(progress_val: float, message: str) -> None:
         nonlocal last_logged_msg, last_p
-        should_log = False
         with lock:
-            clamped = min(1.0, max(last_p, progress_val))
+            safe_val = progress_val if math.isfinite(progress_val) else last_p
+            clamped = min(1.0, max(last_p, safe_val))
             last_p = clamped
             notify.current_progress = clamped  # type: ignore[attr-defined]
             if message != last_logged_msg:
-                should_log = True
                 last_logged_msg = message
+                logger.info("[%d%%] %s", int(clamped * 100), message)
 
-        if should_log:
-            logger.info("[%d%%] %s", int(clamped * 100), message)
-
-        if progress_callback:
-            with contextlib.suppress(Exception):
-                progress_callback(clamped, message)
+            if progress_callback:
+                with contextlib.suppress(Exception):
+                    progress_callback(clamped, message)
 
     notify.current_progress = 0.0  # type: ignore[attr-defined]
     return notify
@@ -108,6 +148,7 @@ def smooth_progress_stage(
     message: str | Callable[[float, float], str],
     tau_seconds: float = 8.0,
     interval_seconds: float = 0.25,
+    gate: Callable[[], bool] | None = None,
 ) -> Iterator[None]:
     """
     Avanza suavemente la barra de progreso entre start_p y end_p en un hilo
@@ -118,8 +159,9 @@ def smooth_progress_stage(
     ctx = contextvars.copy_context()
     t0 = time.perf_counter()
 
-    initial_msg = message(start_p, 0.0) if callable(message) else message
-    notify(start_p, initial_msg)
+    if gate is None or gate():
+        initial_msg = message(start_p, 0.0) if callable(message) else message
+        notify(start_p, initial_msg)
 
     def _ticker() -> None:
         current_p = start_p
@@ -127,10 +169,14 @@ def smooth_progress_stage(
         tau = max(0.5, tau_seconds)
         while not stop_event.wait(interval_seconds):
             now = time.perf_counter()
+            if gate is not None and not gate():
+                last_tick = now
+                current_p = start_p
+                continue
             dt = max(0.01, now - last_tick)
             last_tick = now
             elapsed = now - t0
-            base_p = max(current_p, float(getattr(notify, "current_progress", current_p)))
+            base_p = max(start_p, current_p, float(getattr(notify, "current_progress", current_p)))
             step_fraction = 1.0 - math.exp(-dt / tau)
             current_p = base_p + max(0.0, end_p - base_p) * step_fraction
             current_msg = message(current_p, elapsed) if callable(message) else message
@@ -172,6 +218,19 @@ class ProgressFileReader:
     def __len__(self) -> int:
         return self.total_size
 
+    def readable(self) -> bool:
+        return True
+
+    def tell(self) -> int:
+        return int(self._file.tell())
+
+    def seek(self, offset: int, whence: int = io.SEEK_SET) -> int:
+        new_pos = int(self._file.seek(offset, whence))
+        self.bytes_read = max(0, new_pos)
+        if new_pos == 0:
+            self._last_emit = 0.0
+        return new_pos
+
     def read(self, size: int = -1) -> bytes:
         chunk = self._file.read(size)
         if chunk:
@@ -195,7 +254,11 @@ def clear_gpu_vram() -> None:
         import torch
 
         if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+            for fn_name in ("synchronize", "empty_cache", "ipc_collect"):
+                fn = getattr(torch.cuda, fn_name, None)
+                if callable(fn):
+                    with contextlib.suppress(Exception):
+                        fn()
     except ImportError:
         pass
 
@@ -277,6 +340,17 @@ def format_segment(
     return f"{speaker_prefix}{cleaned_text}\n"
 
 
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    """Convierte valores arbitrarios a float finito de forma segura."""
+    if value is None or isinstance(value, bool):
+        return default
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return default
+    return parsed if math.isfinite(parsed) else default
+
+
 def render_segments_text(
     segments: Iterable[dict[str, Any]],
     mode: TimestampMode = TimestampMode.SIMPLE,
@@ -289,9 +363,9 @@ def render_segments_text(
     for seg in segments:
         speaker = seg.get("speaker") if include_speaker else None
         line = format_segment(
-            text=str(seg.get("text", "")),
-            start=float(seg.get("start", 0.0)),
-            end=float(seg.get("end", 0.0)),
+            text=str(seg.get("text") or ""),
+            start=_safe_float(seg.get("start"), 0.0),
+            end=_safe_float(seg.get("end"), 0.0),
             speaker=speaker,
             mode=mode,
         )
@@ -367,17 +441,54 @@ def save_consolidated_batch_file(
                 temporary_path.unlink(missing_ok=True)
 
 
-def validate_media_path(media_path: str | Path) -> Path:
-    """Valida archivos locales antes de abrir conexiones o cargar modelos."""
-    input_path = Path(media_path)
+def validate_media_path(
+    media_path: str | Path,
+    allowed_roots: Iterable[str | Path] | None = None,
+) -> Path:
+    """
+    Valida archivos multimedia locales antes de abrir conexiones o cargar modelos.
+    Si se especifica allowed_roots, exige contención canónica y bloquea escapes por symlink.
+    """
+    if media_path is None or not str(media_path).strip():
+        raise AudioProcessingError("No se encontró un archivo multimedia válido.")
+
     try:
-        if not input_path.is_file():
-            raise AudioProcessingError(f"No se encontró un archivo válido: {input_path}")
-        if input_path.stat().st_size == 0:
-            raise AudioProcessingError("El archivo multimedia está vacío.")
+        input_path = Path(media_path)
+    except (TypeError, ValueError) as err:
+        raise AudioProcessingError("Ruta de archivo multimedia inválida.") from err
+
+    safe_name = input_path.name or "archivo"
+    try:
+        if allowed_roots is not None:
+            roots = [Path(r).resolve() for r in allowed_roots if r is not None]
+            resolved_path = input_path.resolve(strict=True)
+            if not any(
+                resolved_path == root or resolved_path.is_relative_to(root)
+                for root in roots
+            ):
+                raise AudioProcessingError(
+                    f"Acceso denegado: '{safe_name}' está fuera de los directorios permitidos."
+                )
+            if not resolved_path.is_file():
+                raise AudioProcessingError(f"No se encontró un archivo válido: {safe_name}")
+        else:
+            if not input_path.is_file():
+                raise AudioProcessingError(f"No se encontró un archivo válido: {safe_name}")
+            resolved_path = input_path.resolve(strict=True)
+
+        if input_path.suffix.lower() not in SUPPORTED_MEDIA_EXTENSIONS:
+            raise AudioProcessingError(
+                f"Formato multimedia no soportado para '{safe_name}'."
+            )
+
+        if resolved_path.stat().st_size == 0:
+            raise AudioProcessingError(f"El archivo multimedia '{safe_name}' está vacío.")
+    except AudioProcessingError:
+        raise
     except OSError as err:
-        raise AudioProcessingError(f"No se pudo acceder al archivo: {input_path}") from err
-    return input_path
+        raise AudioProcessingError(f"No se pudo acceder al archivo: {safe_name}") from err
+
+    return resolved_path if allowed_roots is not None else input_path
 
 
 # --- Manejo Seguro de Secretos ---
@@ -388,7 +499,7 @@ def _resolve_secret(env_var: str, explicit_val: str | None = None) -> str | None
     Resuelve una credencial de forma segura con orden de prioridad:
     1. Valor explícito pasado como parámetro.
     2. Variable de entorno del sistema (os.getenv).
-    3. Archivo .env local si existe.
+    3. Archivo .env en CWD o en la raíz del proyecto.
     """
     if explicit_val and explicit_val.strip():
         return explicit_val.strip()
@@ -397,13 +508,24 @@ def _resolve_secret(env_var: str, explicit_val: str | None = None) -> str | None
     if env_val and env_val.strip():
         return env_val.strip()
 
-    env_file = Path(".env")
-    if env_file.exists():
+    candidates = [Path(".env"), PROJECT_ROOT / ".env"]
+    seen_resolved: set[Path] = set()
+    for env_file in candidates:
+        resolved_candidate = env_file.resolve()
+        if resolved_candidate in seen_resolved:
+            continue
+        seen_resolved.add(resolved_candidate)
+        if not env_file.exists():
+            continue
         try:
             with open(env_file, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
-                    if not line or line.startswith("#") or "=" not in line:
+                    if not line or line.startswith("#"):
+                        continue
+                    if line.startswith(("export ", "export\t")):
+                        line = line[6:].strip()
+                    if "=" not in line:
                         continue
                     key, _, raw_val = line.partition("=")
                     if key.strip() == env_var:
@@ -447,10 +569,55 @@ def resolve_admin_pin(explicit_pin: str | None = None) -> str | None:
     return _resolve_secret("ADMIN_PIN") or _resolve_secret("ADMIN_PASSWORD")
 
 
+def hash_admin_pin(pin: str, *, salt: bytes | None = None) -> str:
+    """Genera un hash seguro scrypt para configurar ADMIN_PIN_HASH."""
+    normalized = str(pin or "").strip()
+    if not normalized:
+        raise ValueError("El PIN no puede estar vacío.")
+    salt_bytes = secrets.token_bytes(16) if salt is None else salt
+    digest = hashlib.scrypt(
+        normalized.encode("utf-8"),
+        salt=salt_bytes,
+        n=16384,
+        r=8,
+        p=1,
+        dklen=32,
+    )
+    return f"scrypt${salt_bytes.hex()}${digest.hex()}"
+
+
+def _verify_scrypt_pin(entered_pin: str, stored_hash: str) -> bool:
+    """Valida un PIN en tiempo constante contra un hash 'scrypt$salt_hex$digest_hex'."""
+    parts = stored_hash.strip().split("$")
+    if len(parts) != 3 or parts[0] != "scrypt":
+        return False
+    try:
+        salt = bytes.fromhex(parts[1])
+        expected = bytes.fromhex(parts[2])
+    except ValueError:
+        return False
+    if not salt or not expected:
+        return False
+    computed = hashlib.scrypt(
+        entered_pin.strip().encode("utf-8"),
+        salt=salt,
+        n=16384,
+        r=8,
+        p=1,
+        dklen=len(expected),
+    )
+    return hmac.compare_digest(computed, expected)
+
+
 def verify_admin_pin(entered_pin: str | None) -> bool:
-    """Valida en tiempo constante si el PIN ingresado coincide con el configurado en el servidor."""
+    """Valida en tiempo constante si el PIN ingresado coincide con ADMIN_PIN_HASH o ADMIN_PIN."""
     if not entered_pin or not str(entered_pin).strip():
         return False
+
+    pin_hash = _resolve_secret("ADMIN_PIN_HASH")
+    if pin_hash:
+        return _verify_scrypt_pin(str(entered_pin), pin_hash)
+
     master_pin = resolve_admin_pin()
     if not master_pin:
         return False
@@ -462,7 +629,8 @@ def verify_admin_pin(entered_pin: str | None) -> bool:
 
 def create_zip_archive(files: list[Path], output_zip_path: Path) -> Path:
     """
-    Empaqueta una lista de archivos existentes en un archivo ZIP de forma atómica.
+    Empaqueta una lista de archivos existentes en un archivo ZIP de forma atómica,
+    desambiguando nombres repetidos para evitar sobrescrituras al descomprimir.
 
     Args:
         files: Lista de rutas Path a los archivos a incluir.
@@ -472,16 +640,37 @@ def create_zip_archive(files: list[Path], output_zip_path: Path) -> Path:
         Path del archivo ZIP generado.
     """
     output_zip_path.parent.mkdir(parents=True, exist_ok=True)
-    temp_zip = output_zip_path.with_suffix(".tmp.zip")
+    temp_zip: Path | None = None
+    used_names: set[str] = set()
     try:
+        with tempfile.NamedTemporaryFile(
+            mode="wb",
+            dir=output_zip_path.parent,
+            prefix=f"{output_zip_path.stem}_",
+            suffix=".tmp.zip",
+            delete=False,
+        ) as tmp_file:
+            temp_zip = Path(tmp_file.name)
+
         with zipfile.ZipFile(temp_zip, "w", compression=zipfile.ZIP_DEFLATED) as zf:
             for file_path in files:
-                if file_path.is_file():
-                    zf.write(file_path, arcname=file_path.name)
+                if not file_path.is_file():
+                    continue
+                arcname = file_path.name
+                if arcname in used_names:
+                    counter = 2
+                    while True:
+                        candidate = f"{file_path.stem} ({counter}){file_path.suffix}"
+                        if candidate not in used_names:
+                            arcname = candidate
+                            break
+                        counter += 1
+                used_names.add(arcname)
+                zf.write(file_path, arcname=arcname)
         temp_zip.replace(output_zip_path)
         return output_zip_path
     finally:
-        if temp_zip.exists():
+        if temp_zip is not None and temp_zip.exists():
             with contextlib.suppress(OSError):
                 temp_zip.unlink(missing_ok=True)
 

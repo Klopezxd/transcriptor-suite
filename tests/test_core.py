@@ -2,6 +2,8 @@
 
 import io
 import logging
+import os
+import subprocess
 import tempfile
 import unittest
 import zipfile
@@ -29,9 +31,11 @@ from src.utils import (
     MissingTokenError,
     ProgressFileReader,
     TranscriptionError,
+    clear_gpu_vram,
     create_zip_archive,
     format_duration_human,
     format_timestamp,
+    hash_admin_pin,
     make_progress_notifier,
     render_segments_text,
     resolve_deepgram_api_key,
@@ -618,6 +622,359 @@ class WhisperTests(unittest.TestCase):
         ):
             pipeline._run_diarization(audio=None, aligned_result=aligned_result, device="cpu")
         self.assertIn("pyannote/speaker-diarization-3.1", str(err.exception))
+
+    def test_cpu_float16_is_normalized_to_int8_and_device_auto(self):
+        cfg = TranscriptionConfig(
+            provider=ProviderType.WHISPERX.value,
+            model_name="base",
+            device="cpu",
+            compute_type="float16",
+        )
+        self.assertEqual(cfg.compute_type, "int8")
+        self.assertFalse(cfg.device_auto)
+
+        torch_mod = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: False))
+        with patch.dict("sys.modules", {"torch": torch_mod}):
+            auto_cfg = TranscriptionConfig.create_default(provider=ProviderType.WHISPERX.value)
+        self.assertTrue(auto_cfg.device_auto)
+        self.assertFalse(cloud_config().device_auto)
+
+    def test_phase3_alignment_unknown_language_and_failure_fallback(self):
+        with tempfile.TemporaryDirectory() as directory:
+            media = Path(directory) / "audio.wav"
+            media.write_bytes(b"audio")
+            segments = [{"text": "Hola mundo", "start": 0.5, "end": 1.5}]
+
+            whisper_unknown = Mock()
+            whisper_unknown.load_model.return_value.transcribe.return_value = {
+                "language": "unknown",
+                "segments": segments,
+            }
+            with (
+                patch.dict("sys.modules", {"whisperx": whisper_unknown}),
+                patch("src.transcriber.clear_gpu_vram"),
+            ):
+                res_unknown = WhisperXPipeline(self.config).process(media)
+            self.assertEqual(res_unknown.raw_segments, segments)
+            whisper_unknown.load_align_model.assert_not_called()
+
+            whisper_fail = Mock()
+            whisper_fail.load_model.return_value.transcribe.return_value = {
+                "language": "eu",
+                "segments": segments,
+            }
+            whisper_fail.load_align_model.side_effect = ValueError("No default align-model")
+            with (
+                patch.dict("sys.modules", {"whisperx": whisper_fail}),
+                patch("src.transcriber.clear_gpu_vram"),
+            ):
+                res_fail = WhisperXPipeline(self.config).process(media)
+            self.assertEqual(res_fail.raw_segments, segments)
+            self.assertIn("Hola mundo", res_fail.formatted_text)
+
+    def test_whisper_cuda_oom_reduces_batch_and_falls_back_to_cpu(self):
+        with tempfile.TemporaryDirectory() as directory:
+            media = Path(directory) / "audio.wav"
+            media.write_bytes(b"audio")
+
+            calls: list[tuple[str, str, int]] = []
+            segments = [{"text": "Recuperado", "start": 0.0, "end": 1.0}]
+
+            def fake_load_model(model_name, device, compute_type, language=None):
+                def fake_transcribe(audio, batch_size):
+                    calls.append((device, compute_type, batch_size))
+                    if device == "cuda":
+                        raise RuntimeError("CUDA out of memory")
+                    return {"language": "es", "segments": segments}
+
+                return SimpleNamespace(transcribe=fake_transcribe)
+
+            whisper = Mock()
+            whisper.load_model.side_effect = fake_load_model
+            whisper.load_align_model.return_value = (Mock(), {})
+            whisper.align.return_value = {"segments": segments}
+
+            torch_mod = SimpleNamespace(cuda=SimpleNamespace(is_available=lambda: True))
+            with patch.dict("sys.modules", {"torch": torch_mod, "whisperx": whisper}):
+                cfg = TranscriptionConfig.create_default(
+                    provider=ProviderType.WHISPERX.value, model_name="base"
+                )
+                with patch("src.transcriber.clear_gpu_vram"):
+                    res = WhisperXPipeline(cfg).process(media)
+
+            self.assertEqual(res.raw_segments, segments)
+            self.assertEqual(
+                calls,
+                [
+                    ("cuda", "int8", 16),
+                    ("cuda", "int8", 4),
+                    ("cuda", "int8", 1),
+                    ("cpu", "int8", 4),
+                ],
+            )
+
+    def test_whisper_diarization_cuda_oom_falls_back_to_cpu(self):
+        cfg = TranscriptionConfig(
+            provider=ProviderType.WHISPERX.value,
+            model_name="base",
+            device="cuda",
+            enable_diarization=True,
+            hf_token="test_hf_token",
+        )
+        pipeline = WhisperXPipeline(cfg)
+        aligned = {"segments": [{"text": "Hola", "start": 0, "end": 1}]}
+        seen_devices: list[str] = []
+
+        def fake_diarize_pipeline(**kwargs):
+            seen_devices.append(kwargs["device"])
+            if kwargs["device"] == "cuda":
+                raise RuntimeError("CUDA out of memory")
+            return Mock(return_value=[])
+
+        diarize_mod = SimpleNamespace(
+            DiarizationPipeline=fake_diarize_pipeline,
+            assign_word_speakers=Mock(
+                return_value={"segments": [{"text": "Hola", "speaker": "SPEAKER_00"}]}
+            ),
+        )
+        with (
+            patch.dict("sys.modules", {"whisperx.diarize": diarize_mod}),
+            patch("src.transcriber.clear_gpu_vram"),
+        ):
+            segs = pipeline._run_diarization(audio=None, aligned_result=aligned, device="cuda")
+
+        self.assertEqual(seen_devices, ["cuda", "cpu"])
+        self.assertEqual(segs[0]["speaker"], "SPEAKER_00")
+
+    def test_utility_and_cloud_hardening_regressions(self):
+        # 1. validate_media_path con allowed_roots, symlinks y sin filtrar rutas absolutas
+        with tempfile.TemporaryDirectory() as allowed_dir, tempfile.TemporaryDirectory() as outside_dir:
+            allowed_root = Path(allowed_dir)
+            outside_file = Path(outside_dir) / "secreto.wav"
+            outside_file.write_bytes(b"audio")
+            bad_ext = allowed_root / "notes.txt"
+            bad_ext.write_text("no media", encoding="utf-8")
+
+            with self.assertRaises(AudioProcessingError) as ctx_out:
+                validate_media_path(outside_file, allowed_roots=[allowed_root])
+            self.assertNotIn(str(Path(outside_dir).resolve()), str(ctx_out.exception))
+
+            with self.assertRaises(AudioProcessingError):
+                validate_media_path(bad_ext, allowed_roots=[allowed_root])
+
+            link_path = allowed_root / "escape.wav"
+            try:
+                os.symlink(outside_file, link_path)
+            except OSError:
+                link_path = None
+            if link_path is not None:
+                with self.assertRaises(AudioProcessingError):
+                    validate_media_path(link_path, allowed_roots=[allowed_root])
+
+        # 2. ProgressFileReader seek/tell/readable y make_progress_notifier NaN
+        notify = Mock()
+        reader = ProgressFileReader(io.BytesIO(b"abcdef"), 6, notify, 0.0, 1.0, "upload")
+        self.assertTrue(reader.readable())
+        self.assertEqual(reader.read(3), b"abc")
+        self.assertEqual(reader.tell(), 3)
+        self.assertEqual(reader.seek(0), 0)
+        self.assertEqual(reader.bytes_read, 0)
+        self.assertEqual(reader.read(), b"abcdef")
+
+        safe_cb = Mock()
+        safe_notify = make_progress_notifier(logging.getLogger("test_nan"), safe_cb)
+        safe_notify(0.4, "ok")
+        safe_notify(float("nan"), "nan")
+        self.assertEqual(safe_cb.call_args_list[-1].args[0], 0.4)
+
+        # 3. render_segments_text con timestamps None y create_zip_archive deduplicado
+        self.assertEqual(
+            render_segments_text([{"text": "Hola", "start": None, "end": None}]),
+            "[00:00:00] Hola\n",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "d1").mkdir()
+            (root / "d2").mkdir()
+            f1 = root / "d1" / "clase_TRANSCRIPCION.txt"
+            f2 = root / "d2" / "clase_TRANSCRIPCION.txt"
+            f1.write_text("uno", encoding="utf-8")
+            f2.write_text("dos", encoding="utf-8")
+            zip_out = root / "batch.zip"
+            create_zip_archive([f1, f2], zip_out)
+            with zipfile.ZipFile(zip_out, "r") as zf:
+                self.assertEqual(
+                    sorted(zf.namelist()),
+                    ["clase_TRANSCRIPCION (2).txt", "clase_TRANSCRIPCION.txt"],
+                )
+
+        # 4. ADMIN_PIN_HASH scrypt y _resolve_secret con export
+        hashed = hash_admin_pin("mi_pin_seguro")
+        with patch.dict("os.environ", {"ADMIN_PIN_HASH": hashed, "ADMIN_PIN": "otro"}):
+            self.assertTrue(verify_admin_pin("mi_pin_seguro"))
+            self.assertFalse(verify_admin_pin("otro"))
+        with patch.dict("os.environ", {"ADMIN_PIN_HASH": "scrypt$bad$hex", "ADMIN_PIN": "1234"}):
+            self.assertFalse(verify_admin_pin("1234"))
+
+        with tempfile.TemporaryDirectory() as env_dir, tempfile.TemporaryDirectory() as other_cwd:
+            env_file = Path(env_dir) / ".env"
+            env_file.write_text('export DEEPGRAM_API_KEY="dg_from_root"\n', encoding="utf-8")
+            prev_cwd = os.getcwd()
+            try:
+                os.chdir(other_cwd)
+                with (
+                    patch.dict("os.environ", {}, clear=True),
+                    patch("src.utils.PROJECT_ROOT", Path(env_dir)),
+                ):
+                    self.assertEqual(resolve_deepgram_api_key(), "dg_from_root")
+            finally:
+                os.chdir(prev_cwd)
+
+        # 5. clear_gpu_vram ejecuta empty_cache e ipc_collect aunque synchronize falle
+        cuda_mock = SimpleNamespace(
+            is_available=lambda: True,
+            synchronize=Mock(side_effect=RuntimeError("post-oom")),
+            empty_cache=Mock(),
+            ipc_collect=Mock(),
+        )
+        with patch.dict("sys.modules", {"torch": SimpleNamespace(cuda=cuda_mock)}):
+            clear_gpu_vram()
+        cuda_mock.empty_cache.assert_called_once()
+        cuda_mock.ipc_collect.assert_called_once()
+
+    def test_cloud_speaker_parsing_retries_and_temp_cleanup(self):
+        # Deepgram speaker str/float/None y start=None
+        dg = DeepgramPipeline(cloud_config(enable_diarization=True))
+        segs = dg._extract_segments(
+            {
+                "words": [
+                    {"word": "hola", "start": None, "end": 1, "speaker": "0"},
+                    {"word": "mundo", "start": 2, "end": 3, "speaker": "A"},
+                    {"word": "fin", "start": 4, "end": 5, "speaker": 2.0},
+                ]
+            }
+        )
+        self.assertEqual([s["speaker"] for s in segs], ["SPEAKER_00", "SPEAKER_A", "SPEAKER_02"])
+
+        # Deepgram 429 reintenta con Retry-After y rebobina archivo
+        with tempfile.TemporaryDirectory() as directory:
+            media = Path(directory) / "audio.wav"
+            media.write_bytes(b"payload")
+            seen_bodies: list[bytes] = []
+
+            def fake_post(url, **kwargs):
+                seen_bodies.append(kwargs["data"].read())
+                if len(seen_bodies) == 1:
+                    r = response(status=429)
+                    r.headers = {"Retry-After": "0"}
+                    return r
+                return response(
+                    {"results": {"channels": [{"detected_language": "es", "alternatives": [{"transcript": "Ok"}]}]}}
+                )
+
+            with (
+                patch("src.cloud_providers.requests.post", side_effect=fake_post),
+                patch("src.cloud_providers.time.sleep") as sleep_mock,
+            ):
+                res = dg.process(media)
+            self.assertEqual(seen_bodies, [b"payload", b"payload"])
+            sleep_mock.assert_called_once()
+            self.assertIn("Ok", res.formatted_text)
+
+        # AssemblyAI elimina temporal inmediatamente tras _upload_media (antes de polling)
+        with tempfile.TemporaryDirectory() as directory:
+            video = Path(directory) / "video.webm"
+            video.write_bytes(b"webm")
+            temp_audio = Path(directory) / "temp_extracted.m4a"
+            temp_audio.write_bytes(b"m4a")
+            aai = AssemblyAIPipeline(cloud_config(ProviderType.ASSEMBLYAI.value))
+
+            def fake_get(url, **kwargs):
+                self.assertFalse(temp_audio.exists())
+                return response({"status": "completed", "text": "Listo", "language_code": "es"})
+
+            with (
+                patch("src.cloud_providers.extract_audio_for_cloud", return_value=(temp_audio, True)),
+                patch(
+                    "src.cloud_providers.requests.post",
+                    side_effect=[
+                        response({"upload_url": "https://example.com/a"}),
+                        response({"id": "job-1"}),
+                    ],
+                ),
+                patch("src.cloud_providers.requests.get", side_effect=fake_get),
+                patch("src.cloud_providers.time.sleep") as poll_sleep,
+            ):
+                res_aai = aai.process(video)
+            self.assertIn("Listo", res_aai.formatted_text)
+            poll_sleep.assert_not_called()
+
+        # AssemblyAI polling respeta Retry-After ante 429
+        r429 = response(status=429)
+        r429.headers = {"Retry-After": "3"}
+        with (
+            patch(
+                "src.cloud_providers.requests.get",
+                side_effect=[r429, response({"status": "completed"})],
+            ),
+            patch("src.cloud_providers.time.sleep") as retry_sleep,
+        ):
+            aai._poll_completion("job-429", {}, Mock())
+        retry_sleep.assert_called_once()
+        self.assertGreaterEqual(retry_sleep.call_args.args[0], 3.0)
+
+        # extract_audio_for_cloud con .webm, FileNotFoundError y TimeoutExpired
+        webm = Path("clip.webm")
+        with patch("subprocess.run", side_effect=FileNotFoundError("no ffmpeg")) as run_mock:
+            path_nf, is_tmp_nf = extract_audio_for_cloud(webm)
+        self.assertEqual((path_nf, is_tmp_nf), (webm, False))
+        run_mock.assert_called_once()
+
+        with patch(
+            "subprocess.run",
+            side_effect=subprocess.TimeoutExpired(cmd=["ffmpeg"], timeout=180),
+        ) as run_to:
+            path_to, is_tmp_to = extract_audio_for_cloud(webm)
+        self.assertEqual((path_to, is_tmp_to), (webm, False))
+        run_to.assert_called_once()
+
+        # AssemblyAI upload no invoca smooth_progress_stage concurrente y Deepgram usa gate
+        with tempfile.TemporaryDirectory() as directory:
+            media = Path(directory) / "audio.wav"
+            media.write_bytes(b"123456")
+            with (
+                patch("src.cloud_providers.smooth_progress_stage") as smooth_mock,
+                patch(
+                    "src.cloud_providers.requests.post",
+                    return_value=response({"upload_url": "https://example.com/u"}),
+                ),
+            ):
+                aai._upload_media(media, {}, Mock())
+            smooth_mock.assert_not_called()
+
+            gate_holder: list[object] = []
+
+            def capture_smooth(*args, **kwargs):
+                gate_holder.append(kwargs.get("gate"))
+                from contextlib import nullcontext
+
+                return nullcontext()
+
+            def fake_dg_post(url, **kwargs):
+                self.assertFalse(gate_holder[0]())
+                kwargs["data"].read()
+                self.assertTrue(gate_holder[0]())
+                return response(
+                    {"results": {"channels": [{"detected_language": "es", "alternatives": [{"transcript": "Ok"}]}]}}
+                )
+
+            with (
+                patch("src.cloud_providers.smooth_progress_stage", side_effect=capture_smooth),
+                patch("src.cloud_providers.requests.post", side_effect=fake_dg_post),
+            ):
+                dg.process(media)
+            self.assertEqual(len(gate_holder), 1)
+            self.assertTrue(callable(gate_holder[0]))
 
 
 if __name__ == "__main__":

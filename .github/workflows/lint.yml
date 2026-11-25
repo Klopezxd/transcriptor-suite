@@ -16,10 +16,12 @@ jobs:
         python-version: ["3.10", "3.12"]
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -28,6 +30,9 @@ jobs:
 
       - name: Run Ruff Linter
         run: ruff check .
+
+      - name: Run Ruff Security Checks
+        run: ruff check --select S --ignore S101,S105,S106,S311,S603,S607 .
 
       - name: Run regression tests
         env:

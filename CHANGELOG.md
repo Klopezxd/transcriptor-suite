@@ -5,6 +5,45 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [2.4.5] - 2026-11-24
+
+### Agregado
+* **Parada Elegante, Entrega Parcial Progresiva y Reanudación de Lotes:**
+  * Conversión del procesador web en flujo progresivo (`process_transcription_stream`), entregando resultados en caché tras cada archivo completado.
+  * Nuevo botón cooperativo **`🛑 Detener tras este archivo`** (`btn_stop_transcribe`) que alterna el mismo espacio visual del botón principal únicamente cuando existen 2 o más archivos pendientes, permitiendo finalizar limpiamente el archivo en curso, generar el `.txt` consolidado y `.zip` parcial con lo ya transcrito, y deshacer la pausa con un segundo clic (**`↩️ Cancelar pausa (seguir con la cola)`**) antes de que termine el archivo actual.
+  * Al pausar, el botón principal pasa a **`▶️ Reanudar (N pendientes)`** retomando el lote exactamente desde el siguiente archivo sin repetir los ya transcritos.
+  * Invalidación automática del caché diferencial mediante firma de configuración (`build_config_signature`) si se cambia proveedor, modelo, diarización o marcas de tiempo antes de reanudar.
+* **Normalización de finales de línea y pruebas de regresión:**
+  * Añadido [`.gitattributes`](.gitattributes) para garantizar finales de línea `LF` consistentes en archivos de código, documentación y dependencias (`packages.txt`).
+  * Ampliación de la suite automatizada a **108 pruebas unitarias y de regresión** (`tests/test_app.py`, `tests/test_auth.py`, `tests/test_core.py`).
+
+### Cambiado
+* **Consolidación 100% Web-First y separación de `audio-extractor`:**
+  * Eliminados los componentes legados exclusivos de escritorio/CLI (`main.py`, `cli.py`, `run_transcriptor.bat`, `environment.yml`, `bin/ffmpeg.exe` y `tests/test_cli.py`) para mantener el repositorio enfocado en Hugging Face Spaces y despliegue web Gradio.
+  * El extractor opcional por lotes en Windows fue separado en su propio repositorio dedicado: [`Klopezxd/audio-extractor`](https://github.com/Klopezxd/audio-extractor), enlazado desde la documentación a su release compilado.
+* **Fijación de dependencias y metadatos:**
+  * Versión del paquete sincronizada en `2.4.5` (`pyproject.toml`, `src/__init__.py`) y dependencia `whisperX` fijada a commit SHA en `requirements.txt`.
+  * Workflows de GitHub Actions (`.github/workflows/lint.yml`, `sync-to-hf.yml`) fijados a commit SHAs con `persist-credentials: false` y verificación estática de seguridad con Ruff (`--select S`).
+
+### Seguridad
+* **Sesiones Admin verificadas en servidor y aislamiento estricto de secretos (`app.py`, `src/auth.py`, `src/utils.py`):**
+  * Autenticación de administrador mediante tokens aleatorios en servidor (`_ADMIN_SESSIONS` con `secrets.token_urlsafe(32)`, validación en tiempo constante vía `hmac.compare_digest`, TTL de inactividad de 60 min y TTL absoluto de 8 h).
+  * Protección privada integral de los secretos del servidor (`HF_TOKEN`, `DEEPGRAM_API_KEY` y `ASSEMBLYAI_API_KEY` permanecen bloqueados y reservados exclusivamente para sesiones Admin; `ALLOW_PUBLIC_HF_TOKEN` permanece en `false` por defecto).
+  * Soporte para hash de PIN `ADMIN_PIN_HASH` (`scrypt$salt_hex$digest_hex`, con retrocompatibilidad para `ADMIN_PIN`), resolución segura de `.env` independiente del directorio de trabajo y 21 de 22 eventos Gradio marcados con `api_visibility="private"`.
+  * Endurecimiento de `src/auth.py` contra IP spoofing mediante validación estricta con `ipaddress`, confianza exclusiva en `X-Forwarded-For` / `CF-Connecting-IP` / `X-Real-IP` desde `TRUSTED_PROXY_IPS` o `TRUST_PROXY_HEADERS=true`, y limitador global secundario contra rotación o evicción LRU.
+  * Aislamiento de descargas por ejecución mediante `output_dir` temporal (`tempfile.mkdtemp`), rechazo de symlinks y verificación de contención canónica en `validate_media_path`, deduplicación de rutas dentro de `create_zip_archive`, `max_file_size` (`MAX_UPLOAD_SIZE_MB`, defecto `2gb`) y `blocked_paths`.
+  * Eliminación de superficies DOM XSS en `assets/js/ui_enhancements.js` sustituyendo `innerHTML` y manejadores inline por `createElement`, `textContent` y `addEventListener`.
+
+### Corregido
+* **Motor WhisperX y conectores Cloud (`src/transcriber.py`, `src/cloud_providers.py`, `src/utils.py`):**
+  * Fallback automático en Fase 3 si falla la carga/ejecución de alineación fonética Wav2Vec2 o si el idioma detectado es desconocido, conservando los segmentos transcritos sin abortar el lote.
+  * Reevaluación dinámica de disponibilidad CUDA dentro de `@spaces.GPU` (`device_auto`), reducción progresiva de `batch_size` (`16 -> 4 -> 1`) y degradación segura a `cpu` (`int8`) ante CUDA OOM.
+  * Reintentos con backoff exponencial y respeto de `Retry-After` ante códigos `408`/`429`/`5xx`, progreso monotónico desacoplado de carga (`ProgressFileReader` con `seek`/`tell`/`readable`), eliminación inmediata de temporales tras subir audio a AssemblyAI, parseo seguro de `speaker`/`null` y endurecimiento de `ffmpeg` (`-nostdin`, `-protocol_whitelist file`, `timeout=180`, soporte `.webm`).
+* **Interfaz Gradio 6.30 / Svelte 5 (`assets/css/theme.css`, `assets/js/ui_enhancements.js`, `src/ui/components.py`, `src/ui/helpers.py`):**
+  * Corrección de reglas `.hidden` frente a `.hide` para evitar la visibilidad simultánea de `🔐 Admin`/`🔓 Salir` y botones ocultos en móvil/pausa.
+  * Sustitución de mutación directa de `textContent` en `#btn_transcribe` durante la cola por `data-queue-label` + CSS `::after` compatible con Svelte 5, y cancelación limpia de `transcribe_evt` y decodificaciones Web Audio al pulsar Limpiar.
+  * Alineación simétrica de columnas en escritorio (`1280x800` y `1920x1080`) bajo `main.fillable > .wrap > .contain` (`equal_height=True`, `align-self: stretch; height: auto`), ajuste sin recorte de la etiqueta `Lossless` y fallback responsivo para viewports bajos (`height < 560px`).
+
 ## [2.4.4] - 2026-11-10
 
 ### Corregido

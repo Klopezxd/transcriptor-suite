@@ -85,6 +85,7 @@ class TranscriptionConfig:
     hf_token: str | None = field(default=None, repr=False)
     api_key: str | None = field(default=None, repr=False)
     language: str | None = None
+    device_auto: bool = False
 
     def __post_init__(self) -> None:
         """Rechaza configuraciones inválidas antes de cargar modelos o consumir créditos."""
@@ -96,9 +97,12 @@ class TranscriptionConfig:
             raise ValueError(f"Dispositivo no soportado: {self.device}")
         if self.compute_type not in {item.value for item in ComputeType}:
             raise ValueError(f"Tipo de cómputo no soportado: {self.compute_type}")
+        if self.device == "cpu" and self.compute_type == ComputeType.FLOAT16.value:
+            object.__setattr__(self, "compute_type", ComputeType.INT8.value)
         if type(self.batch_size) is not int or self.batch_size < 1:
             raise ValueError("El tamaño de lote debe ser un entero positivo.")
         object.__setattr__(self, "timestamp_mode", TimestampMode(self.timestamp_mode))
+        object.__setattr__(self, "device_auto", bool(self.device_auto))
 
     @classmethod
     def create_default(
@@ -117,17 +121,20 @@ class TranscriptionConfig:
         canonical_provider = normalize_provider_name(provider)
         detected_device = "cpu"
         detected_compute = ComputeType.INT8.value
+        is_device_auto = False
 
         # Solo verificar PyTorch CUDA si se utiliza WhisperX
         if canonical_provider == ProviderType.WHISPERX.value:
+            is_device_auto = device is None
             detected_device = device or "cpu"
             detected_compute = compute_type or ComputeType.INT8.value
-            try:
-                import torch
+            if device is None:
+                try:
+                    import torch
 
-                detected_device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-            except ImportError:
-                pass
+                    detected_device = "cuda" if torch.cuda.is_available() else "cpu"
+                except ImportError:
+                    pass
 
         resolved_model = model_name or get_default_model_for_provider(canonical_provider)
 
@@ -141,6 +148,7 @@ class TranscriptionConfig:
             hf_token=hf_token,
             api_key=api_key,
             language=language,
+            device_auto=is_device_auto,
         )
 
 

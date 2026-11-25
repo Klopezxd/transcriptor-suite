@@ -124,19 +124,24 @@
                     }
                 });
 
+                const contentBottom = maxElementBottom > 0 ? Math.ceil(maxElementBottom + 24) : 0;
+
+                // En modo apilado (pantalla dividida, tablet, móvil <= 1024px):
+                // Usar la altura real de los elementos de contenido para permitir crecer y encoger tras limpiar.
+                if (isStacked) {
+                    if (contentBottom > 0) {
+                        return Math.max(lastParentVh || 0, contentBottom);
+                    }
+                    return Math.max(lastParentVh || 0, Math.ceil(Math.max(Number(customH) || 0, containerScroll)));
+                }
+
                 const naturalHeight = Math.ceil(Math.max(
                     Number(customH) || 0,
                     bodyScroll,
                     docScroll,
                     containerScroll,
-                    maxElementBottom > 0 ? (maxElementBottom + 16) : 0
+                    contentBottom
                 ));
-
-                // En modo apilado (pantalla dividida, tablet, móvil <= 1024px):
-                // El iframe DEBE crecer para que todo el contenido sea visible y scrolleable.
-                if (isStacked) {
-                    return Math.max(lastParentVh || 0, naturalHeight);
-                }
 
                 // En modo desktop (2 columnas): si el alto disponible es suficiente (>= 560px),
                 // anclar el iframe a lastParentVh para evitar cualquier barra de scroll vertical en monitor grande.
@@ -187,12 +192,25 @@
 
             // ── MODO ADMIN SEGURO (ZERO RECURSIÓN) ──
             let currentIsAdmin = null;
+            const isElementHidden = (el) =>
+                !el ||
+                el.classList.contains('hidden') ||
+                el.classList.contains('hide') ||
+                el.style.display === 'none';
+
             const updateAdminMode = () => {
                 const keysCard = document.querySelector('.keys-card');
-                const btnLogout = document.querySelector('.btn-login-compact:not([style*="display: none"])');
+                const loginButtons = Array.from(document.querySelectorAll('.btn-login-compact'));
+                const visibleLoginBtn = loginButtons.find((el) => {
+                    if (isElementHidden(el)) return false;
+                    if (window.getComputedStyle) {
+                        return window.getComputedStyle(el).display !== 'none';
+                    }
+                    return true;
+                });
                 const isAdmin = Boolean(
-                    (keysCard && (keysCard.classList.contains('hide') || keysCard.style.display === 'none')) ||
-                    (btnLogout && btnLogout.textContent && btnLogout.textContent.includes('Salir'))
+                    (keysCard && isElementHidden(keysCard)) ||
+                    (visibleLoginBtn && visibleLoginBtn.textContent && visibleLoginBtn.textContent.includes('Salir'))
                 );
                 if (isAdmin !== currentIsAdmin) {
                     currentIsAdmin = isAdmin;
@@ -305,21 +323,6 @@
             watchDpiChange();
 
             // 3. Extracción y Compresión de Audio en el Navegador y Soporte Drag & Drop Continuo
-            window.__downloadAudioExtractorBat = () => {
-                const batContent = `@echo off\r\nsetlocal enabledelayedexpansion\r\ntitle Extractor de Audio - Transcriptor Suite\r\ncolor 0B\r\nchcp 65001 >nul\r\n\r\necho ======================================================\r\necho       EXTRACTOR DE AUDIO - TRANSCRIPTOR SUITE\r\necho ======================================================\r\necho.\r\n\r\n:: 1. Buscar FFmpeg en el sistema\r\nset "FFMPEG="\r\nwhere ffmpeg >nul 2>&1 && set "FFMPEG=ffmpeg"\r\n\r\nif "!FFMPEG!"=="" (\r\n    if exist "%LOCALAPPDATA%\\Microsoft\\WinGet\\Links\\ffmpeg.exe" (\r\n        set "FFMPEG=%LOCALAPPDATA%\\Microsoft\\WinGet\\Links\\ffmpeg.exe"\r\n    ) else if exist "%~dp0ffmpeg.exe" (\r\n        set "FFMPEG=%~dp0ffmpeg.exe"\r\n    ) else if exist "C:\\ffmpeg\\bin\\ffmpeg.exe" (\r\n        set "FFMPEG=C:\\ffmpeg\\bin\\ffmpeg.exe"\r\n    )\r\n)\r\n\r\nif "!FFMPEG!"=="" (\r\n    color 0C\r\n    echo [ERROR] No se encontro FFmpeg en tu computadora.\r\n    echo.\r\n    echo Para instalarlo en 1 minuto, abre PowerShell y escribe:\r\n    echo     winget install Gyan.FFmpeg\r\n    echo.\r\n    echo O descarga ffmpeg.exe y colocalo en esta misma carpeta.\r\n    echo ======================================================\r\n    pause\r\n    exit /b 1\r\n)\r\n\r\n:: 2. Si no arrastro archivos, pedir ruta por teclado\r\nif "%~1"=="" (\r\n    echo Arrastra un archivo de video a esta ventana o escribe su ruta:\r\n    set /p "INPUT_FILE=> "\r\n    set "INPUT_FILE=!INPUT_FILE:"=!"\r\n    if "!INPUT_FILE!"=="" exit /b 0\r\n    call :PROCESAR "!INPUT_FILE!"\r\n    goto :FIN\r\n)\r\n\r\n:: 3. Procesar todos los archivos arrastrados (uno o varios a la vez)\r\n:LOOP\r\nif "%~1"=="" goto :FIN\r\ncall :PROCESAR "%~1"\r\nshift\r\ngoto :LOOP\r\n\r\n:PROCESAR\r\nset "ORIGINAL=%~1"\r\nif not exist "!ORIGINAL!" (\r\n    echo [ERROR] No se encuentra el archivo: "!ORIGINAL!"\r\n    echo.\r\n    exit /b 1\r\n)\r\n\r\nset "DESTINO=%~dpn1_audio.m4a"\r\n\r\necho ------------------------------------------------------\r\necho Procesando: "%~nx1"\r\necho Extrayendo audio en calidad original (Stream Copy)...\r\n\r\n"!FFMPEG!" -y -hide_banner -loglevel warning -stats -i "!ORIGINAL!" -vn -c:a copy "!DESTINO!"\r\n\r\nif !ERRORLEVEL! neq 0 (\r\n    echo [AVISO] Formato no compatible con copia directa. Codificando a AAC...\r\n    "!FFMPEG!" -y -hide_banner -loglevel warning -stats -i "!ORIGINAL!" -vn -c:a aac -b:a 64k -ac 1 "!DESTINO!"\r\n)\r\n\r\nif !ERRORLEVEL! equ 0 (\r\n    echo.\r\n    echo [EXITO] Audio listo para subir:\r\n    echo         "!DESTINO!"\r\n) else (\r\n    echo.\r\n    echo [ERROR] Ocurrio un fallo al procesar "%~nx1".\r\n)\r\necho ------------------------------------------------------\r\necho.\r\nexit /b 0\r\n\r\n:FIN\r\necho ======================================================\r\necho Proceso finalizado.\r\necho Puedes subir los audios generados a Transcriptor Suite.\r\necho ======================================================\r\necho.\r\npause\r\n`;
-                const blob = new Blob([batContent], { type: 'application/x-bat' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'extraer_audio.bat';
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 100);
-            };
-
             // ── ESTADO GLOBAL DE EXTRACCIÓN, SUBIDA Y COLA DE TRANSCRIPCIÓN ──
             let isExtractingAudio = false;
             let isUploadingFiles = false;
@@ -328,6 +331,7 @@
             let isAutoTriggeringTranscription = false;
             let queueTriggerTimer = null;
             let abortCurrentOptimization = false;
+            let uploadGenerationId = 0;
 
             window.__abortOptimization = () => {
                 abortCurrentOptimization = true;
@@ -340,28 +344,25 @@
             };
 
             const getTranscribeButton = () => {
-                let btn = document.querySelector('#btn_transcribe') ||
-                          document.querySelector('.actions-row .btn-primary') ||
-                          document.querySelector('.btn-primary');
-                if (btn) return btn;
-                const buttons = document.querySelectorAll('button');
-                for (let i = 0; i < buttons.length; i++) {
-                    if (/transcri/i.test(buttons[i].textContent || '')) {
-                        return buttons[i];
-                    }
-                }
-                return null;
+                const btn = document.querySelector('#btn_transcribe');
+                if (!btn) return null;
+                if (btn.closest('.modal-dialog, .result-card')) return null;
+                return btn;
+            };
+
+            const isTranscribeButtonInteractable = (btn) => {
+                if (!btn) return false;
+                if (btn.disabled || isElementHidden(btn)) return false;
+                if (btn.closest('.modal-dialog, .result-card')) return false;
+                return true;
             };
 
             const updateQueueButtonVisual = () => {
                 const btn = getTranscribeButton();
                 if (!btn) return;
-                if (isTranscriptionQueued) {
+                if (isTranscriptionQueued && isTranscribeButtonInteractable(btn)) {
                     btn.classList.add('btn-transcribe-queued');
-                    if (!btn.dataset.originalText) {
-                        btn.dataset.originalText = btn.textContent || '⚡ Iniciar Transcripción';
-                    }
-                    btn.textContent = '⏳ En cola (iniciará al terminar subida)';
+                    btn.setAttribute('data-queue-label', '⏳ En cola (iniciará al terminar subida)');
                     btn.title = 'Haz clic para cancelar la ejecución en cola';
 
                     // Actualizar badges en overlays abiertos
@@ -375,13 +376,26 @@
                     });
                 } else {
                     btn.classList.remove('btn-transcribe-queued');
-                    if (btn.dataset.originalText) {
-                        btn.textContent = btn.dataset.originalText;
-                        delete btn.dataset.originalText;
-                    }
+                    btn.removeAttribute('data-queue-label');
                     btn.title = '';
                     document.querySelectorAll('.upload-loading-queue-badge').forEach((el) => el.remove());
                 }
+            };
+
+            const setStatusStripNodes = (strip, contentClass, nodes) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = contentClass ? `status-strip-content ${contentClass}` : 'status-strip-content';
+                nodes.forEach((node) => {
+                    if (node) wrapper.appendChild(node);
+                });
+                strip.replaceChildren(wrapper);
+            };
+
+            const makeSpan = (className, text) => {
+                const el = document.createElement('span');
+                if (className) el.className = className;
+                el.textContent = text;
+                return el;
             };
 
             const checkAndExecuteQueue = () => {
@@ -394,7 +408,11 @@
                     if (isExtractingAudio || isUploadingFiles || activeUploadCount > 0) return;
 
                     const btn = getTranscribeButton();
-                    if (!btn) return;
+                    if (!isTranscribeButtonInteractable(btn)) {
+                        isTranscriptionQueued = false;
+                        updateQueueButtonVisual();
+                        return;
+                    }
 
                     console.log('[Transcriptor] Ejecutando automáticamente transcripción en cola.');
                     isTranscriptionQueued = false;
@@ -402,12 +420,10 @@
 
                     const strip = document.querySelector('.file-status-strip');
                     if (strip) {
-                        strip.innerHTML = `
-                            <div class="status-strip-content is-optimized">
-                                <span class="status-pill success">🚀 Cola ejecutada</span>
-                                <span class="status-text">Iniciando transcripción de archivos...</span>
-                            </div>
-                        `;
+                        setStatusStripNodes(strip, 'is-optimized', [
+                            makeSpan('status-pill success', '🚀 Cola ejecutada'),
+                            makeSpan('status-text', 'Iniciando transcripción de archivos...'),
+                        ]);
                     }
 
                     isAutoTriggeringTranscription = true;
@@ -618,51 +634,59 @@
                 });
             };
 
-            const defaultStripContent = `
-                <div class="status-strip-content">
-                    <span class="status-formats">Formatos: WAV, FLAC, M4A, MP3, MP4, MKV, WEBM</span>
-                    <span class="status-dot">·</span>
-                    <span class="status-hint">⚡ Audio sin pérdida (Lossless)</span>
-                </div>
-            `;
-
             const updateFileStatusStrip = (zone, stats) => {
                 const strip = document.querySelector('.file-status-strip');
                 if (!strip) return;
 
                 if (!stats || !stats.processed) {
-                    strip.innerHTML = defaultStripContent;
+                    setStatusStripNodes(strip, '', [
+                        makeSpan('status-formats', 'Formatos: WAV, FLAC, M4A, MP3, MP4, MKV, WEBM'),
+                        makeSpan('status-dot', '·'),
+                        makeSpan('status-hint', '⚡ Audio sin pérdida (Lossless)'),
+                    ]);
                     return;
                 }
 
                 if (stats.success) {
-                    strip.innerHTML = `
-                        <div class="status-strip-content is-optimized">
-                            <span class="status-pill success">⚡ WAV 16 kHz (Sin pérdida)</span>
-                            <span class="status-text">${stats.origMb} ➔ <b>${stats.optMb}</b> (${stats.savingsPct}% menos subida)</span>
-                        </div>
-                    `;
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'status-text';
+                    textSpan.appendChild(document.createTextNode(`${stats.origMb} ➔ `));
+                    const boldMb = document.createElement('b');
+                    boldMb.textContent = String(stats.optMb || '');
+                    textSpan.appendChild(boldMb);
+                    textSpan.appendChild(document.createTextNode(` (${stats.savingsPct}% menos subida)`));
+
+                    setStatusStripNodes(strip, 'is-optimized', [
+                        makeSpan('status-pill success', '⚡ WAV 16 kHz (Sin pérdida)'),
+                        textSpan,
+                    ]);
                 } else if (stats.largeVideo) {
-                    strip.innerHTML = `
-                        <div class="status-strip-content is-server">
-                            <span class="status-pill server">⚡ Video extenso (${stats.origMb})</span>
-                            <span class="status-text">La IA solo necesita el audio · Sube más rápido con <a href="javascript:void(0)" onclick="window.__downloadAudioExtractorBat()" class="status-strip-link" title="Haz clic para descargar extraer_audio.bat directamente">extraer_audio.bat ⬇</a></span>
-                        </div>
-                    `;
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'status-text';
+                    textSpan.appendChild(document.createTextNode('La IA solo necesita el audio · Sube más rápido con '));
+                    const link = document.createElement('a');
+                    link.href = 'https://github.com/Klopezxd/audio-extractor/releases/latest/download/extraer_audio.bat';
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.className = 'status-strip-link';
+                    link.title = 'Descargar extraer_audio.bat desde GitHub Releases';
+                    link.textContent = 'extraer_audio.bat ⬇';
+                    textSpan.appendChild(link);
+
+                    setStatusStripNodes(strip, 'is-server', [
+                        makeSpan('status-pill server', `⚡ Video extenso (${stats.origMb})`),
+                        textSpan,
+                    ]);
                 } else if (stats.directUpload) {
-                    strip.innerHTML = `
-                        <div class="status-strip-content is-server">
-                            <span class="status-pill server">⚡ Subida directa (${stats.origMb})</span>
-                            <span class="status-text">${stats.count} archivo(s) listos · Extracción nativa en servidor</span>
-                        </div>
-                    `;
+                    setStatusStripNodes(strip, 'is-server', [
+                        makeSpan('status-pill server', `⚡ Subida directa (${stats.origMb})`),
+                        makeSpan('status-text', `${stats.count} archivo(s) listos · Extracción nativa en servidor`),
+                    ]);
                 } else {
-                    strip.innerHTML = `
-                        <div class="status-strip-content is-server">
-                            <span class="status-pill server">⚡ Subida directa (${stats.origMb})</span>
-                            <span class="status-text">Extracción de audio en servidor</span>
-                        </div>
-                    `;
+                    setStatusStripNodes(strip, 'is-server', [
+                        makeSpan('status-pill server', `⚡ Subida directa (${stats.origMb})`),
+                        makeSpan('status-text', 'Extracción de audio en servidor'),
+                    ]);
                 }
             };
 
@@ -675,6 +699,13 @@
                 return document.querySelector('.file-upload-zone') || zone;
             };
 
+            const createQueueBadgeNode = () => {
+                const badge = document.createElement('div');
+                badge.className = 'upload-loading-queue-badge';
+                badge.textContent = '⏳ Transcripción en cola: iniciará automáticamente al completar';
+                return badge;
+            };
+
             const updateExtractingOverlay = (zone, current, total, fileName, stageText) => {
                 const targetZone = getUploadZone(zone);
                 if (!targetZone) return;
@@ -685,20 +716,51 @@
                     overlay.addEventListener('click', (e) => e.stopPropagation());
                     targetZone.appendChild(overlay);
                 }
-                const queueBadgeHtml = isTranscriptionQueued ?
-                    '<div class="upload-loading-queue-badge">⏳ Transcripción en cola: iniciará automáticamente al completar</div>' : '';
-                overlay.innerHTML = `
-                    <button class="overlay-dismiss-btn" title="Omitir optimización y subir archivo original" onclick="window.__abortOptimization && window.__abortOptimization()">✕</button>
-                    <div class="upload-overlay-body">
-                        <div class="upload-spinner"></div>
-                        <div class="upload-loading-info">
-                            <div class="upload-loading-text">⚡ Optimizando video (${current}/${total})...</div>
-                            <div class="upload-loading-subtext">${stageText || 'Extrayendo audio localmente'} · ${fileName}</div>
-                            ${queueBadgeHtml}
-                            <button type="button" class="btn-skip-optimization" onclick="window.__abortOptimization && window.__abortOptimization()">⚡ Omitir y subir directo</button>
-                        </div>
-                    </div>
-                `;
+
+                const dismissBtn = document.createElement('button');
+                dismissBtn.type = 'button';
+                dismissBtn.className = 'overlay-dismiss-btn';
+                dismissBtn.title = 'Omitir optimización y subir archivo original';
+                dismissBtn.textContent = '✕';
+                dismissBtn.addEventListener('click', () => {
+                    if (window.__abortOptimization) window.__abortOptimization();
+                });
+
+                const body = document.createElement('div');
+                body.className = 'upload-overlay-body';
+
+                const spinner = document.createElement('div');
+                spinner.className = 'upload-spinner';
+
+                const info = document.createElement('div');
+                info.className = 'upload-loading-info';
+
+                const loadingText = document.createElement('div');
+                loadingText.className = 'upload-loading-text';
+                loadingText.textContent = `⚡ Optimizando video (${current}/${total})...`;
+
+                const loadingSubtext = document.createElement('div');
+                loadingSubtext.className = 'upload-loading-subtext';
+                loadingSubtext.textContent = `${stageText || 'Extrayendo audio localmente'} · ${fileName || ''}`;
+
+                info.appendChild(loadingText);
+                info.appendChild(loadingSubtext);
+                if (isTranscriptionQueued) {
+                    info.appendChild(createQueueBadgeNode());
+                }
+
+                const skipBtn = document.createElement('button');
+                skipBtn.type = 'button';
+                skipBtn.className = 'btn-skip-optimization';
+                skipBtn.textContent = '⚡ Omitir y subir directo';
+                skipBtn.addEventListener('click', () => {
+                    if (window.__abortOptimization) window.__abortOptimization();
+                });
+                info.appendChild(skipBtn);
+
+                body.appendChild(spinner);
+                body.appendChild(info);
+                overlay.replaceChildren(dismissBtn, body);
             };
 
             const showUploadOverlay = (zone, stats, title, sub) => {
@@ -717,32 +779,53 @@
 
                 if (stats && stats.success) {
                     defaultTitle = `⚡ ¡Audio sin pérdida extraído! ${stats.origMb} ➔ ${stats.optMb} (-${stats.savingsPct}%)`;
-                    defaultSub = `⬆ Subiendo WAV PCM 16 kHz · Máxima fidelidad acústica`;
+                    defaultSub = '⬆ Subiendo WAV PCM 16 kHz · Máxima fidelidad acústica';
                 } else if (stats && stats.largeVideo) {
                     defaultTitle = `⬆ Subiendo video (${stats.origMb})...`;
-                    defaultSub = `La IA solo necesita el audio · Sube más rápido con extraer_audio.bat`;
+                    defaultSub = 'La IA solo necesita el audio · Descarga extraer_audio.bat en GitHub para subir más rápido';
                 } else if (stats && stats.directUpload) {
                     defaultTitle = `⬆ Subiendo ${stats.count} archivo(s) (${stats.origMb})...`;
-                    defaultSub = `Subida directa · Extracción nativa con FFmpeg en servidor`;
+                    defaultSub = 'Subida directa · Extracción nativa con FFmpeg en servidor';
                 } else if (stats && stats.mb) {
                     defaultTitle = stats.anyAudio ? '⬆ Subiendo audio al servidor...' : `Subiendo ${stats.count} archivo(s)...`;
                     defaultSub = `${stats.mb} · Transfiriendo a Hugging Face Space`;
                 }
 
-                const queueBadgeHtml = isTranscriptionQueued ?
-                    '<div class="upload-loading-queue-badge">⏳ Transcripción en cola: iniciará automáticamente al completar</div>' : '';
+                const dismissBtn = document.createElement('button');
+                dismissBtn.type = 'button';
+                dismissBtn.className = 'overlay-dismiss-btn';
+                dismissBtn.title = 'Cerrar overlay';
+                dismissBtn.textContent = '✕';
+                dismissBtn.addEventListener('click', () => {
+                    overlay.remove();
+                });
 
-                overlay.innerHTML = `
-                    <button class="overlay-dismiss-btn" title="Cerrar overlay" onclick="this.closest('.upload-loading-overlay').remove()">✕</button>
-                    <div class="upload-overlay-body">
-                        <div class="upload-spinner"></div>
-                        <div class="upload-loading-info">
-                            <div class="upload-loading-text">${title || defaultTitle}</div>
-                            <div class="upload-loading-subtext">${sub || defaultSub}</div>
-                            ${queueBadgeHtml}
-                        </div>
-                    </div>
-                `;
+                const body = document.createElement('div');
+                body.className = 'upload-overlay-body';
+
+                const spinner = document.createElement('div');
+                spinner.className = 'upload-spinner';
+
+                const info = document.createElement('div');
+                info.className = 'upload-loading-info';
+
+                const loadingText = document.createElement('div');
+                loadingText.className = 'upload-loading-text';
+                loadingText.textContent = title || defaultTitle;
+
+                const loadingSubtext = document.createElement('div');
+                loadingSubtext.className = 'upload-loading-subtext';
+                loadingSubtext.textContent = sub || defaultSub;
+
+                info.appendChild(loadingText);
+                info.appendChild(loadingSubtext);
+                if (isTranscriptionQueued) {
+                    info.appendChild(createQueueBadgeNode());
+                }
+
+                body.appendChild(spinner);
+                body.appendChild(info);
+                overlay.replaceChildren(dismissBtn, body);
             };
 
             const hideUploadOverlay = () => {
@@ -923,13 +1006,27 @@
                 }
             };
 
-            // Multi-Network Hook (Fetch y XHR) para ocultar el overlay inmediatamente al finalizar el upload
+            // Multi-Network Hook (Fetch y XHR) acotado al origen actual para ocultar el overlay al finalizar upload
+            const isGradioUploadRequest = (rawUrl, body) => {
+                try {
+                    const parsed = new URL(String(rawUrl || ''), window.location.href);
+                    if (parsed.origin !== window.location.origin) return false;
+                    if (/(?:^|\/)(?:gradio_api\/)?upload(?:\/|$)/.test(parsed.pathname)) {
+                        return true;
+                    }
+                    return body instanceof FormData || body instanceof Blob || body instanceof File;
+                } catch {
+                    return false;
+                }
+            };
+
             if (!window.__transcriptorHookedFetch && window.fetch) {
                 window.__transcriptorHookedFetch = true;
                 const origFetch = window.fetch;
                 window.fetch = async function(...args) {
                     const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
-                    const isUpload = url.includes('/upload') || (args[1] && (args[1].body instanceof FormData || args[1].body instanceof Blob || args[1].body instanceof File));
+                    const body = args[1] ? args[1].body : undefined;
+                    const isUpload = isGradioUploadRequest(url, body);
                     if (isUpload) {
                         activeUploadCount++;
                         isUploadingFiles = true;
@@ -968,11 +1065,14 @@
                 };
                 XMLHttpRequest.prototype.send = function(...args) {
                     const url = this.__transcriptorUrl || '';
-                    const isUpload = url.includes('/upload') || (args[0] && (args[0] instanceof FormData || args[0] instanceof Blob || args[0] instanceof File));
+                    const isUpload = isGradioUploadRequest(url, args[0]);
                     if (isUpload) {
                         activeUploadCount++;
                         isUploadingFiles = true;
-                        this.addEventListener('loadend', () => {
+                        let finalized = false;
+                        const finishUpload = () => {
+                            if (finalized) return;
+                            finalized = true;
                             setTimeout(() => {
                                 activeUploadCount = Math.max(0, activeUploadCount - 1);
                                 if (activeUploadCount === 0) {
@@ -981,22 +1081,29 @@
                                     checkAndExecuteQueue();
                                 }
                             }, 300);
-                        });
+                        };
+                        this.addEventListener('loadend', finishUpload, { once: true });
+                        try {
+                            return origSend.apply(this, args);
+                        } catch (err) {
+                            finalized = true;
+                            activeUploadCount = Math.max(0, activeUploadCount - 1);
+                            if (activeUploadCount === 0) isUploadingFiles = false;
+                            hideUploadOverlay();
+                            throw err;
+                        }
                     }
                     return origSend.apply(this, args);
                 };
             }
 
-            // Interceptar clic en "Iniciar Transcripción" mientras se procesan o suben archivos para poner en cola
+            // Interceptar clic exclusivamente en #btn_transcribe visible/habilitado para poner en cola
             document.addEventListener('click', (e) => {
-                let btn = e.target.closest('#btn_transcribe, .actions-row .btn-primary, .btn-primary');
-                if (!btn) {
-                    const candidate = e.target.closest('button');
-                    if (candidate && /transcri/i.test(candidate.textContent || '')) {
-                        btn = candidate;
-                    }
+                if (e.target && e.target.closest && e.target.closest('#btn_stop_transcribe')) {
+                    return;
                 }
-                if (!btn) return;
+                const btn = e.target && e.target.closest ? e.target.closest('#btn_transcribe') : null;
+                if (!isTranscribeButtonInteractable(btn)) return;
 
                 if (isAutoTriggeringTranscription) {
                     // Clic automático generado por la cola al estar todo listo: permitir que fluya a Gradio
@@ -1044,9 +1151,14 @@
                     // Interceptar antes de que Gradio comience la subida del video pesado
                     e.stopImmediatePropagation();
                     e.preventDefault();
+                    const myGen = uploadGenerationId;
 
                     try {
                         const { files: processedFiles, stats } = await processFilesWithAudioExtraction(zone, originalFiles);
+                        if (myGen !== uploadGenerationId) {
+                            hideUploadOverlay();
+                            return;
+                        }
                         renderOptimizationBadge(zone, stats);
                         const dt = new DataTransfer();
                         processedFiles.forEach((f) => dt.items.add(f));
@@ -1055,6 +1167,10 @@
                         handleFilesUploadStart(zone, dt.files, stats);
                         target.dispatchEvent(new Event('change', { bubbles: true }));
                     } catch (err) {
+                        if (myGen !== uploadGenerationId) {
+                            hideUploadOverlay();
+                            return;
+                        }
                         console.warn('[Transcriptor] Fallback a subida original:', err);
                         renderOptimizationBadge(zone, {
                             processed: true,
@@ -1106,8 +1222,13 @@
                         const fileInput = getUploadInput(zone);
                         if (fileInput) {
                             const rawFiles = Array.from(e.dataTransfer.files);
+                            const myGen = uploadGenerationId;
                             try {
                                 const { files: processedFiles, stats } = await processFilesWithAudioExtraction(zone, rawFiles);
+                                if (myGen !== uploadGenerationId) {
+                                    hideUploadOverlay();
+                                    return;
+                                }
                                 renderOptimizationBadge(zone, stats);
                                 const dt = new DataTransfer();
                                 processedFiles.forEach((f) => dt.items.add(f));
@@ -1116,6 +1237,10 @@
                                 handleFilesUploadStart(zone, dt.files, stats);
                                 fileInput.dispatchEvent(new Event('change', { bubbles: true }));
                             } catch (err) {
+                                if (myGen !== uploadGenerationId) {
+                                    hideUploadOverlay();
+                                    return;
+                                }
                                 console.warn('[Transcriptor] Fallback drop a original:', err);
                                 renderOptimizationBadge(zone, {
                                     processed: true,
@@ -1135,16 +1260,20 @@
                 }
             }, true);
 
-            // Limpieza del badge de optimización y reset de cola al vaciar la lista
+            // Limpieza del badge de optimización, cancelación de decodificación en curso y reset de cola/iframe
             document.addEventListener('click', (e) => {
                 const clearBtn = e.target && e.target.closest ? e.target.closest('#btn_clear, .file-upload-zone [aria-label*="Clear"], .file-upload-zone .icon-button-wrapper > button:last-child') : null;
                 if (clearBtn) {
+                    uploadGenerationId++;
+                    abortCurrentOptimization = true;
                     isTranscriptionQueued = false;
                     isExtractingAudio = false;
                     isUploadingFiles = false;
                     activeUploadCount = 0;
+                    hideUploadOverlay();
                     updateQueueButtonVisual();
                     renderOptimizationBadge(null, null);
+                    setTimeout(syncIframeSize, 180);
                 }
             }, true);
         }

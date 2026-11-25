@@ -69,6 +69,9 @@ main.contain {
     .gradio-container,
     .gradio-container > .main,
     .gradio-container > .main > .wrap,
+    .gradio-container > main.fillable,
+    .gradio-container > main.fillable > .wrap,
+    .gradio-container > main.fillable .contain,
     main.contain,
     main.contain > .wrap,
     .gradio-container div:has(> .main-body-row) {
@@ -102,7 +105,8 @@ main.contain {
         flex-direction: column !important;
         flex-wrap: nowrap !important;
         justify-content: space-between !important;
-        height: 100% !important;
+        align-self: stretch !important;
+        height: auto !important;
         min-height: 0 !important;
         gap: clamp(4px, 0.9vh, 14px) !important;
         overflow: visible !important;
@@ -148,8 +152,9 @@ main.contain {
         flex-direction: column !important;
         flex-wrap: nowrap !important;
         justify-content: space-between !important;
-        height: 100% !important;
-        min-height: 100% !important;
+        align-self: stretch !important;
+        height: auto !important;
+        min-height: 0 !important;
     }
 
     body.admin-mode .options-card,
@@ -393,6 +398,11 @@ main.contain {
     transform: translateY(-1px) !important;
 }
 
+.btn-login-compact.hidden,
+.btn-login-compact.hide {
+    display: none !important;
+}
+
 /* ── MODULOS EN CUADROS REDONDEADOS (AURORA BOREAL RESPONSIVOS) ── */
 .module-card {
     background: #0A1628 !important;
@@ -526,14 +536,19 @@ main.contain {
 }
 
 /* ── FORM ELEMENTS SUAVES, GRANDES Y LEGIBLES ──────────── */
+.options-card .row,
+.gradio-container .column.options-card .row {
+    align-items: flex-end !important;
+}
+
 .gradio-container label span,
 .module-card span[data-testid="block-info"] {
     font-family: 'Montserrat', sans-serif !important;
-    font-size: clamp(0.80rem, 1.62vh, 0.96rem) !important;
+    font-size: clamp(0.76rem, 1.50vh, 0.94rem) !important;
     font-weight: 700 !important;
     color: #A3BBD6 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.03em !important;
+    letter-spacing: 0.025em !important;
     margin-bottom: clamp(3px, 0.5vh, 6px) !important;
     line-height: 1.2 !important;
 }
@@ -1593,25 +1608,24 @@ li[role="option"][aria-selected="true"],
     margin-top: 4px !important;
     padding: 2px 4px !important;
     min-height: 22px !important;
-    max-height: 26px !important;
+    max-height: none !important;
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
     box-sizing: border-box !important;
-    overflow: hidden !important;
-    white-space: nowrap !important;
-    text-overflow: ellipsis !important;
+    overflow: visible !important;
+    white-space: normal !important;
 }
 
 .status-strip-content {
-    display: inline-flex !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
     align-items: center !important;
-    gap: 6px !important;
-    font-size: clamp(0.72rem, 1.35vh, 0.80rem) !important;
-    line-height: 1.2 !important;
-    white-space: nowrap !important;
-    text-overflow: ellipsis !important;
-    overflow: hidden !important;
+    gap: 4px 6px !important;
+    font-size: clamp(0.68rem, 1.28vh, 0.78rem) !important;
+    line-height: 1.25 !important;
+    white-space: normal !important;
+    max-width: 100% !important;
 }
 
 .status-strip-content .status-formats {
@@ -1695,7 +1709,8 @@ li[role="option"][aria-selected="true"],
     display: flex !important;
     flex-direction: column !important;
     flex-wrap: nowrap !important;
-    height: 100% !important;
+    align-self: stretch !important;
+    height: auto !important;
     min-height: 0 !important;
 }
 
@@ -1706,7 +1721,8 @@ li[role="option"][aria-selected="true"],
     flex-direction: column !important;
     flex-wrap: nowrap !important;
     justify-content: space-between !important;
-    height: 100% !important;
+    align-self: stretch !important;
+    height: auto !important;
     min-height: 0 !important;
     gap: clamp(6px, 1vh, 14px) !important;
 }
@@ -1723,7 +1739,7 @@ li[role="option"][aria-selected="true"],
     flex: 1 1 0% !important;
     display: flex !important;
     flex-direction: column !important;
-    height: 100% !important;
+    height: auto !important;
     min-height: 0 !important;
     position: relative !important;
 }
@@ -1905,6 +1921,20 @@ li[role="option"][aria-selected="true"],
     transform: translateY(-1px) !important;
 }
 
+#btn_transcribe.btn-transcribe-queued[data-queue-label] {
+    font-size: 0 !important;
+    color: transparent !important;
+}
+
+#btn_transcribe.btn-transcribe-queued[data-queue-label]::after {
+    content: attr(data-queue-label);
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: clamp(0.95rem, 1.9vh, 1.15rem) !important;
+    line-height: 1.2 !important;
+    color: #050B1A !important;
+}
+
 @keyframes pulseTranscribeQueued {
     0%, 100% {
         transform: scale(1);
@@ -1914,6 +1944,49 @@ li[role="option"][aria-selected="true"],
         transform: scale(1.02);
         box-shadow: 0 6px 24px rgba(255, 184, 0, 0.7), 0 0 22px rgba(255, 138, 0, 0.55);
     }
+}
+
+/* ── BOTÓN DE PARADA ELEGANTE EN LOTE (REEMPLAZA AL PRINCIPAL MIENTRAS CORRE) ── */
+#btn_transcribe.hide,
+#btn_transcribe.hidden,
+#btn_stop_transcribe.hide,
+#btn_stop_transcribe.hidden,
+.left-column .actions-row .hide,
+.left-column .actions-row .hidden {
+    display: none !important;
+}
+
+.btn-stop-transcribe,
+#btn_stop_transcribe {
+    background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%) !important;
+    color: #FAFBFC !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: clamp(0.92rem, 1.85vh, 1.10rem) !important;
+    border: 1px solid rgba(255, 75, 43, 0.55) !important;
+    border-radius: 10px !important;
+    height: clamp(38px, 5.1vh, 50px) !important;
+    min-height: clamp(38px, 5.1vh, 50px) !important;
+    padding: 6px 16px !important;
+    box-shadow: 0 4px 14px rgba(255, 65, 108, 0.35) !important;
+    transition: all 0.25s ease !important;
+    cursor: pointer !important;
+}
+
+.btn-stop-transcribe:hover,
+#btn_stop_transcribe:hover {
+    background: linear-gradient(135deg, #FF5E7E 0%, #FF6B4A 100%) !important;
+    box-shadow: 0 6px 20px rgba(255, 65, 108, 0.55), 0 0 14px rgba(255, 75, 43, 0.35) !important;
+    transform: translateY(-1px) !important;
+}
+
+.btn-stop-transcribe.is-stopping,
+#btn_stop_transcribe.is-stopping {
+    background: linear-gradient(135deg, #FFB800 0%, #FF8A00 100%) !important;
+    color: #050B1A !important;
+    border-color: rgba(255, 184, 0, 0.65) !important;
+    box-shadow: 0 4px 18px rgba(255, 184, 0, 0.45) !important;
+    animation: pulseTranscribeQueued 1.8s infinite ease-in-out !important;
 }
 
 .btn-secondary {
@@ -2470,9 +2543,14 @@ div.modal-overlay:not(.hide),
     }
 
     .btn-primary,
-    .btn-secondary {
+    .btn-secondary,
+    .btn-stop-transcribe {
         height: 48px !important;
         min-height: 48px !important;
+        font-size: 1.0rem !important;
+    }
+
+    #btn_transcribe.btn-transcribe-queued[data-queue-label]::after {
         font-size: 1.0rem !important;
     }
 
@@ -2702,12 +2780,17 @@ div.modal-overlay:not(.hide),
         padding: 6px 8px !important;
     }
 
-    .left-column .actions-row .btn-primary {
+    .left-column .actions-row .btn-primary,
+    .left-column .actions-row .btn-stop-transcribe {
         flex: 2 1 0% !important;
         height: 48px !important;
         min-height: 48px !important;
         font-size: 0.94rem !important;
         padding: 6px 10px !important;
+    }
+
+    .left-column .actions-row #btn_transcribe.btn-transcribe-queued[data-queue-label]::after {
+        font-size: 0.94rem !important;
     }
 
     /* Módulo 4: Textarea de resultados espacioso y botones apilados */
@@ -2727,9 +2810,9 @@ div.modal-overlay:not(.hide),
         width: 100% !important;
     }
 
-    .result-card .actions-row > *,
-    .result-card .actions-row button,
-    .result-card .actions-row a {
+    .result-card .actions-row > :not(.hidden):not(.hide),
+    .result-card .actions-row button:not(.hidden):not(.hide),
+    .result-card .actions-row a:not(.hidden):not(.hide) {
         width: 100% !important;
         flex: 1 1 auto !important;
         height: 46px !important;
@@ -2738,6 +2821,11 @@ div.modal-overlay:not(.hide),
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+    }
+
+    .result-card .actions-row .hidden,
+    .result-card .actions-row .hide {
+        display: none !important;
     }
 
     /* Modal de Administrador en móvil */
@@ -2810,6 +2898,91 @@ div.modal-overlay:not(.hide),
     [role="option"] {
         min-height: 44px !important;
         padding: 10px 14px !important;
+    }
+}
+
+/* ── OCULTACIÓN GLOBAL DE CREDENCIALES Y RESPUESTA PARA DESKTOP CON ALTURA BAJA (<= 559px) ── */
+.keys-card.hide,
+.keys-card[style*="display: none"],
+.gradio-container .column.keys-card.hide,
+.gradio-container .column.keys-card[style*="display: none"] {
+    display: none !important;
+}
+
+@media (min-width: 1025px) and (max-height: 559px) {
+    html,
+    body,
+    gradio-app {
+        height: auto !important;
+        min-height: 100% !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    .gradio-container,
+    .gradio-container > .main,
+    .gradio-container > .main > .wrap,
+    main.contain,
+    main.contain > .wrap {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .main-body-row,
+    .gradio-container .row.main-body-row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .left-column,
+    .gradio-container .column.left-column,
+    .result-column,
+    .gradio-container .column.result-column {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+    }
+
+    .upload-card,
+    .gradio-container .column.upload-card {
+        min-height: 150px !important;
+        height: auto !important;
+    }
+
+    .file-upload-zone,
+    .upload-card .file-upload-zone,
+    .file-upload-zone button.boundedheight {
+        min-height: 120px !important;
+        height: auto !important;
+    }
+
+    .file-upload-zone .file-preview-holder {
+        min-height: 90px !important;
+        max-height: 200px !important;
+    }
+
+    .output-textbox,
+    .output-textbox > div:not([data-testid="status-tracker"]),
+    .output-textbox .container,
+    .output-textbox label,
+    .output-textbox .input-container {
+        height: auto !important;
+        min-height: 240px !important;
+        flex: 1 1 auto !important;
+    }
+
+    .output-textbox textarea {
+        height: 300px !important;
+        min-height: 240px !important;
+        max-height: 520px !important;
+        resize: vertical !important;
     }
 }
 

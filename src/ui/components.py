@@ -57,6 +57,7 @@ class UIComponents:
     # Botones de acción principales
     btn_clear: gr.Button
     btn_transcribe: gr.Button
+    btn_stop_transcribe: gr.Button
 
     # Módulo 4: Resultados y descargas
     status_badge: gr.HTML
@@ -320,11 +321,15 @@ def render_credentials_card() -> tuple[
     )
 
 
-def render_action_buttons() -> tuple[gr.Button, gr.Button]:
-    """Renderiza la fila de botones de acción rápida (Limpiar y Transcribir)."""
+def render_action_buttons() -> tuple[gr.Button, gr.Button, gr.Button]:
+    """Renderiza la fila de botones de acción rápida (Limpiar, Transcribir y Detener)."""
     with gr.Row(elem_classes=["actions-row"]):
         btn_clear = gr.Button(
-            "🗑️ Limpiar", variant="secondary", elem_classes=["btn-secondary"], scale=1
+            "🗑️ Limpiar",
+            variant="secondary",
+            elem_id="btn_clear",
+            elem_classes=["btn-secondary"],
+            scale=1,
         )
         btn_transcribe = gr.Button(
             "⚡ Iniciar Transcripción",
@@ -333,7 +338,15 @@ def render_action_buttons() -> tuple[gr.Button, gr.Button]:
             elem_classes=["btn-primary"],
             scale=2,
         )
-    return btn_clear, btn_transcribe
+        btn_stop_transcribe = gr.Button(
+            "🛑 Detener tras este archivo",
+            variant="stop",
+            elem_id="btn_stop_transcribe",
+            elem_classes=["btn-stop-transcribe"],
+            visible=False,
+            scale=2,
+        )
+    return btn_clear, btn_transcribe, btn_stop_transcribe
 
 
 def render_results_card() -> tuple[
@@ -410,9 +423,9 @@ def render_footer() -> None:
     )
 
 
-def render_transcriptor_ui(custom_css: str) -> UIComponents:
+def render_transcriptor_ui(custom_css: str = "") -> UIComponents:
     """Ensambla el diseño completo de dos columnas de la suite."""
-    gr.HTML(f"<style>{custom_css}</style>")
+    _ = custom_css  # Los estilos se cargan vía theme/launch kwargs sin duplicar <style> en el DOM.
 
     admin_state = gr.State(value=False)
     batch_cache_state = gr.State(value={"cached_results": {}})
@@ -427,7 +440,7 @@ def render_transcriptor_ui(custom_css: str) -> UIComponents:
         btn_submit_login,
     ) = render_login_modal()
 
-    with gr.Row(elem_classes=["main-body-row"]):
+    with gr.Row(equal_height=True, elem_classes=["main-body-row"]):
         # Columna Izquierda: Entrada y Opciones
         with gr.Column(scale=5, elem_classes=["left-column"]):
             media_input = render_media_upload_card()
@@ -445,7 +458,7 @@ def render_transcriptor_ui(custom_css: str) -> UIComponents:
                 deepgram_key_box,
                 assemblyai_key_box,
             ) = render_credentials_card()
-            btn_clear, btn_transcribe = render_action_buttons()
+            btn_clear, btn_transcribe, btn_stop_transcribe = render_action_buttons()
 
         # Columna Derecha: Resultado y Descargas
         with gr.Column(scale=6, elem_classes=["result-column"]):
@@ -483,6 +496,7 @@ def render_transcriptor_ui(custom_css: str) -> UIComponents:
         assemblyai_key_box=assemblyai_key_box,
         btn_clear=btn_clear,
         btn_transcribe=btn_transcribe,
+        btn_stop_transcribe=btn_stop_transcribe,
         status_badge=status_badge,
         output_textbox=output_textbox,
         btn_download=btn_download,

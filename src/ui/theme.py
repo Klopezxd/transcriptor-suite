@@ -1,6 +1,21 @@
 """Definición del tema Gradio (Aurora Boreal Nórdica) y argumentos de inicialización."""
 
+import os
+
 import gradio as gr
+
+
+def _resolve_max_file_size() -> str:
+    """Resuelve el tamaño máximo de archivo permitido desde MAX_UPLOAD_SIZE_MB (por defecto 2gb)."""
+    raw_mb = os.getenv("MAX_UPLOAD_SIZE_MB", "").strip()
+    if raw_mb:
+        try:
+            mb_value = int(raw_mb)
+            if mb_value > 0:
+                return f"{mb_value}mb"
+        except ValueError:
+            pass
+    return "2gb"
 
 
 def get_custom_theme() -> gr.themes.Base:
@@ -41,7 +56,10 @@ def get_blocks_and_launch_kwargs(
 ) -> tuple[dict, dict]:
     """Determina los argumentos compatibles según la versión mayor de Gradio instalada."""
     blocks_kwargs = {"title": "Transcriptor Suite"}
-    launch_kwargs = {}
+    launch_kwargs: dict = {
+        "max_file_size": _resolve_max_file_size(),
+        "blocked_paths": [".env", ".git", "src", "app.py", "tests"],
+    }
 
     try:
         gradio_major = int(gr.__version__.split(".")[0])

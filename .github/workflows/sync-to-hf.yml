@@ -17,10 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
           lfs: true
+          persist-credentials: false
 
       - name: Inject Hugging Face Space Metadata
         run: |
@@ -42,7 +43,7 @@ jobs:
           rm hf_header.txt
 
       - name: Push to Hugging Face
-        uses: huggingface/hub-sync@v0.3.0
+        uses: huggingface/hub-sync@fdffea8e04104d0bd4e3181c5feb3025f0433ff5 # v0.3.0
         with:
           github_repo_id: ${{ github.repository }}
           huggingface_repo_id: Klopezxd/transcriptor-suite
