@@ -665,12 +665,12 @@
                     textSpan.className = 'status-text';
                     textSpan.appendChild(document.createTextNode('La IA solo necesita el audio · Sube más rápido con '));
                     const link = document.createElement('a');
-                    link.href = 'https://github.com/Klopezxd/audio-extractor/releases/latest/download/extraer_audio.bat';
+                    link.href = 'https://github.com/Klopezxd/audio-extractor/releases/tag/latest';
                     link.target = '_blank';
                     link.rel = 'noopener noreferrer';
                     link.className = 'status-strip-link';
-                    link.title = 'Descargar extraer_audio.bat desde GitHub Releases';
-                    link.textContent = 'extraer_audio.bat ⬇';
+                    link.title = 'Ver código fuente, guía de uso y descargar extraer_audio.bat en GitHub Releases';
+                    link.textContent = 'extraer_audio.bat ↗';
                     textSpan.appendChild(link);
 
                     setStatusStripNodes(strip, 'is-server', [
