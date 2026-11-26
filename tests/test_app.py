@@ -1052,6 +1052,7 @@ class AppTests(unittest.TestCase):
             ".result-card .actions-row .hidden",
             ".result-card .actions-row button:not(.hidden):not(.hide)",
             "#btn_transcribe.btn-transcribe-queued[data-queue-label]::after",
+            ".file-upload-zone .wrap:has(> .uploading)",
             "@media (min-width: 1025px) and (max-height: 559px)",
         ):
             with self.subTest(selector=selector):
@@ -1061,6 +1062,8 @@ class AppTests(unittest.TestCase):
         self.assertNotIn("onclick=", js_text)
         self.assertNotIn("btn.textContent =", js_text)
         self.assertIn("data-queue-label", js_text)
+        self.assertIn("upload-progress-track", js_text)
+        self.assertNotIn("45000", js_text)
 
 
 if __name__ == "__main__":

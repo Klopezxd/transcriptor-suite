@@ -207,7 +207,7 @@ PROVIDER_MODEL_CHOICES: dict[str, list[tuple[str, str]]] = {
     ],
     ProviderType.ASSEMBLYAI.value: [
         (
-            "assemblyai-stt-3-7 · Nueva Generación (Recomendado)",
+            "stt-3.7 · Nueva Generación (Recomendado)",
             AssemblyAIModel.ASSEMBLYAI_STT_3_7.value,
         ),
         (

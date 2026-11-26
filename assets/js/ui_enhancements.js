@@ -332,6 +332,8 @@
             let queueTriggerTimer = null;
             let abortCurrentOptimization = false;
             let uploadGenerationId = 0;
+            let uploadSessionToken = 0;
+            let currentUploadTotalBytes = 0;
 
             window.__abortOptimization = () => {
                 abortCurrentOptimization = true;
@@ -716,6 +718,7 @@
                     overlay.addEventListener('click', (e) => e.stopPropagation());
                     targetZone.appendChild(overlay);
                 }
+                overlay.classList.remove('is-uploading');
 
                 const dismissBtn = document.createElement('button');
                 dismissBtn.type = 'button';
@@ -773,6 +776,7 @@
                     overlay.addEventListener('click', (e) => e.stopPropagation());
                     targetZone.appendChild(overlay);
                 }
+                overlay.classList.add('is-uploading');
 
                 let defaultTitle = '⬆ Subiendo archivos al servidor...';
                 let defaultSub = 'Transfiriendo a Hugging Face Space';
@@ -790,15 +794,6 @@
                     defaultTitle = stats.anyAudio ? '⬆ Subiendo audio al servidor...' : `Subiendo ${stats.count} archivo(s)...`;
                     defaultSub = `${stats.mb} · Transfiriendo a Hugging Face Space`;
                 }
-
-                const dismissBtn = document.createElement('button');
-                dismissBtn.type = 'button';
-                dismissBtn.className = 'overlay-dismiss-btn';
-                dismissBtn.title = 'Cerrar overlay';
-                dismissBtn.textContent = '✕';
-                dismissBtn.addEventListener('click', () => {
-                    overlay.remove();
-                });
 
                 const body = document.createElement('div');
                 body.className = 'upload-overlay-body';
@@ -819,31 +814,94 @@
 
                 info.appendChild(loadingText);
                 info.appendChild(loadingSubtext);
+
+                const progressRow = document.createElement('div');
+                progressRow.className = 'upload-progress-row';
+
+                const progressTrack = document.createElement('div');
+                progressTrack.className = 'upload-progress-track is-indeterminate';
+                const progressFill = document.createElement('div');
+                progressFill.className = 'upload-progress-fill';
+                progressTrack.appendChild(progressFill);
+
+                const progressLabel = document.createElement('span');
+                progressLabel.className = 'upload-progress-label';
+                progressLabel.textContent = '0% · Iniciando...';
+
+                progressRow.appendChild(progressTrack);
+                progressRow.appendChild(progressLabel);
+                info.appendChild(progressRow);
+
                 if (isTranscriptionQueued) {
                     info.appendChild(createQueueBadgeNode());
                 }
 
                 body.appendChild(spinner);
                 body.appendChild(info);
-                overlay.replaceChildren(dismissBtn, body);
+                overlay.replaceChildren(body);
+                syncUploadProgressUI();
             };
+
+            const syncUploadProgressUI = () => {
+                const overlay = document.querySelector('.upload-loading-overlay.is-uploading');
+                if (!overlay) return;
+                const track = overlay.querySelector('.upload-progress-track');
+                const fill = overlay.querySelector('.upload-progress-fill');
+                const label = overlay.querySelector('.upload-progress-label');
+                if (!track || !fill || !label) return;
+
+                const rawWidth = document.documentElement.style.getPropertyValue('--upload-progress-width') || '0%';
+                const pct = Math.max(0, Math.min(100, parseFloat(rawWidth) || 0));
+
+                if (pct <= 0.1) {
+                    track.classList.add('is-indeterminate');
+                    fill.style.removeProperty('width');
+                    label.textContent = currentUploadTotalBytes > 0
+                        ? `0% · ${formatBytes(currentUploadTotalBytes)}`
+                        : '0% · Iniciando...';
+                    return;
+                }
+
+                track.classList.remove('is-indeterminate');
+                fill.style.width = `${pct.toFixed(1)}%`;
+                if (pct >= 99.9) {
+                    label.textContent = '100% · Finalizando...';
+                } else if (currentUploadTotalBytes > 0) {
+                    const uploadedBytes = (pct / 100) * currentUploadTotalBytes;
+                    label.textContent = `${Math.round(pct)}% · ${formatBytes(uploadedBytes)} / ${formatBytes(currentUploadTotalBytes)}`;
+                } else {
+                    label.textContent = `${Math.round(pct)}%`;
+                }
+            };
+
+            if ('MutationObserver' in window && !window.__transcriptorProgressObserver) {
+                window.__transcriptorProgressObserver = new MutationObserver(() => {
+                    if (isUploadingFiles) {
+                        syncUploadProgressUI();
+                    }
+                });
+                window.__transcriptorProgressObserver.observe(document.documentElement, {
+                    attributes: true,
+                    attributeFilter: ['style'],
+                });
+            }
 
             const hideUploadOverlay = () => {
                 document.querySelectorAll('.upload-loading-overlay').forEach((el) => el.remove());
             };
 
-            // Observador DOM en tiempo real: cierra el overlay en cuanto Gradio monte los archivos en pantalla
+            // Observador DOM en tiempo real: cierra el overlay en cuanto Gradio finalice la subida y monte los archivos
             const observeUploadZone = () => {
                 const zone = document.querySelector('.file-upload-zone, .upload-card');
                 if (!zone || zone.__transcriptorObserverAttached) return;
                 zone.__transcriptorObserverAttached = true;
                 const mo = new MutationObserver(() => {
+                    const isGradioUploading = !!zone.querySelector('.uploading');
                     const hasPreview = zone.querySelector('.file-preview-holder, table.file-preview, [data-testid="file-preview"], .icon-button-wrapper, .filename, table');
-                    if (hasPreview) {
+                    if (hasPreview && !isGradioUploading && !isExtractingAudio && activeUploadCount === 0) {
+                        isUploadingFiles = false;
                         hideUploadOverlay();
-                        if (!isExtractingAudio && !isUploadingFiles) {
-                            checkAndExecuteQueue();
-                        }
+                        checkAndExecuteQueue();
                     }
                 });
                 mo.observe(zone, { childList: true, subtree: true });
@@ -853,7 +911,9 @@
 
             const handleFilesUploadStart = (zone, files, optStats) => {
                 if (!files || files.length === 0) return;
+                const myToken = ++uploadSessionToken;
                 isUploadingFiles = true;
+                document.documentElement.style.setProperty('--upload-progress-width', '0%');
                 let totalBytes = 0;
                 let anyAudio = false;
                 for (let i = 0; i < files.length; i++) {
@@ -862,6 +922,7 @@
                         anyAudio = true;
                     }
                 }
+                currentUploadTotalBytes = totalBytes;
                 const mb = formatBytes(totalBytes);
                 if (optStats && optStats.processed) {
                     showUploadOverlay(zone, optStats);
@@ -869,11 +930,17 @@
                     const stats = { count: files.length, mb, anyAudio };
                     showUploadOverlay(zone, stats);
                 }
+                // Verificación de arranque: solo limpia si Gradio rechazó el archivo antes de iniciar la subida real
                 setTimeout(() => {
-                    hideUploadOverlay();
-                    isUploadingFiles = false;
-                    checkAndExecuteQueue();
-                }, 45000);
+                    if (myToken !== uploadSessionToken) return;
+                    const currentZone = getUploadZone(zone);
+                    const hasGradioUpload = !!(currentZone && currentZone.querySelector('.uploading'));
+                    if (!isExtractingAudio && activeUploadCount === 0 && !hasGradioUpload) {
+                        isUploadingFiles = false;
+                        hideUploadOverlay();
+                        checkAndExecuteQueue();
+                    }
+                }, 2500);
             };
 
             const processFilesWithAudioExtraction = async (zone, files) => {
@@ -1020,6 +1087,27 @@
                 }
             };
 
+            const beginUploadRequest = () => {
+                activeUploadCount++;
+                isUploadingFiles = true;
+            };
+
+            const finishUploadRequest = (immediate = false) => {
+                const complete = () => {
+                    activeUploadCount = Math.max(0, activeUploadCount - 1);
+                    if (activeUploadCount === 0 && !isExtractingAudio) {
+                        isUploadingFiles = false;
+                        hideUploadOverlay();
+                        if (!immediate) checkAndExecuteQueue();
+                    }
+                };
+                if (immediate) {
+                    complete();
+                } else {
+                    setTimeout(complete, 300);
+                }
+            };
+
             if (!window.__transcriptorHookedFetch && window.fetch) {
                 window.__transcriptorHookedFetch = true;
                 const origFetch = window.fetch;
@@ -1027,29 +1115,13 @@
                     const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
                     const body = args[1] ? args[1].body : undefined;
                     const isUpload = isGradioUploadRequest(url, body);
-                    if (isUpload) {
-                        activeUploadCount++;
-                        isUploadingFiles = true;
-                    }
+                    if (isUpload) beginUploadRequest();
                     try {
                         const res = await origFetch.apply(this, args);
-                        if (isUpload) {
-                            setTimeout(() => {
-                                activeUploadCount = Math.max(0, activeUploadCount - 1);
-                                if (activeUploadCount === 0) {
-                                    isUploadingFiles = false;
-                                    hideUploadOverlay();
-                                    checkAndExecuteQueue();
-                                }
-                            }, 300);
-                        }
+                        if (isUpload) finishUploadRequest(false);
                         return res;
                     } catch (err) {
-                        if (isUpload) {
-                            activeUploadCount = Math.max(0, activeUploadCount - 1);
-                            if (activeUploadCount === 0) isUploadingFiles = false;
-                            hideUploadOverlay();
-                        }
+                        if (isUpload) finishUploadRequest(true);
                         throw err;
                     }
                 };
@@ -1067,29 +1139,19 @@
                     const url = this.__transcriptorUrl || '';
                     const isUpload = isGradioUploadRequest(url, args[0]);
                     if (isUpload) {
-                        activeUploadCount++;
-                        isUploadingFiles = true;
+                        beginUploadRequest();
                         let finalized = false;
-                        const finishUpload = () => {
+                        const onEnd = () => {
                             if (finalized) return;
                             finalized = true;
-                            setTimeout(() => {
-                                activeUploadCount = Math.max(0, activeUploadCount - 1);
-                                if (activeUploadCount === 0) {
-                                    isUploadingFiles = false;
-                                    hideUploadOverlay();
-                                    checkAndExecuteQueue();
-                                }
-                            }, 300);
+                            finishUploadRequest(false);
                         };
-                        this.addEventListener('loadend', finishUpload, { once: true });
+                        this.addEventListener('loadend', onEnd, { once: true });
                         try {
                             return origSend.apply(this, args);
                         } catch (err) {
                             finalized = true;
-                            activeUploadCount = Math.max(0, activeUploadCount - 1);
-                            if (activeUploadCount === 0) isUploadingFiles = false;
-                            hideUploadOverlay();
+                            finishUploadRequest(true);
                             throw err;
                         }
                     }
@@ -1265,11 +1327,14 @@
                 const clearBtn = e.target && e.target.closest ? e.target.closest('#btn_clear, .file-upload-zone [aria-label*="Clear"], .file-upload-zone .icon-button-wrapper > button:last-child') : null;
                 if (clearBtn) {
                     uploadGenerationId++;
+                    uploadSessionToken++;
                     abortCurrentOptimization = true;
                     isTranscriptionQueued = false;
                     isExtractingAudio = false;
                     isUploadingFiles = false;
                     activeUploadCount = 0;
+                    currentUploadTotalBytes = 0;
+                    document.documentElement.style.setProperty('--upload-progress-width', '0%');
                     hideUploadOverlay();
                     updateQueueButtonVisual();
                     renderOptimizationBadge(null, null);
