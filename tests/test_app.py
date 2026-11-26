@@ -651,7 +651,7 @@ class AppTests(unittest.TestCase):
             self.assertIn("2 archivos procesados", yields[-1][3])
             self.assertFalse(yields[-1][6]["paused"])
 
-    def test_single_file_does_not_show_stop_button(self):
+    def test_single_file_does_not_show_stop_button_and_disables_transcribe_while_running(self):
         result = SimpleNamespace(
             formatted_text="Uno solo",
             detected_language="es",
@@ -670,8 +670,38 @@ class AppTests(unittest.TestCase):
                     progress=Mock(),
                 )
             )
-        self.assertEqual(len(yields), 1)
+        self.assertEqual(len(yields), 2)
+        # Primer yield inmediato mientras transcribe: botón deshabilitado y stop oculto
+        self.assertIn("Transcribiendo", yields[0][3])
+        self.assertTrue(yields[0][4].visible)
+        self.assertFalse(yields[0][4].interactive)
+        self.assertEqual(yields[0][4].value, "⏳ Transcribiendo...")
+        self.assertIn("btn-transcribe-disabled", yields[0][4].elem_classes)
         self.assertFalse(yields[0][5].visible)
+        # Yield final: resultado listo, botón sigue deshabilitado y stop oculto
+        self.assertEqual(yields[1][0], "Uno solo")
+        self.assertFalse(yields[1][4].interactive)
+        self.assertFalse(yields[1][5].visible)
+
+    def test_single_file_failure_reenables_transcribe_button(self):
+        pipeline = Mock(process=Mock(side_effect=RuntimeError("Fallo de red")))
+        with patch("app.create_transcription_pipeline", return_value=pipeline):
+            yields = list(
+                app.process_transcription_stream(
+                    ["uno.wav"],
+                    ProviderType.DEEPGRAM.value,
+                    "nova-2",
+                    False,
+                    "",
+                    deepgram_key_input="personal",
+                    progress=Mock(),
+                )
+            )
+        self.assertEqual(len(yields), 2)
+        self.assertFalse(yields[0][4].interactive)
+        self.assertFalse(yields[0][5].visible)
+        self.assertTrue(yields[1][4].interactive)
+        self.assertFalse(yields[1][5].visible)
 
     def test_config_change_invalidates_cached_results_on_resume(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

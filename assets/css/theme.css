@@ -2118,10 +2118,17 @@ li[role="option"][aria-selected="true"],
 
 /* Deshabilitado para botón Iniciar Transcripción */
 .btn-primary:disabled,
+.btn-primary:disabled:hover,
 .btn-primary[disabled],
+.btn-primary[disabled]:hover,
 button:disabled.btn-primary,
+button:disabled.btn-primary:hover,
 button[disabled].btn-primary,
-.btn-transcribe-disabled {
+button[disabled].btn-primary:hover,
+.btn-transcribe-disabled,
+.btn-transcribe-disabled:hover,
+#btn_transcribe.btn-transcribe-disabled,
+#btn_transcribe.btn-transcribe-disabled:hover {
     background: rgba(255, 255, 255, 0.04) !important;
     color: rgba(250, 251, 252, 0.25) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;

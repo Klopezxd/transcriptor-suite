@@ -639,17 +639,16 @@ def process_transcription_stream(
 
         try:
             if pending_items:
-                pipeline = create_transcription_pipeline(config)
                 pending_count = len(pending_items)
+                initial_results = _collect_cached_results(file_list, cached_results)
+                initial_text = (
+                    _format_batch_text(initial_results, [])
+                    if initial_results
+                    else ""
+                )
 
                 if can_pause_batch:
                     _set_batch_active(session_key, run_id)
-                    initial_results = _collect_cached_results(file_list, cached_results)
-                    initial_text = (
-                        _format_batch_text(initial_results, [])
-                        if initial_results
-                        else ""
-                    )
                     yield (
                         initial_text,
                         _disabled_download_button(),
@@ -661,6 +660,25 @@ def process_transcription_stream(
                         _visible_stop_button(stopping=False),
                         current_cache,
                     )
+                else:
+                    status_text = (
+                        f"⏳ Procesando ({len(initial_results)}/{total_files} listos)..."
+                        if initial_results
+                        else "⏳ Transcribiendo..."
+                    )
+                    yield (
+                        initial_text,
+                        _disabled_download_button(),
+                        _disabled_consolidated_button(),
+                        _build_status_badges(
+                            f'<span class="status-badge status-warning">{status_text}</span>'
+                        ),
+                        _disabled_transcribe_button("⏳ Transcribiendo..."),
+                        _hidden_stop_button(),
+                        current_cache,
+                    )
+
+                pipeline = create_transcription_pipeline(config)
 
                 def make_file_progress(current_idx: int, current_name: str):
                     def handler(sub_p: float, sub_msg: str) -> None:
